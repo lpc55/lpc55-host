@@ -1,6 +1,5 @@
 use ansi_term::Colour::Red;
 
-use lpc55::{Error, Result};
 use lpc55::cli::args::Args;
 
 fn main() {
@@ -12,7 +11,7 @@ fn main() {
 // fn try_main(args: Args) -> Result<()> {
 fn try_main(args: Args) -> lpc55::cli::args::Result<()> {
 
-    if let Some(command) = args.command() {
+    if let Some(_command) = args.command() {
         let (vid, pid) = (0x1fc9, 0x0021);
         let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
         println!("{:?}", &bootloader);
@@ -45,6 +44,10 @@ fn try_main(args: Args) -> lpc55::cli::args::Result<()> {
 
         println!("{:#?}", bootloader.all_properties());
         println!("{}", Red.bold().dimmed().blink().reverse().strikethrough().paint("Bye bye, world!").to_string());
+
+        if args.matches().0.is_present("verbose") {
+            println!("YAY");
+        }
     }
     Ok(())
 }

@@ -1,4 +1,4 @@
-use hidapi::{HidError, HidResult};
+use hidapi::HidError;
 
 pub mod bootloader;
 #[cfg(feature = "cli")]

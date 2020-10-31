@@ -1,10 +1,6 @@
-use core::convert::TryFrom;
-
 use serde::{Deserialize, Serialize};
 
-use crate::protocol::Protocol;
 use crate::status::*;
-use crate::Result;
 
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, enum_iterator::IntoEnumIterator, PartialEq)]
@@ -253,7 +249,7 @@ impl core::convert::TryFrom<u8> for FlashReadMargin {
 pub enum Command {
     FlashEraseAll,
     FlashEraseRegion,
-    ReadMemory,
+    ReadMemory { address: usize, length: usize },
     WriteMemory,
     FillMemory,
     FlashSecurityDisable,
@@ -273,7 +269,7 @@ impl From<Command> for u8 {
         match command {
             FlashEraseAll => 0x1,
             FlashEraseRegion => 0x2,
-            ReadMemory => 0x3,
+            ReadMemory { address: _, length: _ } => 0x3,
             WriteMemory => 0x4,
             FillMemory => 0x5,
             FlashSecurityDisable => 0x6,
@@ -305,7 +301,8 @@ bitflags::bitflags! {
 
 impl Command {
     pub fn hid_packet(&self) -> Vec<u8> {
-        let mut command_packet = self.to_bytes();
+        let command_packet = self.command_packet();
+        dbg!(command_packet.clone());
 
         let mut header = [0u8; 4];
         // pyMBoot does: `pack('<2BH', report_id, 0x00, data_len)`
@@ -321,35 +318,41 @@ impl Command {
         hid_packet
     }
 
-    pub fn to_bytes(&self) -> Vec<u8> {
-        fn command_header(tag: u8, flags: u8, num_params: u8) -> [u8; 4] {
-            let mut bytes = [0u8; 4];
-            bytes[0] = tag;
-            bytes[1] = 0;  // flags;
-            bytes[2] = 0;  // reserved
-            bytes[3] = num_params;
-            bytes
-        }
-        let tag = u8::from(*self);
+    fn construct_packet(&self, data_phase: bool, params: &[u32]) -> Vec<u8> {
+        assert!(params.len() <= 7);
+
+        let header = [
+            // command tag
+            {
+                let command = *self;
+                let tag = u8::from(command);
+                tag
+            },
+            // data phase flag
+            data_phase as u8,
+            // reserved
+            0,
+            // number of parameters
+            params.len() as u8,
+        ];
+
+        let mut packet = Vec::new();
+
+        packet.extend_from_slice(&header);
+        params.iter().for_each(|param| { dbg!(param); packet.extend_from_slice(param.to_le_bytes().as_ref()) } );
+        assert_eq!(packet.len(), 4*(1 + params.len()));
+
+        // packet.resize(32, 0);
+        packet
+    }
+
+    pub fn command_packet(&self) -> Vec<u8> {
+        let command = *self;
         use Command::*;
-        match *self {
+        match command {
             GetProperty(property) => {
-                let flags = 0;
-                let params = [
-                    // property
-                    property as u8 as u32,
-                    // memory ID (always 0)
-                    0u32,
-                ];
-
-                let header = command_header(tag, flags, params.len() as u8);
-
-                let mut packet = header.to_vec();
-                for param in params.iter() {
-                    packet.extend_from_slice(&param.to_le_bytes());
-                }
-                packet.resize(32, 0);
-                packet
+                dbg!(property as u8);
+                self.construct_packet(false, [property as u8 as u32, 0].as_ref())
             }
             _ => todo!()
         }
@@ -366,21 +369,21 @@ pub enum Response {
     FlashReadResource = 0xB0,
 }
 
-pub struct Report {
-    report_id: ReportId,
-    data: Vec<u8>,
-    offset: usize,
-}
+// pub struct Report {
+//     report_id: ReportId,
+//     data: Vec<u8>,
+//     offset: usize,
+// }
 
-impl Report {
-    pub fn new(report_id: ReportId, data: Vec<u8>) -> Self {
-        Self { report_id, data, offset: 0 }
-    }
+// impl Report {
+//     pub fn new(report_id: ReportId, data: Vec<u8>) -> Self {
+//         Self { report_id, data, offset: 0 }
+//     }
 
-    // pub fn encode(&self) -> Vec<u8> {
+//     // pub fn encode(&self) -> Vec<u8> {
 
-    // }
-}
+//     // }
+// }
 
 #[repr(u8)]
 #[derive(Clone, Debug, enum_iterator::IntoEnumIterator)]
@@ -413,4 +416,21 @@ pub struct Properties {
     pub crc_check_status: BootloaderError,
     pub reserved_regions: Vec<(usize, usize)>,
     pub irq_notification_pin: IrqNotificationPin,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn command_packet() {
+        // 7 0 0 2  1 0 0 0  0 0 0 0
+        insta::assert_debug_snapshot!(Command::GetProperty(Property::CurrentVersion).command_packet());
+    }
+
+    #[test]
+    fn hid_packet() {
+        // 1 0 C 0  7 0 0 2  1 0 0 0  0 0 0 0
+        insta::assert_debug_snapshot!(Command::GetProperty(Property::CurrentVersion).hid_packet());
+    }
 }

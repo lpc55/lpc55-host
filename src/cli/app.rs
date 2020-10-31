@@ -1,4 +1,4 @@
-use clap::{self, crate_authors, crate_version, App, SubCommand};
+use clap::{self, crate_authors, crate_version, App, Arg, SubCommand};
 
 const ABOUT: &str = "
 lpc55 offers various host-side utilities.
@@ -17,12 +17,21 @@ pub fn app() -> clap::App<'static, 'static> {
         // static ref LONG_VERSION: String = long_version(Some("47e1f"));
     }
 
-    let mut app = App::new("lpc55")
+    let app = App::new("lpc55")
         .author(crate_authors!())
         .version(crate_version!())
         .long_version(LONG_VERSION.as_str())
         .about(ABOUT)
         .help_message("Prints help information. Use --help for more details.")
+
+        .arg(Arg::with_name("verbose")
+             .long("verbose")
+             .short("v")
+             .help("Be verbose")
+             // even without this, `cmd -v subcommand` passes -v flag to subcommand's matches
+             // the difference is that now the parser allows user to `cmd subcommand -v`
+             .global(true)
+        )
 
         .subcommand(SubCommand::with_name("info")
             .about("query all properties from bootloader")

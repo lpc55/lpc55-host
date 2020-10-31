@@ -1,6 +1,6 @@
 use core::convert::TryInto;
 
-use hidapi::{HidApi, HidDevice};
+use hidapi::HidApi;
 use enum_iterator::IntoEnumIterator;
 
 use crate::protocol::Protocol;
@@ -25,14 +25,20 @@ impl Bootloader {
         Ok(Self { protocol, vid, pid } )
     }
 
-    pub fn command(&self, command: Command) {
-    }
+    // pub fn command(&self, command: Command) {
+    // }
 
     pub fn info(&self) {
         for property in Property::into_enum_iter() {
             println!("\n{:?}", property);
-            self.property(property);
+            self.property(property).ok();
         }
+    }
+
+    pub fn read(&self, address: usize, length: usize) -> Vec<u8> {
+
+        let _packet = Command::ReadMemory { address, length };
+        todo!();
     }
 
     // INFO:MBOOT:CMD: GetProperty(CurrentVersion, index=0)

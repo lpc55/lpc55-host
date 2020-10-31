@@ -164,7 +164,7 @@ impl Into<(Group, u8)> for BootloaderError {
             FlashDriver(error) => (Group::FlashDriver, error as u8),
             PropertyStore(error) => (Group::PropertyStore, error as u8),
             CrcChecker(error) => (Group::CrcChecker, error as u8),
-            Unknown(status) => panic!(),
+            Unknown(_status) => panic!(),
         }
     }
 }

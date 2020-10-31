@@ -35,7 +35,7 @@
 //   <- final data packet
 //   -> ACK
 
-use hidapi::{HidApi, HidDevice, HidResult};
+use hidapi::{HidDevice, HidResult};
 
 pub struct Protocol {
     device: HidDevice,

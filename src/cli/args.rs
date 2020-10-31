@@ -4,7 +4,7 @@ use std::io::{self, Write};
 use std::process;
 use std::sync::Arc;
 
-use clap::{self, crate_authors, crate_version, App, SubCommand};
+use clap;
 
 use crate::cli::app;
 use crate::logger::Logger;
@@ -23,10 +23,10 @@ pub enum Command {
 /// An `Args` object is cheap to clone and can be used from multiple threads
 /// simultaneously.
 #[derive(Clone, Debug)]
-pub struct Args(Arc<ArgsImp>);
+pub struct Args(pub Arc<ArgsImp>);
 
 #[derive(Clone, Debug)]
-struct ArgsImp {
+pub struct ArgsImp {
     /// Mid-to-low level routines for extracting CLI arguments.
     matches: ArgMatches,
 }
@@ -34,7 +34,7 @@ struct ArgsImp {
 /// `ArgMatches` wraps `clap::ArgMatches` and provides semantic meaning to
 /// the parsed arguments.
 #[derive(Clone, Debug)]
-struct ArgMatches(clap::ArgMatches<'static>);
+pub struct ArgMatches(pub clap::ArgMatches<'static>);
 
 impl ArgMatches {
     /// Create an ArgMatches from clap's parse result.
@@ -51,7 +51,7 @@ impl ArgMatches {
     pub fn command(&self) -> Option<Command> {
         // You can handle information about subcommands by requesting their matches by name
         // (as below), requesting just the name used, or both at the same time
-        if let Some(matches) = self.0.subcommand_matches("info") {
+        if let Some(_matches) = self.0.subcommand_matches("info") {
             // if matches.is_present("debug") {
             //     println!("Printing debug info...");
             // } else {
@@ -93,11 +93,11 @@ impl Args {
         //     log::set_max_level(log::LevelFilter::Warn);
         // }
 
-        /// (...)
+        // (...)
         early_matches.to_args()
     }
 
-    fn matches(&self) -> &ArgMatches {
+    pub fn matches(&self) -> &ArgMatches {
         &self.0.matches
     }
 
