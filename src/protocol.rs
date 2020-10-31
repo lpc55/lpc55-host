@@ -53,6 +53,18 @@ impl Protocol {
         data.resize(read, 0);
         Ok(data)
     }
+
+    // pub fn read_expected(&self, expected: usize, timeout: usize) -> HidResult<Vec<u8>> {
+    //     let mut data = Vec::new();
+    //     data.resize(expected, 0);
+    //     let mut remaining = expected;
+    //     while remaining > 0 {
+    //         let read = self.device.read_timeout(&mut data, timeout as i32)?;
+    //         remaining -= read;
+    //     }
+    //     // data.resize(read, 0);
+    //     Ok(data)
+    // }
 }
 
 impl Protocol {

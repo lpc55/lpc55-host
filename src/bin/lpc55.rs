@@ -3,19 +3,52 @@ use ansi_term::Colour::Red;
 use lpc55::cli::args::Args;
 
 fn main() {
-    if let Err(err) = Args::parse().and_then(try_main) {
+    // if let Err(err) = Args::parse().and_then(try_main) {
+    let args = lpc55::cli::app::app().get_matches();
+    if let Err(err) = try_main(args) {
         eprintln!("{}", err);
         std::process::exit(2);
     }
 }
 // fn try_main(args: Args) -> Result<()> {
-fn try_main(args: Args) -> lpc55::cli::args::Result<()> {
+fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
 
-    if let Some(_command) = args.command() {
+    if let Some(command) = args.subcommand_matches("info") {
+        let (vid, pid) = (0x1fc9, 0x0021);
+        let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
+
+        println!("{:#?}", bootloader.all_properties());
+        return Ok(());
+    }
+
+    if let Some(command) = args.subcommand_matches("read-memory") {
+
         let (vid, pid) = (0x1fc9, 0x0021);
         let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
         println!("{:?}", &bootloader);
 
+        let address = clap::value_t!(command.value_of("ADDRESS"), usize).unwrap();
+        let length = clap::value_t!(command.value_of("LENGTH"), usize).unwrap();
+        // let data = bootloader.read_memory_at_most_512(address, length);
+        let data = bootloader.read_memory(address, length);
+
+        if let Some(output_filename) = command.value_of("OUTPUT_FILE") {
+            let mut file = std::fs::File::create(output_filename)?;
+            use std::io::Write;
+            file.write_all(&data)?;
+            file.sync_all()?;
+        } else {
+            for chunk in data.chunks(16) {
+                println!("{}", lpc55::types::to_hex_string(chunk));
+            }
+        }
+        return Ok(());
+    }
+
+    Ok(())
+}
+
+////////
         // bootloader.info();
 
         // println!("current version: {}", bootloader.properties().current_version().unwrap());
@@ -42,12 +75,3 @@ fn try_main(args: Args) -> lpc55::cli::args::Result<()> {
         // }
         // println!("IRQ notification PIN: {:?}", bootloader.properties().irq_notification_pin().unwrap());
 
-        println!("{:#?}", bootloader.all_properties());
-        println!("{}", Red.bold().dimmed().blink().reverse().strikethrough().paint("Bye bye, world!").to_string());
-
-        if args.matches().0.is_present("verbose") {
-            println!("YAY");
-        }
-    }
-    Ok(())
-}

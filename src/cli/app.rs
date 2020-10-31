@@ -24,19 +24,39 @@ pub fn app() -> clap::App<'static, 'static> {
         .about(ABOUT)
         .help_message("Prints help information. Use --help for more details.")
 
-        .arg(Arg::with_name("verbose")
-             .long("verbose")
-             .short("v")
-             .help("Be verbose")
-             // even without this, `cmd -v subcommand` passes -v flag to subcommand's matches
-             // the difference is that now the parser allows user to `cmd subcommand -v`
-             .global(true)
-        )
+        // .arg(Arg::with_name("verbose")
+        //      .long("verbose")
+        //      .short("v")
+        //      .help("Be verbose")
+        //      // even without this, `cmd -v subcommand` passes -v flag to subcommand's matches
+        //      // the difference is that now the parser allows user to `cmd subcommand -v`
+        //      .global(true)
+        // )
 
         .subcommand(SubCommand::with_name("info")
+            .version(crate_version!())
+            .long_version(LONG_VERSION.as_str())
             .about("query all properties from bootloader")
             // .arg_from_usage("-d, --debug 'Print debug information'"))
         )
+
+        .subcommand(SubCommand::with_name("read-memory")
+            .version(crate_version!())
+            .long_version(LONG_VERSION.as_str())
+            .about("read out memory")
+            .arg(Arg::with_name("ADDRESS")
+                 .help("Address to start reading from")
+                 .required(true))
+            .arg(Arg::with_name("LENGTH")
+                 .help("Number of bytes to read")
+                 .required(true))
+            .arg(Arg::with_name("OUTPUT_FILE")
+                 .help("Sets the output file to use. If missing, hex-dumps to stdout.")
+                 .short("o")
+                 .long("output-file")
+                 .takes_value(true))
+        )
+        .setting(clap::AppSettings::ArgRequiredElseHelp)
 
     ;
 

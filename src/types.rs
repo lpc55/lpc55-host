@@ -2,6 +2,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::status::*;
 
+pub fn to_hex_string(bytes: &[u8]) -> String {
+    const HEX_CHARS_UPPER: &[u8; 16] = b"0123456789ABCDEF";
+    let mut string = String::new();
+    bytes.iter().for_each(|byte| {
+        string.push(HEX_CHARS_UPPER[(byte >> 4) as usize] as char);
+        string.push(HEX_CHARS_UPPER[(byte & 0xF) as usize] as char);
+        string.push(' ');
+    });
+    string
+}
+
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, enum_iterator::IntoEnumIterator, PartialEq)]
 pub enum Property {
@@ -302,12 +313,12 @@ bitflags::bitflags! {
 impl Command {
     pub fn hid_packet(&self) -> Vec<u8> {
         let command_packet = self.command_packet();
-        dbg!(command_packet.clone());
+        // dbg!(to_hex_string(&command_packet.clone()));
 
         let mut header = [0u8; 4];
         // pyMBoot does: `pack('<2BH', report_id, 0x00, data_len)`
         // MCU Bootloader 2.5.0 RM rev 1. (05/2018) says: 1 byte report ID, 2 bytes packet length
-        // It seems pyMBoot is right ,adn the RM is wrong
+        // It seems pyMBoot is right, and the RM is wrong
         header[..2].copy_from_slice(&(ReportId::CommandOut as u8 as u16).to_le_bytes());
         header[2..].copy_from_slice(&(command_packet.len() as u16).to_le_bytes());
 
@@ -339,10 +350,10 @@ impl Command {
         let mut packet = Vec::new();
 
         packet.extend_from_slice(&header);
-        params.iter().for_each(|param| { dbg!(param); packet.extend_from_slice(param.to_le_bytes().as_ref()) } );
+        params.iter().for_each(|param| { /*dbg!(param);*/ packet.extend_from_slice(param.to_le_bytes().as_ref()) } );
         assert_eq!(packet.len(), 4*(1 + params.len()));
 
-        // packet.resize(32, 0);
+        packet.resize(32, 0);
         packet
     }
 
@@ -351,8 +362,13 @@ impl Command {
         use Command::*;
         match command {
             GetProperty(property) => {
-                dbg!(property as u8);
+                // dbg!(property as u8);
                 self.construct_packet(false, [property as u8 as u32, 0].as_ref())
+            }
+            ReadMemory { address, length } => {
+                // PyMBOOT is kinda bugged here, it signals sending 3 parameters
+                // (but the third one is set to zero)
+                self.construct_packet(false, [address as u32, length as u32].as_ref())
             }
             _ => todo!()
         }

@@ -35,10 +35,89 @@ impl Bootloader {
         }
     }
 
-    pub fn read(&self, address: usize, length: usize) -> Vec<u8> {
+    /// TODO: Need to expect erorrs such as: `Response status = 139 (0x8b) kStatus_FLASH_NmpaUpdateNotAllowed`
+    /// This happens with `read-memory $((0x0009_FC70)) 16`, which would be the UUID
+    ///
+    /// TODO: Need to expect errors such as: `Response status = 10200 (0x27d8) kStatusMemoryRangeInvalid`
+    /// This happens with `read-memory $((0x5000_0FFC)) 1`, which would be the DIEID (for chip rev)
+    pub fn read_memory(&self, address: usize, length: usize) -> Vec<u8> {
+        let mut data = Vec::new();
+        let mut remaining = length;
+        let mut address = address;
+        while remaining > 0 {
+            let length = core::cmp::min(remaining, 512);
+            data.extend_from_slice(&self.read_memory_at_most_512(address, length));
+            remaining -= length;
+            address += length;
+        }
+        data
+    }
 
-        let _packet = Command::ReadMemory { address, length };
-        todo!();
+    pub fn read_memory_at_most_512(&self, address: usize, length: usize) -> Vec<u8> {
+
+        // construct
+        let packet = Command::ReadMemory { address, length }.hid_packet();
+
+        // send
+        // println!("send ({}): {}", packet.len(), to_hex_string(&packet));
+        let wrote = self.protocol.write(packet.as_slice()).expect("could not write");
+        assert_eq!(wrote, packet.len());
+
+        // expected memory readout from `blhost`:
+        // 00 00 04 20 c7 56 00 00 0b 57 00 00 5d 8d 00 00
+        // 0b 57 00 00 0b 57 00 00 0b 57 00 00 0b 57 00 00
+        // 00 00 00 00 00 00 00 00 00 00 00 00 0b 57 00 00
+        // 0b 57 00 00 00 00 00 00 0b 57 00 00 0b 57 00 00
+
+        // what happens:
+        // - we send
+        //                         Read    n_parms   addr     amount 512
+        // send (36): 01 00 20 00  03 00 00 02  00 00 00 00  00 02 00 00  00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00
+        //                0xC = 12 = header + 2 params                                                                                     Junk ->
+        // read (60): 03 00 0C 00  A3 01 00 02  00 00 00 00  00 02 00 00  00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00  FA AB D2 99 02 F0 23 F9 FF E7 F4 A8 05 F0 05 FC CF 90 FF E7 CF 98 00 F0
+        //
+        // read (60): 04 00 38 00  00 00 04 20 C7 56 00 00 0B 57 00 00 5D 8D 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00
+        // read (60): 04 00 38 00  0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00
+        // read (60): 04 00 38 00  0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        // read (60): 04 00 38 00  00 00 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00
+        // read (60): 04 00 38 00  00 00 00 00 00 00 00 00 0B 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00
+        // read (60): 04 00 38 00  0B 57 00 00 00 00 00 00 0B 57 00 00 00 00 00 00 0B 57 00 00 0B 57 00 00 80 B5 6F 46 00 F0 01 F8 FE DE B0 B5 02 AF AD F5 06 5D 0D F5 A3 50 D5 A9 D4 90 08 46 02 F0 8C F9
+        // read (60): 04 00 38 00  FF E7 F0 A8 01 F0 59 FF FF E7 60 20 03 F0 C1 FB D3 90 FF E7 EC A8 F0 A9 D3 9A 01 F0 68 FF FF E7 68 46 E6 A9 01 60 E9 A8 EC A9 E4 AA E5 AB 04 F0 D3 FD FF E7 48 F6 9C 51
+        // read (60): 04 00 38 00  C0 F2 00 01 E9 A8 02 F0 3E F8 8D F8 A0 13 E7 90 FF E7 48 F6 C0 50 C0 F2 00 00 01 68 48 F6 D8 50 C0 F2 00 00 00 68 FC 90 FC 98 D4 9A C2 F8 1C 0C 42 F2 95 03 C0 F2 00 03
+        // read (60): 04 00 38 00  D2 91 19 46 05 F0 00 F9 D1 90 D0 91 FF E7 D1 98 FA 90 D0 99 FB 91 6A 46 01 23 13 60 F4 A8 02 22 FA AB D2 99 02 F0 23 F9 FF E7 F4 A8 05 F0 05 FC CF 90 FF E7 CF 98 00 F0
+        // read (60): 04 00 08 00  01 00 48 F6 DC 51 C0 F2 D1 90 D0 91 FF E7 D1 98 FA 90 D0 99 FB 91 6A 46 01 23 13 60 F4 A8 02 22 FA AB D2 99 02 F0 23 F9 FF E7 F4 A8 05 F0 05 FC CF 90 FF E7 CF 98 00 F0
+        //
+        // read (60): 03 00 0C 00  A0 00 00 02  00 00 00 00  03 00 00 00  FF E7 D1 98 FA 90 D0 99 FB 91 6A 46 01 23 13 60 F4 A8 02 22 FA AB D2 99 02 F0 23 F9 FF E7 F4 A8 05 F0 05 FC CF 90 FF E7 CF 98 00 F0
+        // read (0):
+
+        // fetch response
+        let initial_generic_response = self.protocol.read_timeout(2000).expect("generic reponse first");
+        // dbg!(to_hex_string(&initial_generic_response));
+        assert_eq!([0x03, 0x00, 0x0C, 0x00], &initial_generic_response[..4]);
+        assert_eq!([0xA3, 0x01, 0x00, 0x02], &initial_generic_response[4..][..4]);
+
+        let mut remaining = length;
+        let mut data = Vec::new();
+        while remaining > 0 {
+            // dbg!(remaining);
+            let response = self.protocol.read_timeout(2000).expect("could not read");
+            assert!(response.len() >= 5);
+            // dbg!(to_hex_string(&response));
+            // println!("read ({}): {}", response.len(), to_hex_string(&response));
+            let [report_id, _, count, _]: [u8; 4] = response.as_slice()[..4].try_into().unwrap();
+            assert_eq!(report_id, ReportId::DataIn as u8);
+            let count = count as usize;
+            assert!(response.len() >= 4 + count);
+            assert!(count as usize <= remaining);
+            data.extend_from_slice(&response[4..][..count]);
+            remaining -= count;
+        }
+
+        let final_generic_response = self.protocol.read_timeout(2000).expect("generic reponse first");
+        assert_eq!([0x03, 0x00, 0x0C, 0x00], &final_generic_response[..4]);
+        assert_eq!([0xA0, 0x00, 0x00, 0x02], &final_generic_response[4..][..4]);
+
+        data
     }
 
     // INFO:MBOOT:CMD: GetProperty(CurrentVersion, index=0)
