@@ -13,7 +13,7 @@ ansi_term = "0.12.1"
 bitflags = "1.2.1"
 clap = { version = "2.33.3", default-features = false, optional = true }
 enum-iterator = "0.6.0"
-hidapi = "1.2.3"
+hidapi = { version = "1.2.3", default-features = false, features = ["linux-static-hidraw"] }
 serde = "1.0.117"
 log = "0.4.11"
 lazy_static = "1.4.0"
