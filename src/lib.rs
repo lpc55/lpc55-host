@@ -1,6 +1,9 @@
 use hidapi::{HidError, HidResult};
 
 pub mod bootloader;
+#[cfg(feature = "cli")]
+pub mod cli;
+pub mod logger;
 pub mod protocol;
 pub mod status;
 pub mod types;

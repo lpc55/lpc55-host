@@ -1,5 +1,7 @@
 use core::convert::TryFrom;
 
+use serde::{Deserialize, Serialize};
+
 #[repr(u8)]
 #[derive(Clone, Debug, enum_iterator::IntoEnumIterator)]
 pub enum Group {
@@ -37,7 +39,7 @@ impl TryFrom<u32> for Group {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum BootloaderError {
     Generic(GenericError),
     FlashDriver(FlashDriverError),
@@ -47,7 +49,7 @@ pub enum BootloaderError {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone, Debug, enum_iterator::IntoEnumIterator, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, enum_iterator::IntoEnumIterator, PartialEq, Serialize)]
 pub enum GenericError {
     Fail = 1,
     ReadOnly = 2,
@@ -74,7 +76,7 @@ impl TryFrom<u8> for GenericError {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone, Debug, enum_iterator::IntoEnumIterator, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, enum_iterator::IntoEnumIterator, PartialEq, Serialize)]
 pub enum FlashDriverError {
     Size = 0,
     Alignment = 1,
@@ -109,7 +111,7 @@ impl TryFrom<u8> for FlashDriverError {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone, Debug, enum_iterator::IntoEnumIterator, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, enum_iterator::IntoEnumIterator, PartialEq, Serialize)]
 pub enum PropertyStoreError {
     UnknownProperty = 0,
     ReadOnlyProperty = 1,
@@ -130,7 +132,7 @@ impl TryFrom<u8> for PropertyStoreError {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone, Debug, enum_iterator::IntoEnumIterator, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, enum_iterator::IntoEnumIterator, PartialEq, Serialize)]
 pub enum CrcCheckerError {
     Passed = 0,
     Failed = 1,

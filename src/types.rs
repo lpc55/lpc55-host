@@ -1,5 +1,7 @@
 use core::convert::TryFrom;
 
+use serde::{Deserialize, Serialize};
+
 use crate::protocol::Protocol;
 use crate::status::*;
 use crate::Result;
@@ -44,7 +46,7 @@ pub enum Property {
     PfrKeystoreUpdateOptions = 0x1D,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Version {
     pub mark: Option<char>,
     pub major: u8,
@@ -92,7 +94,8 @@ impl From<u32> for Version {
 }
 
 bitflags::bitflags! {
-    pub struct Peripherals: u32 {
+    #[derive(Deserialize, Serialize)]
+    pub struct AvailablePeripherals: u32 {
         const UART = 0x01;
         const I2C = 0x02;
         const SPI = 0x04;
@@ -104,7 +107,7 @@ bitflags::bitflags! {
 }
 
 #[repr(u32)]
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum PfrKeystoreUpdateOptions {
     KeyProvisioning = 0x00,
     WriteMemory = 0x01,
@@ -121,7 +124,7 @@ impl From<u32> for PfrKeystoreUpdateOptions {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct IrqNotificationPin {
     pub pin: u8,
     pub port: u8,
@@ -284,7 +287,8 @@ impl From<Command> for u8 {
 }
 
 bitflags::bitflags! {
-    pub struct CommandFlags: u32 {
+    #[derive(Deserialize, Serialize)]
+    pub struct AvailableCommands: u32 {
         const FLASH_ERASE_ALL = 1 << 0x1;
         const FLASH_ERASE_REGION = 1 << 0x2;
         const READ_MEMORY = 1 << 0x3;
@@ -388,12 +392,12 @@ pub enum ReportId {
 }
 
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Properties {
     pub current_version: Version,
     pub target_version: Version,
-    pub available_commands: CommandFlags,
-    pub available_peripherals: Peripherals,
+    pub available_commands: AvailableCommands,
+    pub available_peripherals: AvailablePeripherals,
     pub pfr_keystore_update_option: PfrKeystoreUpdateOptions,
     pub ram_start_address: usize,
     pub ram_size: usize,

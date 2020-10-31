@@ -1,0 +1,62 @@
+---
+source: src/bootloader.rs
+expression: bootloader.all_properties()
+---
+Properties {
+    current_version: Version {
+        mark: Some(
+            'K',
+        ),
+        major: 3,
+        minor: 0,
+        fixation: 0,
+    },
+    target_version: Version {
+        mark: Some(
+            'T',
+        ),
+        major: 1,
+        minor: 1,
+        fixation: 4,
+    },
+    available_commands: FLASH_ERASE_ALL | FLASH_ERASE_REGION | READ_MEMORY | FLASH_SECURITY_DISABLE | GET_PROPERTY | RECEIVE_SB_FILE | CALL | RESET | FLASH_READ_RESOURCE,
+    available_peripherals: UART | I2C | SPI | USB_HID,
+    pfr_keystore_update_option: KeyProvisioning,
+    ram_start_address: 536870912,
+    ram_size: 262144,
+    flash_start_address: 0,
+    flash_size: 646656,
+    flash_page_size: 512,
+    flash_sector_size: 32768,
+    verify_writes: true,
+    flash_locked: false,
+    max_packet_size: 56,
+    device_uuid: 155338961225952033859157619338358460731,
+    system_uuid: 1168442901135557,
+    crc_check_status: CrcChecker(
+        Invalid,
+    ),
+    reserved_regions: [
+        (
+            335544320,
+            335568895,
+        ),
+        (
+            67108864,
+            67141631,
+        ),
+        (
+            805306368,
+            805330943,
+        ),
+        (
+            536870912,
+            536895487,
+        ),
+    ],
+    irq_notification_pin: IrqNotificationPin {
+        pin: 0,
+        port: 0,
+        enabled: false,
+    },
+}

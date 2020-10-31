@@ -32,7 +32,6 @@ impl Bootloader {
         for property in Property::into_enum_iter() {
             println!("\n{:?}", property);
             self.property(property);
-            // self.get_property_list();
         }
     }
 
@@ -80,7 +79,7 @@ impl Bootloader {
         for value_bytes in rest.chunks_exact(4).take(num_params as usize - 1) {
             let value = u32::from_le_bytes(value_bytes.as_ref().try_into().unwrap());
             values.push(value);
-            println!("value: {:02x?} (0x{:08x} = {})", value_bytes, value, value);
+            // println!("value: {:02x?} (0x{:08x} = {})", value_bytes, value, value);
         }
 
         Ok(values)
@@ -148,11 +147,11 @@ impl GetProperties<'_> {
     pub fn max_packet_size(&self) -> std::result::Result<usize, BootloaderError> {
         Ok(self.bl.property(Property::MaxPacketSize)?[0] as _)
     }
-    pub fn available_peripherals(&self) -> std::result::Result<crate::types::Peripherals, BootloaderError> {
-        Ok(Peripherals::from_bits_truncate(self.bl.property(Property::AvailablePeripherals)?[0]))
+    pub fn available_peripherals(&self) -> std::result::Result<crate::types::AvailablePeripherals, BootloaderError> {
+        Ok(AvailablePeripherals::from_bits_truncate(self.bl.property(Property::AvailablePeripherals)?[0]))
     }
-    pub fn available_commands(&self) -> std::result::Result<crate::types::CommandFlags, BootloaderError> {
-        Ok(CommandFlags::from_bits_truncate(self.bl.property(Property::AvailableCommands)?[0]))
+    pub fn available_commands(&self) -> std::result::Result<crate::types::AvailableCommands, BootloaderError> {
+        Ok(AvailableCommands::from_bits_truncate(self.bl.property(Property::AvailableCommands)?[0]))
     }
     pub fn pfr_keystore_update_option(&self) -> std::result::Result<crate::types::PfrKeystoreUpdateOptions, BootloaderError> {
         let values = self.bl.property(Property::PfrKeystoreUpdateOptions)?;
@@ -207,4 +206,12 @@ impl GetProperties<'_> {
     pub fn irq_notification_pin(&self) -> std::result::Result<crate::types::IrqNotificationPin, BootloaderError> {
         Ok(IrqNotificationPin::from(self.bl.property(Property::IrqNotificationPin)?[0]))
     }
+}
+
+#[cfg(test)]
+#[test]
+fn test_all_properties() {
+    let (vid, pid) = (0x1fc9, 0x0021);
+    let bootloader = Bootloader::try_new(vid, pid).unwrap();
+    insta::assert_debug_snapshot!(bootloader.all_properties());
 }
