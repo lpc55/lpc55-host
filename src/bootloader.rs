@@ -60,8 +60,8 @@ impl Bootloader {
 
         // send
         // println!("send ({}): {}", packet.len(), to_hex_string(&packet));
-        let wrote = self.protocol.write(packet.as_slice()).expect("could not write");
-        assert_eq!(wrote, packet.len());
+        let _wrote = self.protocol.write(packet.as_slice()).expect("could not write");
+        //assert_eq!(_wrote, packet.len());
 
         // expected memory readout from `blhost`:
         // 00 00 04 20 c7 56 00 00 0b 57 00 00 5d 8d 00 00
@@ -137,8 +137,8 @@ impl Bootloader {
 
         // send command
         // println!("writing {:02x?}", &packet);
-        let wrote = self.protocol.write(packet.as_slice()).expect("could not write");
-        assert_eq!(wrote, packet.len());
+        let _wrote = self.protocol.write(packet.as_slice()).expect("could not write");
+        // assert_eq!(_wrote, packet.len());
 
         // fetch response
         let response = self.protocol.read_timeout(2000).expect("could not read");
