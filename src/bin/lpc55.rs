@@ -1,7 +1,3 @@
-use ansi_term::Colour::Red;
-
-use lpc55::cli::args::Args;
-
 fn main() {
     // if let Err(err) = Args::parse().and_then(try_main) {
     let args = lpc55::cli::app::app().get_matches();
@@ -13,7 +9,7 @@ fn main() {
 // fn try_main(args: Args) -> Result<()> {
 fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
 
-    if let Some(command) = args.subcommand_matches("info") {
+    if let Some(_command) = args.subcommand_matches("info") {
         let (vid, pid) = (0x1fc9, 0x0021);
         let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
 
