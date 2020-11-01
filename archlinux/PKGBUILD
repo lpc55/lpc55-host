@@ -1,0 +1,34 @@
+# Maintainer: Nicolas Stalder <n+archlinux@stalder.io>
+pkgname=lpc55
+pkgver=0.1.0pre
+pkgrel=1
+pkgdesc='lpc55 host-side utilities'
+arch=('x86_64')
+url="https://github.com/nickray/lpc55"
+license=(custom)
+# depends=('gcc-libs')
+makedepends=('rust' 'cargo' 'git' 'hidapi')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/chmln/sd/archive/v${pkgver}.tar.gz")
+source=("git+file:///home/nicolas/projects/lpc55")
+sha256sums=('SKIP')
+
+build() {
+  cd "$pkgname"
+  cargo build --release
+}
+
+check() {
+  cd "$pkgname"
+  cargo test --release
+}
+
+package() {
+  install -Dm755 "$pkgname/target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
+  # install -Dm644 "$pkgname-$pkgver/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+
+  install -d $pkgdir/usr/share/zsh/site-functions
+  cp -a $pkgname/target/release/_lpc55 $pkgdir/usr/share/zsh/site-functions
+
+  install -d $pkgdir/usr/share/bash-completion/completions
+  cp -a $pkgname/target/release/lpc55.bash $pkgdir/usr/share/bash-completion/completions/lpc55
+}
