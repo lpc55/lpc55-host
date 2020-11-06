@@ -11,6 +11,7 @@ use nom::{
 pub struct Pfr {
     pub cfpa: Cfpa,
     pub cmpa: Cmpa,
+    pub keystore: Keystore,
 }
 
 #[derive(Debug)]
@@ -61,6 +62,73 @@ where
     rot_keys_table_hash: Sha256Hash,
     customer_data: CustomerData,
     sha256_hash: Sha256Hash,
+}
+
+#[derive(Debug)]
+pub struct KeystoreHeader(u32);
+
+pub struct Keycode([u8; 56]);
+impl fmt::Debug for Keycode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let bytes = self.0;
+        f.write_fmt(format_args!("'{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x}'",
+                                 bytes[0], bytes[1], bytes[3],
+                                 bytes[56-3], bytes[56-2], bytes[56-1],))
+    }
+}
+
+pub struct ActivationCode([u8; 1192]);
+impl fmt::Debug for ActivationCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let bytes = self.0;
+        f.write_fmt(format_args!("'{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x}'",
+                                 bytes[0], bytes[1], bytes[3],
+                                 bytes[1192-3], bytes[1192-2], bytes[1192-1],))
+    }
+}
+
+#[derive(Debug)]
+pub struct Keystore {
+    header: KeystoreHeader,
+    puf_discharge_time_milliseconds: u32,
+    activation_code: ActivationCode,
+    secure_boot_kek: Keycode,
+    user_kek: Keycode,
+    uds_kek: Keycode,
+    prince_keks: [Keycode; 3],
+}
+
+#[derive(Debug)]
+pub struct Nmpa {
+    uuid: u128,
+}
+
+fn parse_keystore(input: &[u8]) -> IResult<&[u8], Keystore> {
+    let (input, header) = le_u32(input)?;
+    let (input, puf_discharge_time_milliseconds) = le_u32(input)?;
+    let (input, activation_code) = take!(input, 1192)?;
+    let (input, secure_boot_kek) = take!(input, 56)?;
+    let (input, user_kek) = take!(input, 56)?;
+    let (input, uds_kek) = take!(input, 56)?;
+    let (input, prince_kek_0) = take!(input, 56)?;
+    let (input, prince_kek_1) = take!(input, 56)?;
+    let (input, prince_kek_2) = take!(input, 56)?;
+
+    let keystore = Keystore {
+        header: KeystoreHeader(header),
+        puf_discharge_time_milliseconds,
+        activation_code: ActivationCode(activation_code.try_into().unwrap()),
+        secure_boot_kek: Keycode(secure_boot_kek.try_into().unwrap()),
+        user_kek: Keycode(user_kek.try_into().unwrap()),
+        uds_kek: Keycode(uds_kek.try_into().unwrap()),
+        prince_keks: [
+            Keycode(prince_kek_0.try_into().unwrap()),
+            Keycode(prince_kek_1.try_into().unwrap()),
+            Keycode(prince_kek_2.try_into().unwrap()),
+        ],
+    };
+
+    Ok((input, keystore))
 }
 
 fn parse_cmpa<CustomerData: CustomerDataCmpaRegion, VendorUsage: VendorUsageCmpaRegion>(input: &[u8])
@@ -234,6 +302,7 @@ pub struct SecureBootConfiguration {
     dice_computation_disabled: bool,
     include_cmpa_area_in_dice_computation: bool,
     include_nxp_area_in_dice_computation: bool,
+    include_security_epoch_area_in_dice_computation: bool,
     use_rsa4096_keys: bool,
 }
 
@@ -245,6 +314,8 @@ impl From<u32> for SecureBootConfiguration {
             puf_keycode_generation_disabled: multibool((word >> 10) & 0b11),
             trustzone_mode: TrustzoneMode::from((word >> 8) & 0b11),
             dice_computation_disabled: multibool((word >> 6) & 0b11),
+            // cf. UM 11126, Ch. 7, table 177
+            include_security_epoch_area_in_dice_computation: multibool((word >> 14) & 0b11),
             include_cmpa_area_in_dice_computation: multibool((word >> 4) & 0b11),
             include_nxp_area_in_dice_computation: multibool((word >> 2) & 0b11),
             use_rsa4096_keys: multibool((word >> 0) & 0b11),
@@ -282,6 +353,13 @@ impl From<u32> for PrinceConfiguration {
 }
 
 #[derive(Debug)]
+// UM, Chap. 7
+// Each bit in this field enables a sub-region of crypto region x at offset
+// 8kB*n, where n is the bit number. A 0 in bit n bit means encryption and
+// decryption of data associated with sub-region n is disabled. A 1 in bit n
+// means that data written to sub-region n during flash programming when
+// ENC_ENABLE.EN = 1 will be encrypted, and flash reads from
+// sub-region n will be decrypted using the PRINCE.
 pub struct PrinceSubregion(u32);
 
 impl core::convert::TryFrom<&[u8]> for Pfr {
@@ -289,8 +367,9 @@ impl core::convert::TryFrom<&[u8]> for Pfr {
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
         let cfpa = Cfpa::try_from(&input[..3*512]).unwrap();
         let cmpa = Cmpa::try_from(&input[3*512..4*512]).unwrap();
+        let keystore = Keystore::try_from(&input[4*512..7*512]).unwrap();
 
-        let pfr = Pfr { cfpa, cmpa };
+        let pfr = Pfr { cfpa, cmpa, keystore };
 
         Ok(pfr)
     }
@@ -305,9 +384,6 @@ impl fmt::Debug for RawCustomerData {
         f.write_fmt(format_args!("'{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x}'",
                                  bytes[0], bytes[1], bytes[3],
                                  bytes[224-3], bytes[224-2], bytes[224-1],))
-        // f.debug_tuple("RawCustomerData")
-        //  .field(&self.0)
-        //  .finish()
     }
 }
 impl From<[u8; 14*4*4]> for RawCustomerData {
@@ -665,5 +741,13 @@ where
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
         let (_input, page) = parse_cmpa(input).unwrap();
         Ok(page)
+    }
+}
+
+impl core::convert::TryFrom<&[u8]> for Keystore {
+    type Error = ();
+    fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
+        let (_input, keystore) = parse_keystore(input).unwrap();
+        Ok(keystore)
     }
 }
