@@ -71,9 +71,9 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
 
     if let Some(command) = args.subcommand_matches("pfr") {
         let data = bootloader.read_memory(0x9_DE00, 7*512);
-        let cfpa_data = data[..512].try_into().unwrap();
-        let cfpa = lpc55::pfr::Cfpa::try_from(&cfpa_data).unwrap();
-        println!("CFPA = {:#?}", &cfpa);
+        let pfr = lpc55::pfr::Pfr::try_from(&data[..]).unwrap();
+        println!("PFR = {:#?}", &pfr);
+        // println!("PFR = {:?}", &pfr);
         todo!("do something with the PFR data");
     }
 
