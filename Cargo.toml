@@ -15,6 +15,7 @@ bitflags = "1.2.1"
 clap = { version = "2.33.3", default-features = false, optional = true }
 enum-iterator = "0.6.0"
 hidapi = { version = "1.2.3", default-features = false, features = ["linux-static-hidraw"] }
+nom = { version = "6" }
 serde = "1.0.117"
 log = "0.4.11"
 lazy_static = "1.4.0"

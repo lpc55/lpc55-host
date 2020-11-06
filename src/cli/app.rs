@@ -24,6 +24,26 @@ pub fn app() -> clap::App<'static, 'static> {
         .about(ABOUT)
         .help_message("Prints help information. Use --help for more details.")
 
+        .arg(Arg::with_name("vid")
+             .long("vid")
+             // .long("verbose")
+             // .short("v")
+             .default_value("0x1fc9")
+             .help("VID of bootloader (hex)")
+             // even without this, `cmd -v subcommand` passes -v flag to subcommand's matches
+             // the difference is that now the parser allows user to `cmd subcommand -v`
+             .global(true)
+        )
+
+        .arg(Arg::with_name("pid")
+             .long("pid")
+             .default_value("0x0021")
+             .help("PID of bootloader (hex)")
+             // even without this, `cmd -v subcommand` passes -v flag to subcommand's matches
+             // the difference is that now the parser allows user to `cmd subcommand -v`
+             .global(true)
+        )
+
         // .arg(Arg::with_name("verbose")
         //      .long("verbose")
         //      .short("v")
@@ -33,12 +53,25 @@ pub fn app() -> clap::App<'static, 'static> {
         //      .global(true)
         // )
 
+        // .arg_from_usage("-d, --debug 'Print debug information'"))
+        // .arg_from_usage("-v, --verbose 'Be verbose - print debug level logs'")
+        .arg(Arg::with_name("v")
+              .short("v")
+              .multiple(true)
+              .global(true)
+              .help("Sets the level of verbosity"))
+
         .subcommand(SubCommand::with_name("info")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .visible_alias("i")
             .about("query all properties from bootloader")
-            // .arg_from_usage("-d, --debug 'Print debug information'"))
+        )
+
+        .subcommand(SubCommand::with_name("pfr")
+            .version(crate_version!())
+            .long_version(LONG_VERSION.as_str())
+            .about("read out and parse PFR")
         )
 
         .subcommand(SubCommand::with_name("read-memory")

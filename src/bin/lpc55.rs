@@ -1,3 +1,7 @@
+use core::convert::{TryFrom, TryInto};
+
+use log::debug;
+
 fn main() {
     // if let Err(err) = Args::parse().and_then(try_main) {
     let args = lpc55::cli::app::app().get_matches();
@@ -6,23 +10,74 @@ fn main() {
         std::process::exit(2);
     }
 }
+
+fn hexadecimal_value(input: &str) -> nom::IResult<&str, u16> {
+    use nom::{
+        combinator::map_res,
+        sequence::preceded,
+        branch::alt,
+        bytes::complete::tag,
+        combinator::recognize,
+        multi::many1,
+        sequence::terminated,
+        character::complete::one_of,
+        multi::many0,
+        character::complete::char,
+    };
+
+  map_res(
+    preceded(
+      alt((tag("0x"), tag("0X"))),
+      recognize(
+        many1(
+          terminated(one_of("0123456789abcdefABCDEF"), many0(char('_')))
+        )
+      )
+    ),
+    |out: &str| u16::from_str_radix(&str::replace(&out, "_", ""), 16)
+  )(input)
+}
+
+pub fn print_hex(data: impl AsRef<[u8]>, chunk_size: usize) {
+    for chunk in data.as_ref().chunks(chunk_size) {
+        println!("{}", lpc55::types::to_hex_string(chunk));
+    }
+}
+
 // fn try_main(args: Args) -> Result<()> {
 fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
 
-    if let Some(_command) = args.subcommand_matches("info") {
-        let (vid, pid) = (0x1fc9, 0x0021);
-        let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
+    lpc55::logger::Logger::init().unwrap();
 
+     match args.occurrences_of("v") {
+        0 => log::set_max_level(log::LevelFilter::Error),
+        1 => log::set_max_level(log::LevelFilter::Warn),
+        2 => log::set_max_level(log::LevelFilter::Debug),
+        _ => println!("Don't be crazy"),
+    };
+
+    // TODO: graceful parse error handling
+    // let vid = u16::from_str_radix(args.value_of("vid").unwrap().trim_start_matches("0x"), 16).unwrap();
+    let (_, vid) = hexadecimal_value(args.value_of("vid").unwrap()).unwrap();
+    let pid = u16::from_str_radix(args.value_of("pid").unwrap().trim_start_matches("0x"), 16).unwrap();
+
+    let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
+    debug!("{:?}", &bootloader);
+
+    if let Some(_command) = args.subcommand_matches("info") {
         println!("{:#?}", bootloader.all_properties());
         return Ok(());
     }
 
+    if let Some(command) = args.subcommand_matches("pfr") {
+        let data = bootloader.read_memory(0x9_DE00, 7*512);
+        let cfpa_data = data[..512].try_into().unwrap();
+        let cfpa = lpc55::pfr::Cfpa::try_from(&cfpa_data).unwrap();
+        println!("CFPA = {:#?}", &cfpa);
+        todo!("do something with the PFR data");
+    }
+
     if let Some(command) = args.subcommand_matches("read-memory") {
-
-        let (vid, pid) = (0x1fc9, 0x0021);
-        let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
-        println!("{:?}", &bootloader);
-
         let address = clap::value_t!(command.value_of("ADDRESS"), usize).unwrap();
         let length = clap::value_t!(command.value_of("LENGTH"), usize).unwrap();
         // let data = bootloader.read_memory_at_most_512(address, length);
@@ -34,9 +89,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
             file.write_all(&data)?;
             file.sync_all()?;
         } else {
-            for chunk in data.chunks(16) {
-                println!("{}", lpc55::types::to_hex_string(chunk));
-            }
+            print_hex(data, 16);
         }
         return Ok(());
     }

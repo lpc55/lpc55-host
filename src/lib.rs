@@ -24,6 +24,7 @@ pub mod bootloader;
 #[cfg(feature = "cli")]
 pub mod cli;
 pub mod logger;
+pub mod pfr;
 pub mod protocol;
 pub mod status;
 pub mod types;
