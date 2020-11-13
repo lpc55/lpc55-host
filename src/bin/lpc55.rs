@@ -72,7 +72,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
 
     if args.subcommand_matches("pfr").is_some() {
         let data = bootloader.read_memory(0x9_DE00, 7*512);
-        let empty = data.iter().all(|&byte| byte == 0);
+        // let empty = data.iter().all(|&byte| byte == 0);
         // if empty {
         //     println!("PFR region is completely zeroed out");
         // } else {
