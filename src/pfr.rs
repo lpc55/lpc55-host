@@ -1,27 +1,35 @@
 use core::convert::TryInto;
 use core::fmt;
 
+use serde::{Deserialize, Serialize};
+
 use nom::{
     IResult,
     number::complete::le_u32,
-    named, take,
+    take,
 };
 
-#[derive(Debug)]
+use serde_big_array::big_array;
+big_array! {
+    BigArray;
+    +1192,
+}
+
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Pfr {
     pub cfpa: Cfpa,
     pub cmpa: Cmpa,
     pub keystore: Keystore,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CfpaPage<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
     CustomerData: CustomerDataCfpaRegion,
     VendorUsage: VendorUsageCfpaRegion,
 {
     header: Header,
-    version: Version,
+    version: MonotonicCounter,
     /// monotonic counter
     secure_firmware_version: MonotonicCounter,
     /// monotonic counter
@@ -46,48 +54,52 @@ where
     sha256_hash: Sha256Hash,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Cmpa<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
     CustomerData: CustomerDataCmpaRegion,
     VendorUsage: VendorUsageCmpaRegion,
 {
-    boot_configuration: BootConfiguration,
-    usb_vid_pid: UsbVidPid,
-    debug_settings: DebugSecurityPolicies,
-    vendor_usage: VendorUsage,
-    secure_boot_configuration: SecureBootConfiguration,
-    prince_configuration: PrinceConfiguration,
-    prince_subregions: [PrinceSubregion; 3],
-    rot_keys_table_hash: Sha256Hash,
-    customer_data: CustomerData,
-    sha256_hash: Sha256Hash,
+    pub boot_configuration: BootConfiguration,
+    pub usb_vid_pid: UsbVidPid,
+    pub debug_settings: DebugSecurityPolicies,
+    pub vendor_usage: VendorUsage,
+    pub secure_boot_configuration: SecureBootConfiguration,
+    pub prince_configuration: PrinceConfiguration,
+    pub prince_subregions: [PrinceSubregion; 3],
+    pub rot_keys_table_hash: Sha256Hash,
+    pub customer_data: CustomerData,
+    pub sha256_hash: Sha256Hash,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct KeystoreHeader(u32);
 
-pub struct Keycode([u8; 56]);
+#[derive(Copy, Clone, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct Keycode(
+    #[serde(with = "BigArray")]
+    [u8; 56]
+);
+
 impl fmt::Debug for Keycode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let bytes = self.0;
-        f.write_fmt(format_args!("'{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x}'",
-                                 bytes[0], bytes[1], bytes[3],
-                                 bytes[56-3], bytes[56-2], bytes[56-1],))
+        format_bytes(&self.0, f)
     }
 }
 
-pub struct ActivationCode([u8; 1192]);
+#[derive(Copy, Clone, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct ActivationCode(
+    #[serde(with = "BigArray")]
+    [u8; 1192]
+);
+
 impl fmt::Debug for ActivationCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let bytes = self.0;
-        f.write_fmt(format_args!("'{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x}'",
-                                 bytes[0], bytes[1], bytes[3],
-                                 bytes[1192-3], bytes[1192-2], bytes[1192-1],))
+        format_bytes(&self.0, f)
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Keystore {
     header: KeystoreHeader,
     puf_discharge_time_milliseconds: u32,
@@ -98,7 +110,7 @@ pub struct Keystore {
     prince_keks: [Keycode; 3],
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Nmpa {
     uuid: u128,
 }
@@ -136,8 +148,10 @@ fn parse_cmpa<CustomerData: CustomerDataCmpaRegion, VendorUsage: VendorUsageCmpa
 {
     let (input, boot_cfg) = le_u32(input)?;
     let (input, _spi_flash_cfg) = le_u32(input)?;
+    assert_eq!(_spi_flash_cfg, 0);
     let (input, usb_id) = le_u32(input)?;
     let (input, _sdio_cfg) = le_u32(input)?;
+    assert_eq!(_sdio_cfg, 0);
     let (input, cc_socu_pin) = le_u32(input)?;
     let (input, cc_socu_default) = le_u32(input)?;
 
@@ -152,7 +166,7 @@ fn parse_cmpa<CustomerData: CustomerDataCmpaRegion, VendorUsage: VendorUsageCmpa
     // reserved
     let (input, _) = take!(input, 8 * 4)?;
 
-    let (input, rotk_keys_table_hash) = take!(input, 32)?;
+    let (input, rot_keys_table_hash) = take!(input, 32)?;
 
     // reserved
     let (input, _) = take!(input, 9 * 4 * 4)?;
@@ -173,7 +187,7 @@ fn parse_cmpa<CustomerData: CustomerDataCmpaRegion, VendorUsage: VendorUsageCmpa
             PrinceSubregion(prince_sr_1),
             PrinceSubregion(prince_sr_2),
         ],
-        rot_keys_table_hash: Sha256Hash(rotk_keys_table_hash.try_into().unwrap()),
+        rot_keys_table_hash: Sha256Hash(rot_keys_table_hash.try_into().unwrap()),
         customer_data: CustomerData::from(customer_data.try_into().unwrap()),
         sha256_hash: Sha256Hash(sha256_hash.try_into().unwrap()),
     };
@@ -182,7 +196,7 @@ fn parse_cmpa<CustomerData: CustomerDataCmpaRegion, VendorUsage: VendorUsageCmpa
 }
 
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum BootSpeed {
     Nmpa,
     Fro48,
@@ -202,7 +216,7 @@ impl From<u8> for BootSpeed {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum IspMode {
     Auto,
     Usb,
@@ -228,7 +242,7 @@ impl From<u8> for IspMode {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct BootConfiguration {
     pub failure_port: u8,
     pub failure_pin: u8,
@@ -247,7 +261,7 @@ impl From<u32> for BootConfiguration {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UsbVidPid {
     vid: u16,
     pid: u16,
@@ -270,7 +284,7 @@ fn multibool(bits: u32) -> bool {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[repr(u8)]
 pub enum TrustzoneMode {
     FromImageHeader = 0b00,
@@ -293,7 +307,7 @@ impl From<u32> for TrustzoneMode {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct SecureBootConfiguration {
     secure_boot_enabled: bool,
     puf_enrollment_disabled: bool,
@@ -323,7 +337,7 @@ impl From<u32> for SecureBootConfiguration {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PrinceConfiguration {
     erase_checks: [bool; 3],
     locked: [bool; 3],
@@ -352,7 +366,7 @@ impl From<u32> for PrinceConfiguration {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 // UM, Chap. 7
 // Each bit in this field enables a sub-region of crypto region x at offset
 // 8kB*n, where n is the bit number. A 0 in bit n bit means encryption and
@@ -375,15 +389,40 @@ impl core::convert::TryFrom<&[u8]> for Pfr {
     }
 }
 
+fn format_bytes(bytes: &[u8], f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    // let l = bytes.len();
+    let empty = bytes.iter().all(|&byte| byte == 0);
+    if empty {
+        // return f.write_fmt(format_args!("<all zero>"));
+        return f.write_fmt(format_args!("∅"));
+    }
+
+    for byte in bytes.iter() {
+        f.write_fmt(format_args!("{:02X} ", byte))?;
+    }
+    Ok(())
+    // let info = if empty { "empty" } else { "non-empty" };
+
+    // f.write_fmt(format_args!(
+    //     "'{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x} ({})'",
+    //     bytes[0], bytes[1], bytes[3],
+    //     bytes[l-3], bytes[l-2], bytes[l-1],
+    //     info,
+    // ))
+}
+
 pub trait CustomerDataCfpaRegion: fmt::Debug + From<[u8; 14*4*4]> {}
 pub trait CustomerDataCmpaRegion: fmt::Debug + From<[u8; 14*4*4]> {}
-pub struct RawCustomerData([u8; 4*4*14]);
+
+#[derive(Copy, Clone, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct RawCustomerData(
+    #[serde(with = "BigArray")]
+    [u8; 4*4*14]
+);
+
 impl fmt::Debug for RawCustomerData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let bytes = self.0;
-        f.write_fmt(format_args!("'{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x}'",
-                                 bytes[0], bytes[1], bytes[3],
-                                 bytes[224-3], bytes[224-2], bytes[224-1],))
+        format_bytes(&self.0, f)
     }
 }
 impl From<[u8; 14*4*4]> for RawCustomerData {
@@ -395,15 +434,15 @@ impl CustomerDataCfpaRegion for RawCustomerData {}
 impl CustomerDataCmpaRegion for RawCustomerData {}
 
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Cfpa<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
     CustomerData: CustomerDataCfpaRegion,
     VendorUsage: VendorUsageCfpaRegion,
 {
-    scratch: CfpaPage<CustomerData, VendorUsage>,
-    ping: CfpaPage<CustomerData, VendorUsage>,
-    pong: CfpaPage<CustomerData, VendorUsage>,
+    pub scratch: CfpaPage<CustomerData, VendorUsage>,
+    pub ping: CfpaPage<CustomerData, VendorUsage>,
+    pub pong: CfpaPage<CustomerData, VendorUsage>,
 }
 
 impl core::convert::TryFrom<&[u8]> for Cfpa {
@@ -419,22 +458,22 @@ impl core::convert::TryFrom<&[u8]> for Cfpa {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Header(u32);
 
-#[derive(Debug)]
-pub struct Version(u32);
+// #[derive(Debug)]
+// pub struct Version(u32);
 
 pub trait VendorUsageCfpaRegion: fmt::Debug + From<u32> {}
 pub trait VendorUsageCmpaRegion: fmt::Debug + From<u32> {}
+#[derive(Copy, Clone, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RawVendorUsage(u32);
 impl fmt::Debug for RawVendorUsage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("RawVendorUsage")
-         .field(&self.0)
-         .finish()
+        f.debug_tuple("RawVendorUsage").field(&self.0).finish()
     }
 }
+
 impl From<u32> for RawVendorUsage {
     fn from(word: u32) -> Self {
         Self(word)
@@ -443,17 +482,16 @@ impl From<u32> for RawVendorUsage {
 impl VendorUsageCfpaRegion for RawVendorUsage {}
 impl VendorUsageCmpaRegion for RawVendorUsage {}
 
+#[derive(Copy, Clone, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Sha256Hash([u8; 32]);
 impl fmt::Debug for Sha256Hash {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let bytes = self.0;
-        f.write_fmt(format_args!("'{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x}'",
-                                 bytes[0], bytes[1], bytes[3],
-                                 bytes[32-3], bytes[32-2], bytes[32-1],))
+        format_bytes(&self.0, f)
     }
 }
 
 /// CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active CFPA page each time CMPA page programming is going on. It shall always be set to 0x00000000 in the CFPA scratch area.
+#[derive(Copy, Clone, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CmpaProgInProgress(u32);
 
 impl fmt::Debug for CmpaProgInProgress {
@@ -467,7 +505,7 @@ impl fmt::Debug for CmpaProgInProgress {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RotKeysStatus {
     key_0_status: RotKeyStatus,
     key_1_status: RotKeyStatus,
@@ -475,13 +513,13 @@ pub struct RotKeysStatus {
     key_3_status: RotKeyStatus,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 /// Generated and used only by bootloader.
 ///
 /// Not to be modified by user.
 pub struct PrinceIvCode(u32);
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MonotonicCounter(u32);
 
 impl MonotonicCounter {
@@ -495,7 +533,7 @@ impl MonotonicCounter {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum RotKeyStatus {
     Invalid,
     Enabled,
@@ -525,7 +563,7 @@ impl From<u32> for RotKeysStatus {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum DebugSecurityPolicy {
     EnableWithDap,
     Disabled,
@@ -561,7 +599,7 @@ impl From<[bool; 2]> for DebugSecurityPolicy {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct DebugSecurityPolicies {
     nonsecure_noninvasive: DebugSecurityPolicy,
     nonsecure_invasive: DebugSecurityPolicy,
@@ -698,7 +736,7 @@ fn parse_cfpa_page<CustomerData: CustomerDataCfpaRegion, VendorUsage: VendorUsag
 
     let page = CfpaPage {
         header: Header(header),
-        version: Version(version),
+        version: MonotonicCounter::from(version),
         secure_firmware_version: MonotonicCounter::from(secure_firmware_version),
         nonsecure_firmware_version: MonotonicCounter::from(nonsecure_firmware_version),
         image_key_revocation_id: MonotonicCounter::from(image_key_revocation_id),

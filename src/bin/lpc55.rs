@@ -1,4 +1,5 @@
-use core::convert::{TryFrom, TryInto};
+// use core::convert::{TryFrom, TryInto};
+use core::convert::TryFrom;
 
 use log::debug;
 
@@ -69,12 +70,24 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
         return Ok(());
     }
 
-    if let Some(command) = args.subcommand_matches("pfr") {
+    if args.subcommand_matches("pfr").is_some() {
         let data = bootloader.read_memory(0x9_DE00, 7*512);
+        let empty = data.iter().all(|&byte| byte == 0);
+        // if empty {
+        //     println!("PFR region is completely zeroed out");
+        // } else {
+        //     println!("PFR region is not completely zeroed out");
+        // }
         let pfr = lpc55::pfr::Pfr::try_from(&data[..]).unwrap();
-        println!("PFR = {:#?}", &pfr);
+        // println!("PFR = {:#?}", &pfr);
         // println!("PFR = {:?}", &pfr);
-        todo!("do something with the PFR data");
+
+        let j = serde_json::to_string(&pfr).unwrap();
+        println!("{}", j);
+
+        // println!("CFPA-scratch == CFPA-ping: {}", pfr.cfpa.scratch == pfr.cfpa.ping);
+        // println!("CFPA-scratch == CFPA-pong: {}", pfr.cfpa.scratch == pfr.cfpa.pong);
+        // println!("CFPA-ping == CFPA-pong: {}", pfr.cfpa.ping == pfr.cfpa.pong);
     }
 
     if let Some(command) = args.subcommand_matches("read-memory") {
