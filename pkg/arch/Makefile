@@ -21,4 +21,4 @@ build-devtools-chroot:
 	extra-x86_64-build
 
 clean:
-	rm -rf lpc55* pkg src
+	rm -rf lpc55* pkg src *.log
