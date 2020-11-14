@@ -60,15 +60,15 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
 
     // TODO: graceful parse error handling
     // let vid = u16::from_str_radix(args.value_of("vid").unwrap().trim_start_matches("0x"), 16).unwrap();
-    let (_, vid) = hexadecimal_value(args.value_of("vid").unwrap()).unwrap();
-    let pid = u16::from_str_radix(args.value_of("pid").unwrap().trim_start_matches("0x"), 16).unwrap();
+    let (_, vid) = hexadecimal_value(args.value_of("VID").unwrap()).unwrap();
+    let pid = u16::from_str_radix(args.value_of("PID").unwrap().trim_start_matches("0x"), 16).unwrap();
 
     let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
     debug!("{:?}", &bootloader);
 
     if let Some(command) = args.subcommand_matches("http") {
-        let addr = command.value_of("addr").unwrap().to_string();
-        let port = u16::from_str_radix(command.value_of("port").unwrap(), 10).unwrap();
+        let addr = command.value_of("ADDR").unwrap().to_string();
+        let port = u16::from_str_radix(command.value_of("PORT").unwrap(), 10).unwrap();
         let http_config = lpc55::http::HttpConfig { addr, port, timeout_ms: 5000 };
         let server = lpc55::http::Server::new(&http_config, bootloader)?;
         server.run()?;
@@ -80,7 +80,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
         return Ok(());
     }
 
-    if args.subcommand_matches("pfr").is_some() {
+    if let Some(command) = args.subcommand_matches("pfr") {
         let data = bootloader.read_memory(0x9_DE00, 7*512);
         // let empty = data.iter().all(|&byte| byte == 0);
         // if empty {
@@ -92,8 +92,18 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
         // println!("PFR = {:#?}", &pfr);
         // println!("PFR = {:?}", &pfr);
 
-        let j = serde_json::to_string(&pfr).unwrap();
-        println!("{}", j);
+        match command.value_of("FORMAT").unwrap() {
+            "alt-native" => println!("{:#?}", &pfr),
+            "native" => println!("{:?}", &pfr),
+            "json" => println!("{}", serde_json::to_string(&pfr).unwrap()),
+            "json-pretty" => println!("{}", serde_json::to_string_pretty(&pfr).unwrap()),
+            "toml" => println!("{}", toml::to_string(&pfr).unwrap()),
+            "yaml" => println!("{}", serde_yaml::to_string(&pfr).unwrap()),
+            // "yaml-pretty" => println!("{}", serde_yaml::to_string_pretty(&pfr).unwrap()),
+            _ => panic!(),
+        }
+        // let j = serde_json::to_string(&pfr).unwrap();
+        // println!("{}", j);
 
         // println!("CFPA-scratch == CFPA-ping: {}", pfr.cfpa.scratch == pfr.cfpa.ping);
         // println!("CFPA-scratch == CFPA-pong: {}", pfr.cfpa.scratch == pfr.cfpa.pong);

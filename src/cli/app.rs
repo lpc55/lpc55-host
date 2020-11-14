@@ -24,7 +24,7 @@ pub fn app() -> clap::App<'static, 'static> {
         .about(ABOUT)
         .help_message("Prints help information. Use --help for more details.")
 
-        .arg(Arg::with_name("vid")
+        .arg(Arg::with_name("VID")
              .long("vid")
              // .long("verbose")
              // .short("v")
@@ -35,7 +35,7 @@ pub fn app() -> clap::App<'static, 'static> {
              .global(true)
         )
 
-        .arg(Arg::with_name("pid")
+        .arg(Arg::with_name("PID")
              .long("pid")
              .default_value("0x0021")
              .help("PID of bootloader (hex)")
@@ -57,21 +57,22 @@ pub fn app() -> clap::App<'static, 'static> {
         // .arg_from_usage("-v, --verbose 'Be verbose - print debug level logs'")
         .arg(Arg::with_name("v")
               .short("v")
+              .long("verbose")
               .multiple(true)
               .global(true)
-              .help("Sets the level of verbosity"))
+              .help("Sets the level of verbosity (use multiple times to increase, e.g. -vv means INFO level logs)"))
 
         .subcommand(SubCommand::with_name("http")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .visible_alias("h")
-            .about("serve bootloader connector as http API")
-            .arg(Arg::with_name("addr")
+            .about("Serve http API to bootloader connector")
+            .arg(Arg::with_name("ADDR")
                  .help("Address to bind to")
                  .long("addr")
                  .default_value("127.0.0.1")
              )
-            .arg(Arg::with_name("port")
+            .arg(Arg::with_name("PORT")
                  .help("Port to listen on")
                  .long("port")
                  .default_value("2020")
@@ -89,6 +90,18 @@ pub fn app() -> clap::App<'static, 'static> {
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("read out and parse PFR")
+            .arg(Arg::with_name("FORMAT")
+                 .help("Format to output the parsed PFR")
+                 .long("format")
+                 .default_value("json")
+                 .possible_values(&[
+                     "native",
+                     "alt-native",
+                     "json",
+                     "json-pretty",
+                     "yaml",
+                 ])
+             )
         )
 
         .subcommand(SubCommand::with_name("read-memory")

@@ -22,6 +22,13 @@ fn main() {
             process::exit(1);
         }
     };
+
+    // empty file that is used in scripts/cargo-out-dir
+    let stamp_path = path::Path::new(&env_outdir).join("lpc55-stamp");
+    if let Err(err) = fs::File::create(&stamp_path) {
+        panic!("failed to write {}: {}", stamp_path.display(), err);
+    }
+
     // place side by side with binaries
     let outdir = path::PathBuf::from(path::PathBuf::from(env_outdir).ancestors().skip(3).next().unwrap());
     fs::create_dir_all(&outdir).unwrap();
