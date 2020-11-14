@@ -1,0 +1,24 @@
+field-area-version = 3
+firmware-version = 1
+
+root_certs = [
+	"example-root-certs/ca_certificate_0.der",
+	"example-root-certs/ca_certificate_1.der",
+	"example-root-certs/ca_certificate_2.der",
+	"example-root-certs/ca_certificate_3.der",
+]
+
+[cfpa]
+rot_keys_status = ["Enabled", "Enabled", "Enabled", "Enabled"]
+
+[cfpa.boot_configuration]
+speed = "48Mhz"
+mode = "Usb"
+
+[cfpa.usb_vid_pid]
+vid = 0x1209
+pid = 0xb000
+
+[cmpa.secure_boot_configuration]
+secure_boot_enabled = true
+dice_computation_disabled = true

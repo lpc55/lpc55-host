@@ -237,7 +237,7 @@ impl core::convert::TryFrom<u8> for FlashReadMargin {
 //             ReliableUpdateStatus = 0x1A,
 //             FlashPageSize = 0x1B,
 //             IrqNotifierPin = 0x1C,
-//             PfrKeystoreUpdateOpt = 0x1D,
+//             ProtectedFlashKeystoreUpdateOpt = 0x1D,
 //         }
 //     }
 // }

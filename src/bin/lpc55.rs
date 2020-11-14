@@ -1,5 +1,6 @@
 // use core::convert::{TryFrom, TryInto};
 use core::convert::TryFrom;
+use std::io::{self, Write as _};
 
 use log::debug;
 
@@ -37,12 +38,6 @@ fn hexadecimal_value(input: &str) -> nom::IResult<&str, u16> {
     ),
     |out: &str| u16::from_str_radix(&str::replace(&out, "_", ""), 16)
   )(input)
-}
-
-pub fn print_hex(data: impl AsRef<[u8]>, chunk_size: usize) {
-    for chunk in data.as_ref().chunks(chunk_size) {
-        println!("{}", lpc55::types::to_hex_string(chunk));
-    }
 }
 
 // fn try_main(args: Args) -> Result<()> {
@@ -88,7 +83,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
         // } else {
         //     println!("PFR region is not completely zeroed out");
         // }
-        let pfr = lpc55::pfr::Pfr::try_from(&data[..]).unwrap();
+        let pfr = lpc55::pfr::ProtectedFlash::try_from(&data[..]).unwrap();
         // println!("PFR = {:#?}", &pfr);
         // println!("PFR = {:?}", &pfr);
 
@@ -97,6 +92,13 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
             "native" => println!("{:?}", &pfr),
             "json" => println!("{}", serde_json::to_string(&pfr).unwrap()),
             "json-pretty" => println!("{}", serde_json::to_string_pretty(&pfr).unwrap()),
+            "raw" => {
+                if atty::is(atty::Stream::Stdout) {
+                    panic!("don't dump binary data to terminal");
+                } else {
+                    io::stdout().write_all(&data).unwrap()
+                }
+            }
             "toml" => println!("{}", toml::to_string(&pfr).unwrap()),
             "yaml" => println!("{}", serde_yaml::to_string(&pfr).unwrap()),
             // "yaml-pretty" => println!("{}", serde_yaml::to_string_pretty(&pfr).unwrap()),
@@ -122,10 +124,16 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
             file.write_all(&data)?;
             file.sync_all()?;
         } else {
-            print_hex(data, 16);
+            lpc55::print_hex(data, 16);
         }
         return Ok(());
     }
+
+    if let Some(command) = args.subcommand_matches("rotkh") {
+        let config_filename = command.value_of("CONFIG").unwrap();
+        lpc55::rotkh::calculate(config_filename)?;
+    }
+
 
     Ok(())
 }

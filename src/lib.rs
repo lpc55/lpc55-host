@@ -29,11 +29,18 @@ pub mod http;
 pub mod logger;
 pub mod pfr;
 pub mod protocol;
+pub mod rotkh;
 pub mod status;
 pub mod types;
 
 #[macro_use]
 extern crate log;
+
+pub fn print_hex(data: impl AsRef<[u8]>, chunk_size: usize) {
+    for chunk in data.as_ref().chunks(chunk_size) {
+        println!("{}", types::to_hex_string(chunk));
+    }
+}
 
 #[derive(Debug)]
 pub enum Error {

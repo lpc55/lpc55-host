@@ -99,6 +99,7 @@ pub fn app() -> clap::App<'static, 'static> {
                      "alt-native",
                      "json",
                      "json-pretty",
+                     "raw",
                      "yaml",
                  ])
              )
@@ -121,6 +122,16 @@ pub fn app() -> clap::App<'static, 'static> {
                  .long("output-file")
                  .takes_value(true))
         )
+
+        .subcommand(SubCommand::with_name("rotkh")
+            .version(crate_version!())
+            .long_version(LONG_VERSION.as_str())
+            .about("calculate ROTKH")
+            .arg(Arg::with_name("CONFIG")
+                 .help("Configuration file")
+                 .required(true))
+        )
+
         .setting(clap::AppSettings::ArgRequiredElseHelp)
 
     ;

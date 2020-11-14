@@ -90,7 +90,7 @@ impl Server {
             &self.config.addr, &self.config.port,
         );
         let data = self.bootloader.read_memory(0x9_DE00, 7*512);
-        let pfr = crate::pfr::Pfr::try_from(&data[..]).unwrap();
+        let pfr = crate::pfr::ProtectedFlash::try_from(&data[..]).unwrap();
         let json = serde_json::to_string_pretty(&pfr).unwrap();
 
         Ok(http::Response::from_string(json))
