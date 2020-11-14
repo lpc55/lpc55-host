@@ -53,8 +53,9 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
      match args.occurrences_of("v") {
         0 => log::set_max_level(log::LevelFilter::Error),
         1 => log::set_max_level(log::LevelFilter::Warn),
-        2 => log::set_max_level(log::LevelFilter::Debug),
-        _ => println!("Don't be crazy"),
+        2 => log::set_max_level(log::LevelFilter::Info),
+        3 => log::set_max_level(log::LevelFilter::Debug),
+        4 | _ => log::set_max_level(log::LevelFilter::Trace),
     };
 
     // TODO: graceful parse error handling
@@ -64,6 +65,15 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
 
     let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
     debug!("{:?}", &bootloader);
+
+    if let Some(command) = args.subcommand_matches("http") {
+        let addr = command.value_of("addr").unwrap().to_string();
+        let port = u16::from_str_radix(command.value_of("port").unwrap(), 10).unwrap();
+        let http_config = lpc55::http::HttpConfig { addr, port, timeout_ms: 5000 };
+        let server = lpc55::http::Server::new(&http_config, bootloader)?;
+        server.run()?;
+        return Ok(());
+    }
 
     if let Some(_command) = args.subcommand_matches("info") {
         println!("{:#?}", bootloader.all_properties());

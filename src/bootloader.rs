@@ -13,8 +13,8 @@ pub struct Bootloader {
     protocol: Protocol,
     // move around; also "new" should scan the device_list iterator
     // to pull out all the info
-    vid: u16,
-    pid: u16,
+    pub vid: u16,
+    pub pid: u16,
 }
 
 impl Bootloader {

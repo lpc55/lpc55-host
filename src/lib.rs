@@ -23,11 +23,17 @@ use hidapi::HidError;
 pub mod bootloader;
 #[cfg(feature = "cli")]
 pub mod cli;
+pub mod error;
+#[cfg(feature = "http")]
+pub mod http;
 pub mod logger;
 pub mod pfr;
 pub mod protocol;
 pub mod status;
 pub mod types;
+
+#[macro_use]
+extern crate log;
 
 #[derive(Debug)]
 pub enum Error {
