@@ -236,6 +236,9 @@
 <span id="235">235</span>
 <span id="236">236</span>
 <span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">hidapi</span>::<span class="ident">HidApi</span>;
 <span class="kw">use</span> <span class="ident">enum_iterator</span>::<span class="ident">IntoEnumIterator</span>;
@@ -247,7 +250,7 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bootloader</span> {
-    <span class="ident">protocol</span>: <span class="ident">Protocol</span>,
+    <span class="kw">pub</span> <span class="ident">protocol</span>: <span class="ident">Protocol</span>,
     <span class="comment">// move around; also &quot;new&quot; should scan the device_list iterator</span>
     <span class="comment">// to pull out all the info</span>
     <span class="kw">pub</span> <span class="ident">vid</span>: <span class="ident">u16</span>,
@@ -277,7 +280,7 @@
         <span class="comment">// 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000030 FF5F0030 00000020 FF5F0020 00000000 00000000</span>
         <span class="comment">// second time i ran this:</span>
         <span class="comment">// 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
-        <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command</span>::<span class="ident">KeyProvisioning</span>(<span class="ident">KeyProvisioningOperation</span>::<span class="ident">Enroll</span>)).<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
+        <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">KeystoreOperation</span>::<span class="ident">Enroll</span>)).<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
         <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;PUF enrolled&quot;</span>);
     }
 
@@ -307,6 +310,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// &lt;-- 04000800 2C80BA51 B067AF3C</span>
     <span class="doccomment">/// &lt;-- 03000C00 A0000002 00000000 03000000</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// TODO: should we just enter our desired length anyway, and handle such situations?</span>
+    <span class="doccomment">/// As in retry at the new index, with the reduced length? Instead of using a fixed 512B chunking?</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// TODO: Need to expect errors such as: `Response status = 139 (0x8b) kStatus_FLASH_NmpaUpdateNotAllowed`</span>
     <span class="doccomment">/// This happens with `read-memory $((0x0009_FC70)) 16`, which would be the UUID</span>
