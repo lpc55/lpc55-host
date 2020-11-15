@@ -1,7 +1,11 @@
 use core::convert::TryInto;
 use core::fmt;
+use std::io::Write as _;
+
+use crate::types::to_hex_string;
 
 use serde::{Deserialize, Serialize};
+use sha2::Digest as _;
 
 use nom::{
     IResult,
@@ -17,64 +21,141 @@ big_array! {
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct ProtectedFlash {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub cfpa: FieldArea,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub cmpa: ManufacturerArea,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub keystore: Keystore,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+fn hex_serialize<S, T>(x: &T, s: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+    T: AsRef<[u8]>,
+{
+    s.serialize_str(&to_hex_string(x.as_ref()))
+}
+
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct FieldAreaPage<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
     CustomerData: FieldAreaCustomerData,
     VendorUsage: FieldAreaVendorUsage,
 {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub header: Header,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     /// monotonic counter
     pub version: MonotonicCounter,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     /// monotonic counter
     pub secure_firmware_version: MonotonicCounter,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     /// monotonic counter
     pub nonsecure_firmware_version: MonotonicCounter,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub image_key_revocation_id: MonotonicCounter,
 
     // following three have "upper16 bits are inverse of lower16 bits"
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub vendor_usage: VendorUsage,
     // pub rot_keys_status: [RotKeyStatus; 4],
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub rot_keys_status: RotKeysStatus,
     // UM 11126
     // 51.7.1: DCFG_CC = device configuration for credential constraints
     // 51.7.7: SOCU = System-on-Chip Usage
     // PIN = "pinned" or fixed
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub debug_settings: DebugSecurityPolicies,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub enable_fault_analysis_mode: bool,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub cmpa_prog_in_progress: ManufacturerAreaProgInProgress,
 
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub prince_ivs: [PrinceIvCode; 3],
 
     // customer_data: [u32; 4*14],  // or [u128, 14]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
     pub customer_data: CustomerData,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
     pub sha256_hash: Sha256Hash,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+// fn hex_serialize<S>(x: &Sha256Hash, s: S) -> Result<S::Ok, S::Error>
+// where
+//     S: serde::Serializer,
+// {
+//     s.serialize_str(&to_hex_string(&x.0))
+// }
+
+fn is_default<T: Default + PartialEq>(t: &T) -> bool {
+    *t == Default::default()
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct ManufacturerArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
     CustomerData: ManufacturerAreaCustomerData,
     VendorUsage: ManufacturerAreaVendorUsage,
 {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub boot_configuration: BootConfiguration,
-    pub usb_vid_pid: UsbVidPid,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub usb_id: UsbId,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub debug_settings: DebugSecurityPolicies,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub vendor_usage: VendorUsage,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub secure_boot_configuration: SecureBootConfiguration,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub prince_configuration: PrinceConfiguration,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub prince_subregions: [PrinceSubregion; 3],
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
     pub rot_keys_table_hash: Sha256Hash,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
     pub customer_data: CustomerData,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
     pub sha256_hash: Sha256Hash,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct KeystoreHeader(u32);
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -82,6 +163,12 @@ pub struct Keycode(
     #[serde(with = "BigArray")]
     [u8; 56]
 );
+
+impl Default for Keycode {
+    fn default() -> Self {
+        Keycode([0u8; 56])
+    }
+}
 
 impl fmt::Debug for Keycode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -95,26 +182,64 @@ pub struct ActivationCode(
     [u8; 1192]
 );
 
+impl Default for ActivationCode {
+    fn default() -> Self {
+        ActivationCode([0u8; 1192])
+    }
+}
+
 impl fmt::Debug for ActivationCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bytes(&self.0, f)
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Keystore {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     header: KeystoreHeader,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     puf_discharge_time_milliseconds: u32,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     activation_code: ActivationCode,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     secure_boot_kek: Keycode,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     user_kek: Keycode,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     uds_kek: Keycode,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     prince_keks: [Keycode; 3],
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Nmpa {
     uuid: u128,
+}
+
+impl Keystore {
+    pub fn to_bytes(&self) -> [u8; 512] {
+        let mut buf = [0u8; 512];
+        let mut cursor = buf.as_mut();
+        cursor.write_all(&self.header.0.to_le_bytes()).ok();
+        cursor.write_all(&self.puf_discharge_time_milliseconds.to_le_bytes()).ok();
+        cursor.write_all(&self.activation_code.0).ok();
+        cursor.write_all(&self.secure_boot_kek.0).ok();
+        cursor.write_all(&self.user_kek.0).ok();
+        cursor.write_all(&self.uds_kek.0).ok();
+        cursor.write_all(&self.prince_keks[0].0).ok();
+        cursor.write_all(&self.prince_keks[1].0).ok();
+        cursor.write_all(&self.prince_keks[2].0).ok();
+        assert!(cursor.is_empty());
+        buf
+    }
 }
 
 fn parse_keystore(input: &[u8]) -> IResult<&[u8], Keystore> {
@@ -143,6 +268,43 @@ fn parse_keystore(input: &[u8]) -> IResult<&[u8], Keystore> {
     };
 
     Ok((input, keystore))
+}
+
+impl<CustomerData, VendorUsage> ManufacturerArea<CustomerData, VendorUsage>
+where
+    CustomerData: ManufacturerAreaCustomerData,
+    VendorUsage: ManufacturerAreaVendorUsage,
+{
+    pub fn to_bytes(&mut self) -> [u8; 512] {
+        let mut buf = [0u8; 512];
+
+        self.sha256_hash = fill_returning_hash(&mut buf, |mut cursor| {
+            cursor.write_all(&u32::from(self.boot_configuration).to_le_bytes())?;
+            cursor.write_all(&[0u8; 4])?;
+            cursor.write_all(&self.usb_id.vid.to_le_bytes())?;
+            cursor.write_all(&self.usb_id.pid.to_le_bytes())?;
+            cursor.write_all(&[0u8; 4])?;
+
+            let debug_settings: [u32; 2] = self.debug_settings.into();
+            cursor.write_all(&debug_settings[0].to_le_bytes())?;
+            cursor.write_all(&debug_settings[1].to_le_bytes())?;
+
+            cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
+            cursor.write_all(&u32::from(self.secure_boot_configuration).to_le_bytes())?;
+            cursor.write_all(&u32::from(self.prince_configuration).to_le_bytes())?;
+            cursor.write_all(&self.prince_subregions[0].bits.to_le_bytes())?;
+            cursor.write_all(&self.prince_subregions[1].bits.to_le_bytes())?;
+            cursor.write_all(&self.prince_subregions[2].bits.to_le_bytes())?;
+            cursor.write_all(&[0u8; 32])?;
+            cursor.write_all(&self.rot_keys_table_hash.0)?;
+            cursor.write_all(&[0u8; 144])?;
+            cursor.write_all(self.customer_data.as_ref())?;
+            assert_eq!(cursor.len(), 32);
+            Ok(())
+        });
+
+        buf
+    }
 }
 
 fn parse_cmpa<CustomerData: ManufacturerAreaCustomerData, VendorUsage: ManufacturerAreaVendorUsage>(input: &[u8])
@@ -179,15 +341,15 @@ fn parse_cmpa<CustomerData: ManufacturerAreaCustomerData, VendorUsage: Manufactu
 
     let cmpa = ManufacturerArea {
         boot_configuration: BootConfiguration::from(boot_cfg),
-        usb_vid_pid: UsbVidPid::from(usb_id),
+        usb_id: UsbId::from(usb_id),
         debug_settings: DebugSecurityPolicies::from([cc_socu_default, cc_socu_pin]),
         vendor_usage: VendorUsage::from(vendor_usage),
         secure_boot_configuration: SecureBootConfiguration::from(secure_boot_cfg),
         prince_configuration: PrinceConfiguration::from(prince_cfg),
         prince_subregions: [
-            PrinceSubregion(prince_sr_0),
-            PrinceSubregion(prince_sr_1),
-            PrinceSubregion(prince_sr_2),
+            PrinceSubregion::from_bits_truncate(prince_sr_0),
+            PrinceSubregion::from_bits_truncate(prince_sr_1),
+            PrinceSubregion::from_bits_truncate(prince_sr_2),
         ],
         rot_keys_table_hash: Sha256Hash(rot_keys_table_hash.try_into().unwrap()),
         customer_data: CustomerData::from(customer_data.try_into().unwrap()),
@@ -207,6 +369,12 @@ pub enum BootSpeed {
     #[serde(rename = "96Mhz")]
     Fro96 = 2,
     Reserved = 3,
+}
+
+impl Default for BootSpeed {
+    fn default() -> Self {
+        Self::Nmpa
+    }
 }
 
 impl From<u8> for BootSpeed {
@@ -230,6 +398,12 @@ pub enum IspMode {
     I2c,
     FallthroughDisabled,
     Reserved(u8),
+}
+
+impl Default for IspMode {
+    fn default() -> Self {
+        Self::Auto
+    }
 }
 
 impl From<u8> for IspMode {
@@ -262,13 +436,19 @@ impl From<IspMode> for u8 {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct BootConfiguration {
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub failure_port: u8,
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub failure_pin: u8,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub speed: BootSpeed,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub mode: IspMode,
 }
 
@@ -297,13 +477,13 @@ impl From<BootConfiguration> for u32 {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct UsbVidPid {
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct UsbId {
     pub vid: u16,
     pub pid: u16,
 }
 
-impl From<u32> for UsbVidPid {
+impl From<u32> for UsbId {
     fn from(word: u32) -> Self {
         Self {
             vid: word as _,
@@ -356,25 +536,34 @@ impl From<u32> for TrustzoneMode {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct SecureBootConfiguration {
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub secure_boot_enabled: bool,
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub puf_enrollment_disabled: bool,
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub puf_keycode_generation_disabled: bool,
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub trustzone_mode: TrustzoneMode,
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub dice_computation_disabled: bool,
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub include_cmpa_area_in_dice_computation: bool,
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub include_nxp_area_in_dice_computation: bool,
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub include_security_epoch_area_in_dice_computation: bool,
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub use_rsa4096_keys: bool,
 }
 
@@ -411,7 +600,23 @@ impl From<SecureBootConfiguration> for u32 {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+impl From<PrinceConfiguration> for u32 {
+    fn from(cfg: PrinceConfiguration) -> u32 {
+        let mut word = 0u32;
+        word |= boolmulti(cfg.erase_checks[0]) << 28;
+        word |= boolmulti(cfg.erase_checks[0]) << 26;
+        word |= boolmulti(cfg.erase_checks[0]) << 24;
+        word |= boolmulti(cfg.locked[0]) << 20;
+        word |= boolmulti(cfg.locked[0]) << 18;
+        word |= boolmulti(cfg.locked[0]) << 16;
+        word |= (cfg.addresses[0] as u32) << 8;
+        word |= (cfg.addresses[1] as u32) << 4;
+        word |= (cfg.addresses[2] as u32) << 0;
+        word
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct PrinceConfiguration {
     pub erase_checks: [bool; 3],
     pub locked: [bool; 3],
@@ -440,15 +645,53 @@ impl From<u32> for PrinceConfiguration {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-// UM, Chap. 7
-// Each bit in this field enables a sub-region of crypto region x at offset
-// 8kB*n, where n is the bit number. A 0 in bit n bit means encryption and
-// decryption of data associated with sub-region n is disabled. A 1 in bit n
-// means that data written to sub-region n during flash programming when
-// ENC_ENABLE.EN = 1 will be encrypted, and flash reads from
-// sub-region n will be decrypted using the PRINCE.
-pub struct PrinceSubregion(u32);
+// #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+// // UM, Chap. 7
+// // Each bit in this field enables a sub-region of crypto region x at offset
+// // 8kB*n, where n is the bit number. A 0 in bit n bit means encryption and
+// // decryption of data associated with sub-region n is disabled. A 1 in bit n
+// // means that data written to sub-region n during flash programming when
+// // ENC_ENABLE.EN = 1 will be encrypted, and flash reads from
+// // sub-region n will be decrypted using the PRINCE.
+// pub struct PrinceSubregion(u32);
+bitflags::bitflags! {
+    #[derive(Default, Deserialize, Serialize)]
+    // #[serde(transparent)]
+    pub struct PrinceSubregion: u32 {
+        const REGION_00 = 1 << 0;
+        const REGION_01 = 1 << 1;
+        const REGION_02 = 1 << 2;
+        const REGION_03 = 1 << 3;
+        const REGION_04 = 1 << 4;
+        const REGION_05 = 1 << 5;
+        const REGION_06 = 1 << 6;
+        const REGION_07 = 1 << 7;
+        const REGION_08 = 1 << 8;
+        const REGION_09 = 1 << 9;
+        const REGION_10 = 1 << 10;
+        const REGION_11 = 1 << 11;
+        const REGION_12 = 1 << 12;
+        const REGION_13 = 1 << 13;
+        const REGION_14 = 1 << 14;
+        const REGION_15 = 1 << 15;
+        const REGION_16 = 1 << 16;
+        const REGION_17 = 1 << 17;
+        const REGION_18 = 1 << 18;
+        const REGION_19 = 1 << 19;
+        const REGION_20 = 1 << 20;
+        const REGION_21 = 1 << 21;
+        const REGION_22 = 1 << 22;
+        const REGION_23 = 1 << 23;
+        const REGION_24 = 1 << 24;
+        const REGION_25 = 1 << 25;
+        const REGION_26 = 1 << 26;
+        const REGION_27 = 1 << 27;
+        const REGION_28 = 1 << 28;
+        const REGION_29 = 1 << 29;
+        const REGION_30 = 1 << 30;
+        const REGION_31 = 1 << 31;
+    }
+}
 
 impl core::convert::TryFrom<&[u8]> for ProtectedFlash {
     type Error = ();
@@ -485,8 +728,8 @@ fn format_bytes(bytes: &[u8], f: &mut fmt::Formatter<'_>) -> fmt::Result {
     // ))
 }
 
-pub trait FieldAreaCustomerData: fmt::Debug + From<[u8; 14*4*4]> {}
-pub trait ManufacturerAreaCustomerData: fmt::Debug + From<[u8; 14*4*4]> {}
+pub trait FieldAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
+pub trait ManufacturerAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RawCustomerData(
@@ -494,21 +737,34 @@ pub struct RawCustomerData(
     [u8; 4*4*14]
 );
 
+impl AsRef<[u8]> for RawCustomerData {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+impl Default for RawCustomerData {
+    fn default() -> Self {
+        RawCustomerData([0u8; 224])
+    }
+}
+
 impl fmt::Debug for RawCustomerData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bytes(&self.0, f)
     }
 }
+
 impl From<[u8; 14*4*4]> for RawCustomerData {
     fn from(bytes: [u8; 224]) -> Self {
         Self(bytes)
     }
 }
+
 impl FieldAreaCustomerData for RawCustomerData {}
 impl ManufacturerAreaCustomerData for RawCustomerData {}
 
-
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct FieldArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
     CustomerData: FieldAreaCustomerData,
@@ -532,19 +788,26 @@ impl core::convert::TryFrom<&[u8]> for FieldArea {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Header(u32);
 
 // #[derive(Debug)]
 // pub struct Version(u32);
 
-pub trait FieldAreaVendorUsage: fmt::Debug + From<u32> {}
-pub trait ManufacturerAreaVendorUsage: fmt::Debug + From<u32> {}
-#[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub trait FieldAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
+pub trait ManufacturerAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
+#[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RawVendorUsage(u32);
+
 impl fmt::Debug for RawVendorUsage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("RawVendorUsage").field(&self.0).finish()
+    }
+}
+
+impl From<RawVendorUsage> for u32 {
+    fn from(usage: RawVendorUsage) -> u32 {
+        usage.0
     }
 }
 
@@ -553,19 +816,26 @@ impl From<u32> for RawVendorUsage {
         Self(word)
     }
 }
+
 impl FieldAreaVendorUsage for RawVendorUsage {}
 impl ManufacturerAreaVendorUsage for RawVendorUsage {}
 
-#[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct Sha256Hash([u8; 32]);
+#[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct Sha256Hash(pub [u8; 32]);
 impl fmt::Debug for Sha256Hash {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bytes(&self.0, f)
     }
 }
 
+impl AsRef<[u8]> for Sha256Hash {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 /// CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active CFPA page each time CMPA page programming is going on. It shall always be set to 0x00000000 in the CFPA scratch area.
-#[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct ManufacturerAreaProgInProgress(u32);
 
 impl fmt::Debug for ManufacturerAreaProgInProgress {
@@ -579,16 +849,26 @@ impl fmt::Debug for ManufacturerAreaProgInProgress {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RotKeysStatus([RotKeyStatus; 4]);
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 /// Generated and used only by bootloader.
 ///
 /// Not to be modified by user.
-pub struct PrinceIvCode(u32);
+pub struct PrinceIvCode(
+    #[serde(with = "BigArray")]
+    [u8; 56]
+);
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+impl Default for PrinceIvCode {
+    fn default() -> Self {
+        PrinceIvCode([0u8; 56])
+    }
+}
+
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct MonotonicCounter(u32);
 
 impl MonotonicCounter {
@@ -608,6 +888,12 @@ pub enum RotKeyStatus {
     Invalid = 0,
     Enabled = 1,
     Revoked = 3,
+}
+
+impl Default for RotKeyStatus {
+    fn default() -> Self {
+        Self::Invalid
+    }
 }
 
 impl From<u8> for RotKeyStatus {
@@ -650,6 +936,12 @@ pub enum DebugSecurityPolicy {
     Enabled,
 }
 
+impl Default for DebugSecurityPolicy {
+    fn default() -> Self {
+        Self::EnableWithDap
+    }
+}
+
 impl DebugSecurityPolicy {
     fn fixed_bit(&self) -> u32 {
         use DebugSecurityPolicy::*;
@@ -679,24 +971,44 @@ impl From<[bool; 2]> for DebugSecurityPolicy {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct DebugSecurityPolicies {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     nonsecure_noninvasive: DebugSecurityPolicy,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     nonsecure_invasive: DebugSecurityPolicy,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     secure_noninvasive: DebugSecurityPolicy,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     secure_invasive: DebugSecurityPolicy,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     cm33_invasive: DebugSecurityPolicy,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     cm33_noninvasive: DebugSecurityPolicy,
 
     /// JTAG test access port
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     jtag_tap: DebugSecurityPolicy,
 
     /// ISP boot command
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     isp_boot_command: DebugSecurityPolicy,
     /// FA (fault analysis) command
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     fault_analysis_command: DebugSecurityPolicy,
 
     /// enforce UUID match during debug authentication
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     check_uuid: bool,
 }
 
@@ -745,44 +1057,166 @@ impl From<[u32; 2]> for DebugSecurityPolicies {
     }
 }
 
-impl Into<[u32; 2]> for DebugSecurityPolicies {
-    fn into(self) -> [u32; 2] {
+impl From<DebugSecurityPolicies> for [u32; 2] {
+    fn from(policies: DebugSecurityPolicies) -> [u32; 2] {
         let mut fixed: u32 = 0;
         let mut enabled: u32 = 0;
 
-        fixed |= self.nonsecure_noninvasive.fixed_bit() << 0;
-        enabled |= self.nonsecure_noninvasive.enabled_bit() << 0;
+        fixed |= policies.nonsecure_noninvasive.fixed_bit() << 0;
+        enabled |= policies.nonsecure_noninvasive.enabled_bit() << 0;
 
-        fixed |= self.nonsecure_invasive.fixed_bit() << 1;
-        enabled |= self.nonsecure_invasive.enabled_bit() << 1;
+        fixed |= policies.nonsecure_invasive.fixed_bit() << 1;
+        enabled |= policies.nonsecure_invasive.enabled_bit() << 1;
 
-        fixed |= self.secure_noninvasive.fixed_bit() << 2;
-        enabled |= self.secure_noninvasive.enabled_bit() << 2;
+        fixed |= policies.secure_noninvasive.fixed_bit() << 2;
+        enabled |= policies.secure_noninvasive.enabled_bit() << 2;
 
-        fixed |= self.secure_invasive.fixed_bit() << 3;
-        enabled |= self.secure_invasive.enabled_bit() << 3;
+        fixed |= policies.secure_invasive.fixed_bit() << 3;
+        enabled |= policies.secure_invasive.enabled_bit() << 3;
 
-        fixed |= self.jtag_tap.fixed_bit() << 4;
-        enabled |= self.jtag_tap.enabled_bit() << 4;
+        fixed |= policies.jtag_tap.fixed_bit() << 4;
+        enabled |= policies.jtag_tap.enabled_bit() << 4;
 
-        fixed |= self.cm33_invasive.fixed_bit() << 5;
-        enabled |= self.cm33_invasive.enabled_bit() << 5;
+        fixed |= policies.cm33_invasive.fixed_bit() << 5;
+        enabled |= policies.cm33_invasive.enabled_bit() << 5;
 
-        fixed |= self.isp_boot_command.fixed_bit() << 6;
-        enabled |= self.isp_boot_command.enabled_bit() << 6;
+        fixed |= policies.isp_boot_command.fixed_bit() << 6;
+        enabled |= policies.isp_boot_command.enabled_bit() << 6;
 
-        fixed |= self.fault_analysis_command.fixed_bit() << 7;
-        enabled |= self.fault_analysis_command.enabled_bit() << 7;
+        fixed |= policies.fault_analysis_command.fixed_bit() << 7;
+        enabled |= policies.fault_analysis_command.enabled_bit() << 7;
 
-        fixed |= self.cm33_noninvasive.fixed_bit() << 9;
-        enabled |= self.cm33_noninvasive.enabled_bit() << 9;
+        fixed |= policies.cm33_noninvasive.fixed_bit() << 9;
+        enabled |= policies.cm33_noninvasive.enabled_bit() << 9;
 
+        fixed |= (policies.check_uuid as u32) << 15;
 
-        fixed |= (self.check_uuid as u32) << 15;
+        // "Inverse value of [15:0]"
+        fixed |= !(fixed << 16);
+        enabled |= !(fixed << 16);
+
         [fixed, enabled]
     }
 }
 
+fn fill_returning_hash(buf: &mut [u8; 512], f: impl FnOnce(&mut [u8]) -> crate::error::Result<()>) -> Sha256Hash {
+
+    // let cursor = buf.as_mut();
+    f(buf.as_mut()).unwrap();
+    // doesn't work - f gets a copy of the reference
+    // assert_eq!(cursor.len(), 32);
+
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(&buf[..480]);
+    let hash = Sha256Hash(hasher.finalize().try_into().unwrap());
+
+    let mut cursor = buf[480..].as_mut();
+    cursor.write_all(&hash.0).ok();
+    assert!(cursor.is_empty());
+
+    hash
+}
+
+impl<CustomerData, VendorUsage> FieldAreaPage<CustomerData, VendorUsage>
+where
+    CustomerData: FieldAreaCustomerData,
+    VendorUsage: FieldAreaVendorUsage,
+{
+    pub fn to_bytes(&mut self) -> [u8; 512] {
+
+        let mut buf = [0u8; 512];
+
+        self.sha256_hash = fill_returning_hash(&mut buf, |mut cursor| {
+
+            cursor.write_all(&self.header.0.to_le_bytes())?;
+            cursor.write_all(&self.version.0.to_le_bytes())?;
+            cursor.write_all(&self.secure_firmware_version.0.to_le_bytes())?;
+            cursor.write_all(&self.nonsecure_firmware_version.0.to_le_bytes())?;
+            cursor.write_all(&self.image_key_revocation_id.0.to_le_bytes())?;
+
+            // reserved
+            cursor.write_all(&[0u8; 4])?;
+
+            cursor.write_all(&u32::from(self.rot_keys_status).to_le_bytes())?;
+            cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
+
+            let debug_settings: [u32; 2] = self.debug_settings.into();
+            cursor.write_all(&debug_settings[0].to_le_bytes())?;
+            cursor.write_all(&debug_settings[1].to_le_bytes())?;
+
+            let enable_fa_mode: u32 = match self.enable_fault_analysis_mode {
+                true => 0xC33C_A55A,
+                false => 0,
+            };
+            cursor.write_all(&enable_fa_mode.to_le_bytes())?;
+
+            // cmpa_prog
+            // "CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active
+            // CFPA page each time CMPA page programming is going on. It shall always be set to
+            // 0x00000000 in the CFPA scratch area."
+            cursor.write_all(&[0u8; 4])?;
+
+            cursor.write_all(&self.prince_ivs[0].0)?;
+            cursor.write_all(&self.prince_ivs[1].0)?;
+            cursor.write_all(&self.prince_ivs[2].0)?;
+
+            // reserved
+            cursor.write_all(&[0u8; 40])?;
+
+            cursor.write_all(self.customer_data.as_ref())?;
+
+            assert_eq!(cursor.len(), 32);
+            Ok(())
+        });
+
+        buf
+    }
+
+    pub fn to_bytes_old(&mut self) -> [u8; 512] {
+        let mut buf = [0u8; 512];
+        let mut cursor = buf.as_mut();
+
+        cursor.write_all(&self.header.0.to_le_bytes()).ok();
+        cursor.write_all(&self.version.0.to_le_bytes()).ok();
+        cursor.write_all(&self.secure_firmware_version.0.to_le_bytes()).ok();
+        cursor.write_all(&self.nonsecure_firmware_version.0.to_le_bytes()).ok();
+        cursor.write_all(&self.image_key_revocation_id.0.to_le_bytes()).ok();
+
+        cursor.write_all(&[0u8; 4]).ok();
+
+        cursor.write_all(&u32::from(self.rot_keys_status).to_le_bytes()).ok();
+        cursor.write_all(&self.vendor_usage.into().to_le_bytes()).ok();
+
+        let debug_settings: [u32; 2] = self.debug_settings.into();
+        cursor.write_all(&debug_settings[0].to_le_bytes()).ok();
+        cursor.write_all(&debug_settings[1].to_le_bytes()).ok();
+
+        // double check format
+        cursor.write_all(&(self.enable_fault_analysis_mode as u32).to_le_bytes()).ok();
+        // cmpa_prog
+        cursor.write_all(&[0u8; 4]).ok();
+
+        cursor.write_all(&self.prince_ivs[0].0).ok();
+        cursor.write_all(&self.prince_ivs[1].0).ok();
+        cursor.write_all(&self.prince_ivs[2].0).ok();
+
+        cursor.write_all(&[0u8; 40]).ok();
+        cursor.write_all(self.customer_data.as_ref()).ok();
+
+        // find a nicer way of doing this
+        assert_eq!(cursor.len(), 32);
+        drop(cursor);
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(&buf[..480]);
+        self.sha256_hash.0 = hasher.finalize().try_into().unwrap();
+
+        let mut cursor = buf[480..].as_mut();
+        cursor.write_all(&self.sha256_hash.0).ok();
+        assert!(cursor.is_empty());
+
+        buf
+    }
+}
 
 fn parse_cfpa_page<CustomerData: FieldAreaCustomerData, VendorUsage: FieldAreaVendorUsage>(input: &[u8])
     -> IResult<&[u8], FieldAreaPage<CustomerData, VendorUsage>>
@@ -803,9 +1237,9 @@ fn parse_cfpa_page<CustomerData: FieldAreaCustomerData, VendorUsage: FieldAreaVe
     let (input, enable_fa) = le_u32(input)?;
     let (input, cmpa_prog_in_progress) = le_u32(input)?;
 
-    let (input, prince_iv_code0) = le_u32(input)?;
-    let (input, prince_iv_code1) = le_u32(input)?;
-    let (input, prince_iv_code2) = le_u32(input)?;
+    let (input, prince_iv_code0) = take!(input, 14*4)?;
+    let (input, prince_iv_code1) = take!(input, 14*4)?;
+    let (input, prince_iv_code2) = take!(input, 14*4)?;
 
     // reserved
     let (input, _) = take!(input, 10 * 4)?;
@@ -826,9 +1260,9 @@ fn parse_cfpa_page<CustomerData: FieldAreaCustomerData, VendorUsage: FieldAreaVe
         enable_fault_analysis_mode: enable_fa != 0,
         cmpa_prog_in_progress: ManufacturerAreaProgInProgress(cmpa_prog_in_progress),
         prince_ivs: [
-            PrinceIvCode(prince_iv_code0),
-            PrinceIvCode(prince_iv_code1),
-            PrinceIvCode(prince_iv_code2),
+            PrinceIvCode(prince_iv_code0.try_into().unwrap()),
+            PrinceIvCode(prince_iv_code1.try_into().unwrap()),
+            PrinceIvCode(prince_iv_code2.try_into().unwrap()),
         ],
         customer_data: CustomerData::from(customer_data.try_into().unwrap()),
         sha256_hash: Sha256Hash(sha256_hash.try_into().unwrap()),
