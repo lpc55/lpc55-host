@@ -8,7 +8,7 @@ use crate::Result;
 
 #[derive(Debug)]
 pub struct Bootloader {
-    protocol: Protocol,
+    pub protocol: Protocol,
     // move around; also "new" should scan the device_list iterator
     // to pull out all the info
     pub vid: u16,
@@ -38,7 +38,7 @@ impl Bootloader {
         // 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000030 FF5F0030 00000020 FF5F0020 00000000 00000000
         // second time i ran this:
         // 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-        self.protocol.call(&Command::KeyProvisioning(KeyProvisioningOperation::Enroll)).expect("success");
+        self.protocol.call(&Command::Keystore(KeystoreOperation::Enroll)).expect("success");
         info!("PUF enrolled");
     }
 
@@ -68,6 +68,9 @@ impl Bootloader {
     ///
     /// <-- 04000800 2C80BA51 B067AF3C
     /// <-- 03000C00 A0000002 00000000 03000000
+    ///
+    /// TODO: should we just enter our desired length anyway, and handle such situations?
+    /// As in retry at the new index, with the reduced length? Instead of using a fixed 512B chunking?
     ///
     /// TODO: Need to expect errors such as: `Response status = 139 (0x8b) kStatus_FLASH_NmpaUpdateNotAllowed`
     /// This happens with `read-memory $((0x0009_FC70)) 16`, which would be the UUID

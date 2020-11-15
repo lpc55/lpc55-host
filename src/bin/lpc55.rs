@@ -2,8 +2,6 @@
 use core::convert::TryFrom;
 use std::io::{self, Write as _};
 
-use log::debug;
-
 fn main() {
     // if let Err(err) = Args::parse().and_then(try_main) {
     let args = lpc55::cli::app::app().get_matches();
@@ -59,7 +57,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
     let pid = u16::from_str_radix(args.value_of("PID").unwrap().trim_start_matches("0x"), 16).unwrap();
 
     let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
-    debug!("{:?}", &bootloader);
+    // debug!("{:?}", &bootloader);
 
     if let Some(command) = args.subcommand_matches("http") {
         let addr = command.value_of("ADDR").unwrap().to_string();
@@ -76,9 +74,53 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
         return Ok(());
     }
 
-    if let Some(_command) = args.subcommand_matches("enroll-puf") {
-        println!("{:#?}", bootloader.enroll_puf());
-        return Ok(());
+    if let Some(subcommand) = args.subcommand_matches("keystore") {
+        if subcommand.subcommand_matches("enroll").is_some() {
+            bootloader.enroll_puf();
+            return Ok(());
+        }
+
+        if subcommand.subcommand_matches("read").is_some() {
+            // let data = bootloader.read_memory(0x9_DE60, 3*512);
+
+            let command = lpc55::types::Command::Keystore(
+                lpc55::types::KeystoreOperation::ReadKeystore
+            );
+            let response = bootloader.protocol.call(&command).expect("success");
+
+            let data = if let lpc55::types::Response::Data(data) = response {
+                data
+            } else {
+                todo!();
+            };
+
+            let keystore = lpc55::pfr::Keystore::try_from(data.as_slice()).unwrap();
+            println!("{}", serde_json::to_string(&keystore).unwrap());
+            return Ok(());
+        }
+
+        if let Some(command) = subcommand.subcommand_matches("set-user-key") {
+            use lpc55::types::KekIndex::*;
+            let index = match command.value_of("INDEX").unwrap() {
+                "prince-0" => Prince0,
+                "prince-1" => Prince1,
+                "prince-2" => Prince2,
+                "secure-boot" => SecureBoot,
+                "uds" => Uds,
+                "user" => User,
+                _ => panic!()
+            };
+            let key_data_filename = command.value_of("KEY_DATA_FILENAME").unwrap();
+            let data = std::fs::read(key_data_filename)?;
+
+            let command = lpc55::types::Command::Keystore(
+                lpc55::types::KeystoreOperation::SetUserKey { index, data }
+            );
+
+            bootloader.protocol.call(&command).expect("success");
+            return Ok(());
+        }
+
     }
 
     if let Some(command) = args.subcommand_matches("pfr") {

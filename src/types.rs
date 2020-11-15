@@ -124,7 +124,7 @@ bitflags::bitflags! {
 #[repr(u32)]
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum PfrKeystoreUpdateOptions {
-    KeyProvisioning = 0x00,
+    Keystore = 0x00,
     WriteMemory = 0x01,
 }
 
@@ -132,7 +132,7 @@ impl From<u32> for PfrKeystoreUpdateOptions {
     fn from(value: u32) -> Self {
         use PfrKeystoreUpdateOptions::*;
         match value {
-            0 => KeyProvisioning,
+            0 => Keystore,
             1 => WriteMemory,
             _ => panic!(),
         }
@@ -251,16 +251,42 @@ impl core::convert::TryFrom<u8> for FlashReadMargin {
 // }
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum KekIndex {
+    Prince0 = 7,
+    Prince1 = 8,
+    Prince2 = 9,
+    SecureBoot = 3,
+    Uds = 12,
+    User = 11,
+}
+
+#[repr(u8)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 // naming taken from docs, could also be called Subcommand, or even Command
-pub enum KeyProvisioningOperation {
-    Enroll = 0,
-    SetUserKey = 1,
-    SetIntrinsicKey = 2,
-    WriteNonVolatile = 3,
-    ReadNonVolatile = 4,
-    WriteKeyStore = 5,
-    ReadKeyStore = 6,
+pub enum KeystoreOperation {
+    Enroll,
+    SetUserKey { index: KekIndex, data: Vec<u8> },
+    SetIntrinsicKey,
+    WriteNonVolatile,
+    ReadNonVolatile,
+    WriteKeystore,
+    ReadKeystore,
+}
+
+impl From<&KeystoreOperation> for u32 {
+    fn from(operation: &KeystoreOperation) -> Self {
+        use KeystoreOperation::*;
+        match operation {
+            Enroll => 0,
+            SetUserKey { index: _, data: _ } => 1,
+            SetIntrinsicKey => 2,
+            WriteNonVolatile => 3,
+            ReadNonVolatile => 4,
+            WriteKeystore => 5,
+            ReadKeystore => 6,
+        }
+    }
 }
 
 #[repr(u8)]
@@ -285,7 +311,7 @@ pub enum CommandTag {
     ConfigureMemory = 0x11,
     ReliableUpdate = 0x12,
     GenerateKeyBlob = 0x13,
-    KeyProvisioning = 0x15,
+    Keystore = 0x15,
     ConfigureI2c = 0xC1,
     ConfigureSpi = 0xC2,
     ConfigureCan = 0xC3,
@@ -314,7 +340,7 @@ bitflags::bitflags! {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Command {
     FlashEraseAll,
     FlashEraseRegion,
@@ -330,17 +356,26 @@ pub enum Command {
     Call,
     Reset,
     FlashReadResource,
-    KeyProvisioning ( KeyProvisioningOperation ),
+    Keystore(KeystoreOperation),
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// Signifies which of the three cases of the protocol is used.
 ///
 /// Note that there is no situation where both command and response have a data phase.
 pub enum DataPhase {
     None,
-    CommandData,
+    CommandData(Vec<u8>),
     ResponseData,
+}
+
+impl DataPhase {
+    pub fn has_command_data(&self) -> bool {
+        match self {
+            DataPhase::CommandData(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Command {
@@ -349,14 +384,18 @@ impl Command {
         match (self, self.tag()) {
             (_, Tag::ReadMemory) => DataPhase::ResponseData,
             (_, Tag::GetProperty) => DataPhase::None,
-            (Command::KeyProvisioning(KeyProvisioningOperation::Enroll), _) => DataPhase::None,
+
+            (Command::Keystore(KeystoreOperation::Enroll), _) => DataPhase::None,
+            (Command::Keystore(KeystoreOperation::ReadKeystore), _) => DataPhase::ResponseData,
+            (Command::Keystore(KeystoreOperation::SetUserKey { index: _, data }), _) => DataPhase::CommandData(data.clone()),
+
             _ => todo!()
         }
     }
 
     pub fn parameters(&self) -> Vec<u32> {
         use Command::*;
-        match *self {
+        match self.clone() {
             GetProperty(property) => {
                 vec![property as u8 as u32, 0]
             }
@@ -365,11 +404,17 @@ impl Command {
                 // (but the third one is set to zero)
                 vec![address as u32, length as u32]
             }
-            KeyProvisioning(operation) => {
-                use KeyProvisioningOperation::*;
-                match operation {
+            Keystore(operation) => {
+                use KeystoreOperation::*;
+                match operation.clone() {
                     Enroll => {
-                        vec![]
+                        vec![u32::from(&operation)]
+                    }
+                    ReadKeystore => {
+                        vec![u32::from(&operation)]
+                    }
+                    SetUserKey { index, data } => {
+                        vec![u32::from(&operation), index as u32, data.len() as u32]
                     }
                     _ => todo!()
 
@@ -394,7 +439,7 @@ impl Command {
             Call => Tag::Call,
             Reset => Tag::Reset,
             FlashReadResource => Tag::FlashReadResource,
-            KeyProvisioning(_) => Tag::KeyProvisioning,
+            Keystore(_) => Tag::Keystore,
         }
     }
 }
@@ -430,7 +475,7 @@ impl Command {
             // command tag
             self.tag() as u8,
             // data phase flag
-            (self.data_phase() == DataPhase::CommandData) as u8,
+            self.data_phase().has_command_data() as u8,
             // reserved
             0,
             // number of parameters
@@ -466,7 +511,7 @@ pub enum ResponseTag {
     GetProperty = 0xA7,
     FlashReadOnce = 0xAF,
     FlashReadResource = 0xB0,
-    KeyProvisioning = 0xB5,
+    Keystore = 0xB5,
 }
 
 impl TryFrom<u8> for ResponseTag {
@@ -479,7 +524,7 @@ impl TryFrom<u8> for ResponseTag {
             0xA7 => GetProperty,
             0xAF => FlashReadOnce,
             0xB0 => FlashReadResource,
-            0xB5 => KeyProvisioning,
+            0xB5 => Keystore,
             _ => return Err(byte),
         })
     }
@@ -488,6 +533,7 @@ impl TryFrom<u8> for ResponseTag {
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Response {
     Generic,
+    Data(Vec<u8>),
     // todo: model the properties
     GetProperty(Vec<u32>),
     ReadMemory(Vec<u8>),
@@ -499,6 +545,7 @@ impl Response {
         use ResponseTag as Tag;
         match *self {
             Generic => Tag::Generic,
+            Data(_) => Tag::Generic,
             GetProperty(_) => Tag::GetProperty,
             ReadMemory(_) => Tag::ReadMemory,
         }

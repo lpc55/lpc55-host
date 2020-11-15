@@ -177,6 +177,12 @@ impl fmt::Debug for Keycode {
     }
 }
 
+impl AsRef<[u8]> for Keycode {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct ActivationCode(
     #[serde(with = "BigArray")]
@@ -195,6 +201,15 @@ impl fmt::Debug for ActivationCode {
     }
 }
 
+impl AsRef<[u8]> for ActivationCode {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+/// All the keys :)
+///
+/// We "unroll" the prince_keks array to be able to serialize_with hex_serialize.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Keystore {
     #[serde(default)]
@@ -205,19 +220,32 @@ pub struct Keystore {
     pub puf_discharge_time_milliseconds: u32,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
     pub activation_code: ActivationCode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
     pub secure_boot_kek: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
     pub user_kek: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
     pub uds_kek: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub prince_keks: [Keycode; 3],
+    #[serde(serialize_with = "hex_serialize")]
+    pub prince_kek_0: Keycode,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
+    pub prince_kek_1: Keycode,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
+    pub prince_kek_2: Keycode,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -236,9 +264,9 @@ impl Keystore {
         cursor.write_all(&self.secure_boot_kek.0).ok();
         cursor.write_all(&self.user_kek.0).ok();
         cursor.write_all(&self.uds_kek.0).ok();
-        cursor.write_all(&self.prince_keks[0].0).ok();
-        cursor.write_all(&self.prince_keks[1].0).ok();
-        cursor.write_all(&self.prince_keks[2].0).ok();
+        cursor.write_all(&self.prince_kek_0.0).ok();
+        cursor.write_all(&self.prince_kek_1.0).ok();
+        cursor.write_all(&self.prince_kek_2.0).ok();
         assert!(cursor.is_empty());
         buf
     }
@@ -262,11 +290,9 @@ fn parse_keystore(input: &[u8]) -> IResult<&[u8], Keystore> {
         secure_boot_kek: Keycode(secure_boot_kek.try_into().unwrap()),
         user_kek: Keycode(user_kek.try_into().unwrap()),
         uds_kek: Keycode(uds_kek.try_into().unwrap()),
-        prince_keks: [
-            Keycode(prince_kek_0.try_into().unwrap()),
-            Keycode(prince_kek_1.try_into().unwrap()),
-            Keycode(prince_kek_2.try_into().unwrap()),
-        ],
+        prince_kek_0: Keycode(prince_kek_0.try_into().unwrap()),
+        prince_kek_1: Keycode(prince_kek_1.try_into().unwrap()),
+        prince_kek_2: Keycode(prince_kek_2.try_into().unwrap()),
     };
 
     Ok((input, keystore))

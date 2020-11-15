@@ -110,12 +110,12 @@ impl Protocol {
 
         // send command packet
         self.write(command_packet.as_slice())?;
-        trace!(" --> {}", types::to_hex_string(&command_packet));
+        trace!("--> {}", types::to_hex_string(&command_packet));
 
         let initial_response = self.read_packet()?;
 
         // parse initial reponse packet
-        match (*command, command.tag(), command.data_phase()) {
+        match (command.clone(), command.tag(), command.data_phase()) {
 
             // case 1: no data phases
             (command, _tag, types::DataPhase::None) => {
@@ -127,12 +127,12 @@ impl Protocol {
                 assert_eq!(packet.has_data, false);
                 assert!(packet.status.is_none());
                 match command {
-                    types::Command::KeyProvisioning(types::KeyProvisioningOperation::Enroll) => {
+                    types::Command::Keystore(types::KeystoreOperation::Enroll) => {
                         assert_eq!(packet.tag, types::ResponseTag::Generic);
 
                         // general property of generic responses: 2 parameters, status and mirrored command header
                         assert_eq!(packet.parameters.len(), 1);
-                        assert_eq!(packet.parameters[0].to_le_bytes(), command.header());
+                        assert_eq!(packet.parameters[0].to_le_bytes()[..2], command.header()[..2]);
 
                         Ok(types::Response::Generic)
                     }
@@ -144,6 +144,74 @@ impl Protocol {
                     }
                     _ => todo!()
                 }
+            }
+
+            // case 2: command data phases
+            (command, _tag, types::DataPhase::CommandData(_)) => {
+                let packet = ResponsePacket::try_from(initial_response)?;
+
+                assert_eq!(packet.has_data, command.data_phase().has_command_data());
+                assert!(packet.status.is_none());
+                match command.clone() {
+                    types::Command::Keystore(types::KeystoreOperation::SetUserKey { index: _, data }) => {
+                        // todo: can we use bigger chunks?
+                        for chunk in data.chunks(32) {
+                            // // TODO: somewhere in here, should "peek" a read to see if device sent
+                            // // an abort (i.e. a generic response)
+                            // let mut minibuf = [0u8; 4];
+                            // dbg!(self.device.read_timeout(&mut minibuf, 1000).unwrap());
+                            //
+                            // I guess the device would just ignore our sent data if it were
+                            // unhappy, so we'd find out after the fact. Although maybe sending
+                            // might block?
+
+                            let mut data_packet = vec![types::ReportId::CommandData as u8, 0, chunk.len() as u8, 0];
+                            data_packet.extend_from_slice(chunk);
+                            data_packet.resize(4 + 32, 0);
+                            trace!("--> {}", types::to_hex_string(&data_packet));
+                            self.write(data_packet.as_slice())?;
+
+                        }
+
+                        let packet = ResponsePacket::try_from(self.read_packet()?)?;
+                        assert_eq!(packet.has_data, false);
+                        assert!(packet.status.is_none());
+
+                        assert_eq!(packet.tag, types::ResponseTag::Generic);
+                        // general property of generic responses: 2 parameters, status and mirrored command header
+                        assert_eq!(packet.parameters.len(), 1);
+                        // it seems the device "forgets" about the parameters the original command
+                        // contained (address + length)
+                        // ooorrr, Table 4-11 ("The Command tag parameter identifies the response to the command sent by the host.")
+                        // just means that the command tag is set
+                        //
+                        // UPDATE: doesn't even reflect the second byte (has-data flag)
+                        // e.g.: we send: 15010003, we get back: 15000000
+                        assert_eq!(packet.parameters[0].to_le_bytes()[0], command.header()[0]);
+
+                        Ok(types::Response::Generic)
+                    }
+                    _ => todo!()
+                }
+            }
+
+            // case 3: reponse data phases
+            (types::Command::Keystore(types::KeystoreOperation::ReadKeystore), _, _) => {
+                let _packet = ResponsePacket::try_from(initial_response)?;
+
+                let mut data = Vec::new();
+                let length = 3*512;
+                while data.len() < length {
+                    let partial_data: Vec<u8> = self.read_packet()?.try_into()?;
+                    assert!(data.len() + partial_data.len() <= length);
+                    data.extend_from_slice(&partial_data);
+                }
+
+                let packet = ResponsePacket::try_from(self.read_packet()?)?;
+                assert_eq!(packet.parameters[0].to_le_bytes()[0], command.header()[0]);
+
+                debug!("read {} in total", data.len());
+                Ok(types::Response::Data(data))
             }
 
             (types::Command::ReadMemory { address: _, length }, _, _) => {

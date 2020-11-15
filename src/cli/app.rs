@@ -79,10 +79,42 @@ pub fn app() -> clap::App<'static, 'static> {
              )
         )
 
-        .subcommand(SubCommand::with_name("enroll-puf")
+        .subcommand(SubCommand::with_name("keystore")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
-            .about("enroll PUF")
+            .about("keystore interactions")
+            // doesn't work?
+            .setting(clap::AppSettings::ArgRequiredElseHelp)
+
+            .subcommand(SubCommand::with_name("enroll")
+                .version(crate_version!())
+                .about("(re)initialize PUF, writing an activation code to the keystore")
+            )
+
+            .subcommand(SubCommand::with_name("read")
+                .version(crate_version!())
+            )
+
+            .subcommand(SubCommand::with_name("set-user-key")
+                .version(crate_version!())
+                .long_version(LONG_VERSION.as_str())
+                .about("set user key")
+                .arg(Arg::with_name("INDEX")
+                    .help("index of key")
+                    .required(true)
+                    .possible_values(&[
+                        "secure-boot",
+                        "user",
+                        "uds",
+                        "prince-0",
+                        "prince-1",
+                        "prince-2",
+                    ])
+                )
+                .arg(Arg::with_name("KEY_DATA_FILENAME")
+                     .help("filename of file containing the raw key data bytes")
+                     .required(true))
+            )
         )
 
         .subcommand(SubCommand::with_name("info")
