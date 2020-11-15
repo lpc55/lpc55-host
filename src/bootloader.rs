@@ -29,13 +29,67 @@ impl Bootloader {
     // }
 
     pub fn info(&self) {
+        dbg!("flash size", self.protocol.call(&Command::GetProperty(Property::FlashSize)).expect("success"));
+        dbg!("reserved regions", self.protocol.call(&Command::GetProperty(Property::ReservedRegions)).expect("success"));
         for property in Property::into_enum_iter() {
             println!("\n{:?}", property);
             self.property(property).ok();
         }
     }
 
-    /// TODO: Need to expect erorrs such as: `Response status = 139 (0x8b) kStatus_FLASH_NmpaUpdateNotAllowed`
+    pub fn enroll_puf(&self) {
+        self.protocol.call(&Command::KeyProvisioning(KeyProvisioningOperation::Enroll)).expect("success");
+    }
+
+    pub fn enroll_puf_old(&self) {
+        let packet = Command::KeyProvisioning(KeyProvisioningOperation::Enroll).hid_packet();
+        dbg!(to_hex_string(&packet));
+        let _wrote = self.protocol.write(packet.as_slice()).expect("could not write");
+        let response = self.protocol.read_timeout_parsed(2000).expect("response");
+        let (report_id, response_id, error, command, params, data) = response;
+        assert_eq!(report_id, ReportId::Response);
+        assert_eq!(response_id, ResponseTag::Generic);
+        assert!(error.is_none());
+        assert_eq!(command, u32::from_le_bytes(packet[4..8].try_into().unwrap()));
+        assert!(params.is_empty());
+        assert_eq!(data, false);
+
+        info!("PUF enrolled");
+        // first time i ran this:
+        // 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000030 FF5F0030 00000020 FF5F0020 00000000 00000000
+        // second time i ran this:
+        // 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+        // dbg!(to_hex_string(&response));
+    }
+
+    /// The reason for this wrapper is that the device aborts early if more than 512 bytes are
+    /// requested. Unclear why it does this...
+    ///
+    /// This is a traffic trace (requesting all of PFR in one go), removing the "surplus junk"
+    ///
+    /// --> 01002000 03000002 00DE0900 000E0000 00000000 00000000 00000000 00000000 00000000
+    /// <-- 03000C00 A3010002 00000000 000E0000
+    /// <-- 04003800 00000000 02000000 02000000 02000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// <-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// <-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// <-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// <-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 02000000 00000000 00000000 00000000 00000000 00000000
+    /// <-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// <-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// <-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// <-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 ECE6A668 2922E9CC F462A95F DF81E180 E1528642 7C520098
+    /// <-- 04000000
+    /// <-- 03000C00 A0000002 65000000 03000000
+    ///
+    /// The error is 101 = 100 + 1 = (supposedly) a flash driver "alignment" error (?!)
+    ///
+    /// The interesting thing is that at the point where the device aborts, there are 8 bytes
+    /// remaining, which it otherwise produces in a final
+    ///
+    /// <-- 04000800 2C80BA51 B067AF3C
+    /// <-- 03000C00 A0000002 00000000 03000000
+    ///
+    /// TODO: Need to expect errors such as: `Response status = 139 (0x8b) kStatus_FLASH_NmpaUpdateNotAllowed`
     /// This happens with `read-memory $((0x0009_FC70)) 16`, which would be the UUID
     ///
     /// TODO: Need to expect errors such as: `Response status = 10200 (0x27d8) kStatusMemoryRangeInvalid`
@@ -54,6 +108,15 @@ impl Bootloader {
     }
 
     pub fn read_memory_at_most_512(&self, address: usize, length: usize) -> Vec<u8> {
+        let response = self.protocol.call(&Command::ReadMemory { address, length }).expect("success");
+        if let Response::ReadMemory(data) = response {
+            data
+        } else {
+            todo!();
+        }
+    }
+
+    pub fn read_memory_at_most_512_old(&self, address: usize, length: usize) -> Vec<u8> {
 
         // construct
         let packet = Command::ReadMemory { address, length }.hid_packet();
@@ -105,11 +168,12 @@ impl Bootloader {
             // dbg!(to_hex_string(&response));
             // println!("read ({}): {}", response.len(), to_hex_string(&response));
             let [report_id, _, count, _]: [u8; 4] = response.as_slice()[..4].try_into().unwrap();
-            assert_eq!(report_id, ReportId::DataIn as u8);
+            assert_eq!(report_id, ReportId::ResponseData as u8);
             let count = count as usize;
             assert!(response.len() >= 4 + count);
             assert!(count as usize <= remaining);
             data.extend_from_slice(&response[4..][..count]);
+            dbg!(crate::types::to_hex_string(&response));
             remaining -= count;
         }
 
@@ -146,10 +210,10 @@ impl Bootloader {
 
         // interpret response
         let (hid_header, rest) = response.split_at(4);
-        assert_eq!(hid_header[..2], (ReportId::CommandIn as u8 as u16).to_le_bytes());
+        assert_eq!(hid_header[..2], (ReportId::Response as u8 as u16).to_le_bytes());
 
         let (packet_header, rest) = rest.split_at(4);
-        assert_eq!(packet_header[..3], [Response::GetProperty as u8, 0, 0]);
+        assert_eq!(packet_header[..3], [ResponseTag::GetProperty as u8, 0, 0]);
         let num_params = packet_header[3];
         assert!(num_params >= 1);
 

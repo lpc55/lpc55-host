@@ -71,7 +71,13 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
     }
 
     if let Some(_command) = args.subcommand_matches("info") {
+        bootloader.info();
         println!("{:#?}", bootloader.all_properties());
+        return Ok(());
+    }
+
+    if let Some(_command) = args.subcommand_matches("enroll-puf") {
+        println!("{:#?}", bootloader.enroll_puf());
         return Ok(());
     }
 

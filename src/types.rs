@@ -1,6 +1,8 @@
+use core::convert::TryFrom;
+
 use serde::{Deserialize, Serialize};
 
-use crate::status::*;
+pub use crate::status::*;
 
 pub fn to_hex_string(bytes: &[u8]) -> String {
     const HEX_CHARS_UPPER: &[u8; 16] = b"0123456789ABCDEF";
@@ -20,7 +22,7 @@ pub fn to_hex_string(bytes: &[u8]) -> String {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone, Debug, enum_iterator::IntoEnumIterator, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
 pub enum Property {
     CurrentVersion = 0x1,
     AvailablePeripherals = 0x2,
@@ -262,7 +264,71 @@ impl core::convert::TryFrom<u8> for FlashReadMargin {
 //     }
 // }
 
-#[derive(Copy, Clone, Debug)]
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
+// naming taken from docs, could also be called Subcommand, or even Command
+pub enum KeyProvisioningOperation {
+    Enroll = 0,
+    SetUserKey = 1,
+    SetIntrinsicKey = 2,
+    WriteNonVolatile = 3,
+    ReadNonVolatile = 4,
+    WriteKeyStore = 5,
+    ReadKeyStore = 6,
+}
+
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
+pub enum CommandTag {
+    FlashEraseAll = 0x01,
+    FlashEraseRegion = 0x02,
+    ReadMemory = 0x03,
+    WriteMemory = 0x04,
+    FillMemory = 0x05,
+    FlashSecurityDisable = 0x06,
+    GetProperty = 0x07,
+    ReceiveSbFile = 0x08,
+    Execute = 0x09,
+    Call = 0x0A,
+    Reset = 0x0B,
+    SetProperty = 0x0C,
+    FlashEraseAllUnlock = 0x0D,
+    FlashProgramOnce = 0x0E,
+    FlashReadOnce = 0x0F,
+    FlashReadResource = 0x10,
+    ConfigureMemory = 0x11,
+    ReliableUpdate = 0x12,
+    GenerateKeyBlob = 0x13,
+    KeyProvisioning = 0x15,
+    ConfigureI2c = 0xC1,
+    ConfigureSpi = 0xC2,
+    ConfigureCan = 0xC3,
+}
+
+bitflags::bitflags! {
+    #[derive(Deserialize, Serialize)]
+    pub struct AvailableCommands: u32 {
+        const FLASH_ERASE_ALL = 1 << CommandTag::FlashEraseAll as u8;
+        const FLASH_ERASE_REGION = 1 << CommandTag::FlashEraseRegion as u8;
+        const READ_MEMORY = 1 << CommandTag::ReadMemory as u8;
+        const WRITE_MEMORY = 1 << CommandTag::WriteMemory as u8;
+        const FILL_MEMORY = 1 << CommandTag::FillMemory as u8;
+        const FLASH_SECURITY_DISABLE = 1 << CommandTag::FlashSecurityDisable as u8;
+        const GET_PROPERTY = 1 << CommandTag::GetProperty as u8;
+        const RECEIVE_SB_FILE = 1 << CommandTag::ReceiveSbFile as u8;
+        const EXECUTE = 1 << CommandTag::Execute as u8;
+        const CALL = 1 << CommandTag::Call as u8;
+        const RESET = 1 << CommandTag::Reset as u8;
+        const SET_PROPERTY = 1 << CommandTag::SetProperty as u8;
+        const FLASH_READ_RESOURCE = 1 << CommandTag::FlashReadResource as u8;
+        // TODO? it seems a lot of commands never actually show up here
+        //
+        // doesn't seem to turn up in the (old?) interface that lists available commands
+        // const KEY_PROVISIONING = 1 << 0x15;
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Command {
     FlashEraseAll,
     FlashEraseRegion,
@@ -273,50 +339,88 @@ pub enum Command {
     // there is actually a second parameter, Memory ID
     // 0 = internal flash
     // 1 = QSPI0 memory (unused for LPC55)
-    GetProperty(Property),
+    GetProperty ( Property ),
     ReceiveSbFile,
     Call,
     Reset,
     FlashReadResource,
+    KeyProvisioning ( KeyProvisioningOperation ),
 }
 
-impl From<Command> for u8 {
-    fn from(command: Command) -> u8 {
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+/// Signifies which of the three cases of the protocol is used.
+///
+/// Note that there is no situation where both command and response have a data phase.
+pub enum DataPhase {
+    None,
+    CommandData,
+    ResponseData,
+}
+
+impl Command {
+    pub fn data_phase(&self) -> DataPhase {
+        use CommandTag as Tag;
+        match (self, self.tag()) {
+            (_, Tag::ReadMemory) => DataPhase::ResponseData,
+            (_, Tag::GetProperty) => DataPhase::None,
+            (Command::KeyProvisioning(KeyProvisioningOperation::Enroll), _) => DataPhase::None,
+            _ => todo!()
+        }
+    }
+
+    pub fn parameters(&self) -> Vec<u32> {
         use Command::*;
-        match command {
-            FlashEraseAll => 0x1,
-            FlashEraseRegion => 0x2,
-            ReadMemory { address: _, length: _ } => 0x3,
-            WriteMemory => 0x4,
-            FillMemory => 0x5,
-            FlashSecurityDisable => 0x6,
-            GetProperty(_) => 0x7,
-            ReceiveSbFile => 0x8,
-            Call => 0xA,
-            Reset => 0xB,
-            FlashReadResource => 0x10,
+        match *self {
+            GetProperty(property) => {
+                vec![property as u8 as u32, 0]
+            }
+            ReadMemory { address, length } => {
+                // PyMBOOT is kinda bugged here, it signals sending 3 parameters
+                // (but the third one is set to zero)
+                vec![address as u32, length as u32]
+            }
+            KeyProvisioning(operation) => {
+                use KeyProvisioningOperation::*;
+                match operation {
+                    Enroll => {
+                        vec![]
+                    }
+                    _ => todo!()
+
+                }
+            }
+            _ => todo!()
+        }
+    }
+
+    pub fn tag(&self) -> CommandTag {
+        use Command::*;
+        use CommandTag as Tag;
+        match *self {
+            FlashEraseAll => Tag::FlashEraseAll,
+            FlashEraseRegion => Tag::FlashEraseRegion,
+            ReadMemory { address: _, length: _ } => Tag::ReadMemory,
+            WriteMemory => Tag::WriteMemory,
+            FillMemory => Tag::FillMemory,
+            FlashSecurityDisable => Tag::FlashSecurityDisable,
+            GetProperty(_) => Tag::GetProperty,
+            ReceiveSbFile => Tag::ReceiveSbFile,
+            Call => Tag::Call,
+            Reset => Tag::Reset,
+            FlashReadResource => Tag::FlashReadResource,
+            KeyProvisioning(_) => Tag::KeyProvisioning,
         }
     }
 }
 
-bitflags::bitflags! {
-    #[derive(Deserialize, Serialize)]
-    pub struct AvailableCommands: u32 {
-        const FLASH_ERASE_ALL = 1 << 0x1;
-        const FLASH_ERASE_REGION = 1 << 0x2;
-        const READ_MEMORY = 1 << 0x3;
-        const WRITE_MEMORY = 1 << 0x4;
-        const FILL_MEMORY = 1 << 0x5;
-        const FLASH_SECURITY_DISABLE = 1 << 0x6;
-        const GET_PROPERTY = 1 << 0x7;
-        const RECEIVE_SB_FILE = 1 << 0x8;
-        const CALL = 1 << 0xA;
-        const RESET = 1 << 0xB;
-        const FLASH_READ_RESOURCE = 1 << 0x10;
-    }
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct HidHeader {
+    report_id: ReportId,
+    packet_length: usize,
 }
 
 impl Command {
+    /// Not yet quite clear what comes from HID spec, and what's NXP framing command packets in HID.
     pub fn hid_packet(&self) -> Vec<u8> {
         let command_packet = self.command_packet();
         // dbg!(to_hex_string(&command_packet.clone()));
@@ -325,7 +429,7 @@ impl Command {
         // pyMBoot does: `pack('<2BH', report_id, 0x00, data_len)`
         // MCU Bootloader 2.5.0 RM rev 1. (05/2018) says: 1 byte report ID, 2 bytes packet length
         // It seems pyMBoot is right, and the RM is wrong
-        header[..2].copy_from_slice(&(ReportId::CommandOut as u8 as u16).to_le_bytes());
+        header[0] = ReportId::Command as u8;
         header[2..].copy_from_slice(&(command_packet.len() as u16).to_le_bytes());
 
         // umm...
@@ -335,85 +439,108 @@ impl Command {
         hid_packet
     }
 
-    fn construct_packet(&self, data_phase: bool, params: &[u32]) -> Vec<u8> {
-        assert!(params.len() <= 7);
-
-        let header = [
+    pub fn header(&self) -> [u8; 4] {
+        [
             // command tag
-            {
-                let command = *self;
-                let tag = u8::from(command);
-                tag
-            },
+            self.tag() as u8,
             // data phase flag
-            data_phase as u8,
+            (self.data_phase() == DataPhase::CommandData) as u8,
             // reserved
             0,
             // number of parameters
-            params.len() as u8,
-        ];
+            self.parameters().len() as u8,
+        ]
+    }
+
+    /// The command packet carries a 32-bit command header and a list of 32-bit little-endian parameters.
+    ///
+    /// In total, it is always 32 bytes long. This implies that there can be at most 7 parameters.
+    fn command_packet(&self) -> Vec<u8> {
+        let params = self.parameters();
+        assert!(params.len() <= 7);
 
         let mut packet = Vec::new();
 
-        packet.extend_from_slice(&header);
-        params.iter().for_each(|param| { /*dbg!(param);*/ packet.extend_from_slice(param.to_le_bytes().as_ref()) } );
-        assert_eq!(packet.len(), 4*(1 + params.len()));
-
+        packet.extend_from_slice(&self.header());
+        params.iter().for_each(|param| { packet.extend_from_slice(param.to_le_bytes().as_ref()) } );
         packet.resize(32, 0);
+
         packet
     }
 
-    pub fn command_packet(&self) -> Vec<u8> {
-        let command = *self;
-        use Command::*;
-        match command {
-            GetProperty(property) => {
-                // dbg!(property as u8);
-                self.construct_packet(false, [property as u8 as u32, 0].as_ref())
-            }
-            ReadMemory { address, length } => {
-                // PyMBOOT is kinda bugged here, it signals sending 3 parameters
-                // (but the third one is set to zero)
-                self.construct_packet(false, [address as u32, length as u32].as_ref())
-            }
-            _ => todo!()
+    // todo:
+    // fn data_packets(&self) -> Iterator
+}
+
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
+pub enum ResponseTag {
+    Generic = 0xA0,
+    ReadMemory = 0xA3,
+    GetProperty = 0xA7,
+    FlashReadOnce = 0xAF,
+    FlashReadResource = 0xB0,
+    KeyProvisioning = 0xB5,
+}
+
+impl TryFrom<u8> for ResponseTag {
+    type Error = u8;
+    fn try_from(byte: u8) -> Result<ResponseTag, u8> {
+        use ResponseTag::*;
+        Ok(match byte {
+            0xA0 => Generic,
+            0xA3 => ReadMemory,
+            0xA7 => GetProperty,
+            0xAF => FlashReadOnce,
+            0xB0 => FlashReadResource,
+            0xB5 => KeyProvisioning,
+            invalid => return Err(invalid),
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum Response {
+    Generic,
+    // todo: model the properties
+    GetProperty(Vec<u32>),
+    ReadMemory(Vec<u8>),
+}
+
+impl Response {
+    pub fn tag(&self) -> ResponseTag {
+        use Response::*;
+        use ResponseTag as Tag;
+        match *self {
+            Generic => Tag::Generic,
+            GetProperty(_) => Tag::GetProperty,
+            ReadMemory(_) => Tag::ReadMemory,
         }
     }
 }
 
 #[repr(u8)]
-#[derive(Clone, Debug, enum_iterator::IntoEnumIterator)]
-pub enum Response {
-    Generic = 0xA0,
-    GetProperty = 0xA7,
-    ReadMemory = 0xA3,
-    FlashReadOnce = 0xAF,
-    FlashReadResource = 0xB0,
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
+// todo: rename to HidReportId? place in `mod hid` submodule?
+pub enum ReportId {
+    Command = 1,
+    Response = 3,
+    CommandData = 2,
+    ResponseData = 4,
 }
 
-// pub struct Report {
-//     report_id: ReportId,
-//     data: Vec<u8>,
-//     offset: usize,
-// }
-
-// impl Report {
-//     pub fn new(report_id: ReportId, data: Vec<u8>) -> Self {
-//         Self { report_id, data, offset: 0 }
-//     }
-
-//     // pub fn encode(&self) -> Vec<u8> {
-
-//     // }
-// }
-
-#[repr(u8)]
-#[derive(Clone, Debug, enum_iterator::IntoEnumIterator)]
-pub enum ReportId {
-    CommandOut = 0x1,
-    CommandIn = 0x3,
-    DataOut = 0x2,
-    DataIn = 0x4,
+impl TryFrom<u8> for ReportId {
+    type Error = u8;
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        use ReportId::*;
+        Ok(match value {
+            1 => Command,
+            2 => CommandData,
+            3 => Response,
+            4 => ResponseData,
+            x => return Err(x),
+        })
+    }
 }
 
 
@@ -455,4 +582,10 @@ mod test {
         // 1 0 C 0  7 0 0 2  1 0 0 0  0 0 0 0
         insta::assert_debug_snapshot!(Command::GetProperty(Property::CurrentVersion).hid_packet());
     }
+
+    #[test]
+    fn test_available_commands() {
+        assert_eq!(AvailableCommands::FLASH_ERASE_REGION.bits, (1 << 2));
+    }
+
 }

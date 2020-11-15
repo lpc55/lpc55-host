@@ -79,6 +79,12 @@ pub fn app() -> clap::App<'static, 'static> {
              )
         )
 
+        .subcommand(SubCommand::with_name("enroll-puf")
+            .version(crate_version!())
+            .long_version(LONG_VERSION.as_str())
+            .about("enroll PUF")
+        )
+
         .subcommand(SubCommand::with_name("info")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())

@@ -90,7 +90,8 @@ where
 
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub prince_ivs: [PrinceIvCode; 3],
+    pub prince_ivs: [
+        PrinceIvCode; 3],
 
     // customer_data: [u32; 4*14],  // or [u128, 14]
     #[serde(default)]

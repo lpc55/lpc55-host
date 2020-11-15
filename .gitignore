@@ -2,3 +2,4 @@
 Cargo.lock
 **/*.bin
 /scratch
+ref/
