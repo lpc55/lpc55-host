@@ -42,6 +42,22 @@ pub struct Protocol {
     device: HidDevice,
 }
 
+#[derive(thiserror::Error, Debug)]
+pub enum ProtocolError {
+    #[error("expected data response packet")]
+    ExpectedDataPacket,
+    #[error("expected (non-data) response packet")]
+    ExpectedResponsePacket,
+    #[error("invalid HID report ID ({0})")]
+    InvalidReportId(u8),
+    #[error("unknown response tag ({0})")]
+    UnknownResponseTag(u8),
+
+    #[error("unspecified protocol error")]
+    Unspecified,
+}
+
+
 pub struct ResponsePacket {
     pub tag: types::ResponseTag,
     pub has_data: bool,
@@ -101,35 +117,9 @@ impl Protocol {
                         _ => todo!()
                     }
                 } else {
-                    todo!();
+                    Err(ProtocolError::ExpectedResponsePacket)?
                 }
             }
-
-// old
-// "04003800 00000000 02000000 02000000 02000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000"
-// "04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000"
-// "04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000"
-// "04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000"
-// "04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 02000000 00000000 00000000 00000000 00000000 00000000"
-// "04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000"
-// "04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000"
-// "04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000"
-// "04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 ECE6A668 2922E9CC F462A95F DF81E180 E1528642 7C520098"
-// "04000800 2C80BA51 B067AF3C 00000000 00000000 00000000 00000000 00000000 00000000 ECE6A668 2922E9CC F462A95F DF81E180 E1528642 7C520098"
-// "04003800 00000000 02000000 02000000 02000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000"
-
-// new
-// 03000C00 A3010002 00000000 00020000
-// 04003800 00000000 02000000 02000000 02000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 (60 bytes)
-// 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 (60 bytes)
-// 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 (60 bytes)
-// 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 (60 bytes)
-// 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 02000000 00000000 00000000 00000000 00000000 00000000 (60 bytes)
-// 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 (60 bytes)
-// 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 (60 bytes)
-// 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 (60 bytes)
-// 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 ECE6A668 2922E9CC F462A95F DF81E180 E1528642 7C520098 (60 bytes)
-
             (types::Command::ReadMemory { address: _, length }, _, _) => {
 
                 if let ReceivedPacket::Response(packet) = initial_response {
@@ -150,7 +140,7 @@ impl Protocol {
                             assert!(data.len() + partial_data.len() <= length);
                             data.extend_from_slice(&partial_data);
                         } else {
-                            todo!();
+                            Err(ProtocolError::ExpectedDataPacket)?
                         }
                     }
 
@@ -171,11 +161,11 @@ impl Protocol {
 
                         Ok(types::Response::ReadMemory(data))
                     } else {
-                        todo!();
+                        Err(ProtocolError::ExpectedResponsePacket)?
                     }
 
                 } else {
-                    todo!();
+                    Err(ProtocolError::ExpectedResponsePacket)?
                 }
             }
             _ => todo!()
@@ -191,10 +181,9 @@ impl Protocol {
         data.resize(read, 0);
 
         // todo: what errors are appropriate? e.g. if report ID is invalid
-        let report_id = types::ReportId::try_from(data[0]).unwrap();
+        let report_id = types::ReportId::try_from(data[0]).map_err(|err| ProtocolError::InvalidReportId(err))?;
 
-        // the device often sends "extra junk"
-        // we split this off early
+        // the device often sends "extra junk"; we split this off early
         let expected_packet_len = u16::from_le_bytes(data[2..4].try_into().unwrap()) as usize;
         data.resize(4 + expected_packet_len, 0);
         trace!("<-- {} ({} bytes)", types::to_hex_string(&data), data.len());
@@ -204,7 +193,7 @@ impl Protocol {
         // now handle the response packet
         Ok(match report_id {
             types::ReportId::Response => {
-                let tag = types::ResponseTag::try_from(response_packet[0]).unwrap();
+                let tag = types::ResponseTag::try_from(response_packet[0]).map_err(|err| ProtocolError::UnknownResponseTag(err))?;
                 let has_data = (response_packet[1] & 1) != 0;
                 let expected_param_count = response_packet[3] as usize;
 
@@ -250,47 +239,6 @@ impl Protocol {
         Ok(())
     }
 
-    pub fn read_timeout_parsed(&self, timeout: usize) -> HidResult<(
-        types::ReportId, types::ResponseTag, Option<types::BootloaderError>, u32, Vec<u32>, bool,
-    )> {
-        let mut data = Vec::new();
-        data.resize(256, 0);
-        let read = self.device.read_timeout(&mut data, timeout as i32)?;
-        data.resize(read, 0);
-
-        dbg!(types::to_hex_string(&data));
-        // first 4 bytes contain HID packet parameters
-        let report_id = types::ReportId::try_from(data[0]).unwrap();
-        let hid_packet_len = u16::from_le_bytes(data[2..4].try_into().unwrap()) as usize;
-
-        // now comes the response packet
-        let response_packet = &data[4..][..hid_packet_len];
-
-        // let [tag, flags, _, param_count, ..] = response_packet;
-        let tag = response_packet[0];
-        let flags = response_packet[1];
-        let param_count = response_packet[3];
-
-        let data_follows = (flags & 1) != 0;
-        let response = types::ResponseTag::try_from(tag).unwrap();
-
-        let mut params: Vec<u32> = response_packet[4..].chunks(4)
-            .map(|chunk| u32::from_le_bytes(chunk.try_into().unwrap()))
-            .collect();
-        assert_eq!(param_count as usize, params.len());
-
-        // first parameter is always status
-        let status_code = params.remove(0);
-        let error = match status_code {
-            0 => None,
-            code => Some(types::BootloaderError::from(code)),
-        };
-
-        let command = params.remove(0);
-
-        Ok((report_id, response, error, command, params, data_follows))
-    }
-
     pub fn read_timeout(&self, timeout: usize) -> HidResult<Vec<u8>> {
         let mut data = Vec::new();
         data.resize(256, 0);
@@ -299,17 +247,6 @@ impl Protocol {
         Ok(data)
     }
 
-    // pub fn read_expected(&self, expected: usize, timeout: usize) -> HidResult<Vec<u8>> {
-    //     let mut data = Vec::new();
-    //     data.resize(expected, 0);
-    //     let mut remaining = expected;
-    //     while remaining > 0 {
-    //         let read = self.device.read_timeout(&mut data, timeout as i32)?;
-    //         remaining -= read;
-    //     }
-    //     // data.resize(read, 0);
-    //     Ok(data)
-    // }
 }
 
 impl Protocol {
