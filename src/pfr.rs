@@ -23,10 +23,10 @@ big_array! {
 pub struct ProtectedFlash {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub cfpa: FieldArea,
+    pub field: FieldArea,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub cmpa: ManufacturerArea,
+    pub factory: FactoryArea,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub keystore: Keystore,
@@ -86,7 +86,7 @@ where
     pub enable_fault_analysis_mode: bool,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub cmpa_prog_in_progress: ManufacturerAreaProgInProgress,
+    pub factory_prog_in_progress: FactoryAreaProgInProgress,
 
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -115,10 +115,10 @@ fn is_default<T: Default + PartialEq>(t: &T) -> bool {
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct ManufacturerArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+pub struct FactoryArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
-    CustomerData: ManufacturerAreaCustomerData,
-    VendorUsage: ManufacturerAreaVendorUsage,
+    CustomerData: FactoryAreaCustomerData,
+    VendorUsage: FactoryAreaVendorUsage,
 {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -156,7 +156,7 @@ where
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct KeystoreHeader(u32);
+pub struct KeystoreHeader(pub u32);
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Keycode(
@@ -198,29 +198,30 @@ impl fmt::Debug for ActivationCode {
 pub struct Keystore {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    header: KeystoreHeader,
+    pub header: KeystoreHeader,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    puf_discharge_time_milliseconds: u32,
+    pub puf_discharge_time_milliseconds: u32,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    activation_code: ActivationCode,
+    pub activation_code: ActivationCode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    secure_boot_kek: Keycode,
+    pub secure_boot_kek: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    user_kek: Keycode,
+    pub user_kek: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    uds_kek: Keycode,
+    pub uds_kek: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    prince_keks: [Keycode; 3],
+    pub prince_keks: [Keycode; 3],
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct Nmpa {
+/// This is incorrect. There's more in the NMPA spreadsheet section!
+pub struct NxpArea {
     uuid: u128,
 }
 
@@ -270,10 +271,10 @@ fn parse_keystore(input: &[u8]) -> IResult<&[u8], Keystore> {
     Ok((input, keystore))
 }
 
-impl<CustomerData, VendorUsage> ManufacturerArea<CustomerData, VendorUsage>
+impl<CustomerData, VendorUsage> FactoryArea<CustomerData, VendorUsage>
 where
-    CustomerData: ManufacturerAreaCustomerData,
-    VendorUsage: ManufacturerAreaVendorUsage,
+    CustomerData: FactoryAreaCustomerData,
+    VendorUsage: FactoryAreaVendorUsage,
 {
     pub fn to_bytes(&mut self) -> [u8; 512] {
         let mut buf = [0u8; 512];
@@ -307,8 +308,8 @@ where
     }
 }
 
-fn parse_cmpa<CustomerData: ManufacturerAreaCustomerData, VendorUsage: ManufacturerAreaVendorUsage>(input: &[u8])
-    -> IResult<&[u8], ManufacturerArea<CustomerData, VendorUsage>>
+fn parse_factory<CustomerData: FactoryAreaCustomerData, VendorUsage: FactoryAreaVendorUsage>(input: &[u8])
+    -> IResult<&[u8], FactoryArea<CustomerData, VendorUsage>>
 {
     let (input, boot_cfg) = le_u32(input)?;
     let (input, _spi_flash_cfg) = le_u32(input)?;
@@ -339,7 +340,7 @@ fn parse_cmpa<CustomerData: ManufacturerAreaCustomerData, VendorUsage: Manufactu
 
     let (input, sha256_hash) = take!(input, 32)?;
 
-    let cmpa = ManufacturerArea {
+    let factory = FactoryArea {
         boot_configuration: BootConfiguration::from(boot_cfg),
         usb_id: UsbId::from(usb_id),
         debug_settings: DebugSecurityPolicies::from([cc_socu_default, cc_socu_pin]),
@@ -356,14 +357,14 @@ fn parse_cmpa<CustomerData: ManufacturerAreaCustomerData, VendorUsage: Manufactu
         sha256_hash: Sha256Hash(sha256_hash.try_into().unwrap()),
     };
 
-    Ok((input, cmpa))
+    Ok((input, factory))
 }
 
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[repr(u8)]
 pub enum BootSpeed {
-    Nmpa = 0,
+    Nxp = 0,
     #[serde(rename = "48Mhz")]
     Fro48 = 1,
     #[serde(rename = "96Mhz")]
@@ -373,7 +374,7 @@ pub enum BootSpeed {
 
 impl Default for BootSpeed {
     fn default() -> Self {
-        Self::Nmpa
+        Self::Nxp
     }
 }
 
@@ -381,7 +382,7 @@ impl From<u8> for BootSpeed {
     fn from(value: u8) -> Self {
         use BootSpeed::*;
         match value {
-            0b00 => Nmpa,
+            0b00 => Nxp,
             0b01 => Fro48,
             0b10 => Fro96,
             0b11 | _ => Reserved,
@@ -555,7 +556,7 @@ pub struct SecureBootConfiguration {
     pub dice_computation_disabled: bool,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub include_cmpa_area_in_dice_computation: bool,
+    pub include_factory_area_in_dice_computation: bool,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub include_nxp_area_in_dice_computation: bool,
@@ -577,7 +578,7 @@ impl From<u32> for SecureBootConfiguration {
             dice_computation_disabled: multibool((word >> 6) & 0b11),
             // cf. UM 11126, Ch. 7, table 177
             include_security_epoch_area_in_dice_computation: multibool((word >> 14) & 0b11),
-            include_cmpa_area_in_dice_computation: multibool((word >> 4) & 0b11),
+            include_factory_area_in_dice_computation: multibool((word >> 4) & 0b11),
             include_nxp_area_in_dice_computation: multibool((word >> 2) & 0b11),
             use_rsa4096_keys: multibool((word >> 0) & 0b11),
         }
@@ -593,7 +594,7 @@ impl From<SecureBootConfiguration> for u32 {
         word |= (cfg.trustzone_mode as u8 as u32) << 8;
         word |= boolmulti(cfg.dice_computation_disabled) << 6;
         word |= boolmulti(cfg.include_security_epoch_area_in_dice_computation) << 14;
-        word |= boolmulti(cfg.include_cmpa_area_in_dice_computation) << 4;
+        word |= boolmulti(cfg.include_factory_area_in_dice_computation) << 4;
         word |= boolmulti(cfg.include_nxp_area_in_dice_computation) << 2;
         word |= boolmulti(cfg.use_rsa4096_keys) << 0;
         word
@@ -696,11 +697,11 @@ bitflags::bitflags! {
 impl core::convert::TryFrom<&[u8]> for ProtectedFlash {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let cfpa = FieldArea::try_from(&input[..3*512]).unwrap();
-        let cmpa = ManufacturerArea::try_from(&input[3*512..4*512]).unwrap();
+        let field = FieldArea::try_from(&input[..3*512]).unwrap();
+        let factory = FactoryArea::try_from(&input[3*512..4*512]).unwrap();
         let keystore = Keystore::try_from(&input[4*512..7*512]).unwrap();
 
-        let pfr = ProtectedFlash { cfpa, cmpa, keystore };
+        let pfr = ProtectedFlash { field, factory, keystore };
 
         Ok(pfr)
     }
@@ -729,7 +730,7 @@ fn format_bytes(bytes: &[u8], f: &mut fmt::Formatter<'_>) -> fmt::Result {
 }
 
 pub trait FieldAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
-pub trait ManufacturerAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
+pub trait FactoryAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RawCustomerData(
@@ -762,7 +763,7 @@ impl From<[u8; 14*4*4]> for RawCustomerData {
 }
 
 impl FieldAreaCustomerData for RawCustomerData {}
-impl ManufacturerAreaCustomerData for RawCustomerData {}
+impl FactoryAreaCustomerData for RawCustomerData {}
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct FieldArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
@@ -782,9 +783,9 @@ impl core::convert::TryFrom<&[u8]> for FieldArea {
         let ping = FieldAreaPage::try_from(&input[512..2*512]).unwrap();
         let pong = FieldAreaPage::try_from(&input[2*512..3*512]).unwrap();
 
-        let cfpa = FieldArea { scratch, ping, pong };
+        let field = FieldArea { scratch, ping, pong };
 
-        Ok(cfpa)
+        Ok(field)
     }
 }
 
@@ -795,7 +796,7 @@ pub struct Header(u32);
 // pub struct Version(u32);
 
 pub trait FieldAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
-pub trait ManufacturerAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
+pub trait FactoryAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RawVendorUsage(u32);
 
@@ -818,7 +819,7 @@ impl From<u32> for RawVendorUsage {
 }
 
 impl FieldAreaVendorUsage for RawVendorUsage {}
-impl ManufacturerAreaVendorUsage for RawVendorUsage {}
+impl FactoryAreaVendorUsage for RawVendorUsage {}
 
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Sha256Hash(pub [u8; 32]);
@@ -836,9 +837,9 @@ impl AsRef<[u8]> for Sha256Hash {
 
 /// CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active CFPA page each time CMPA page programming is going on. It shall always be set to 0x00000000 in the CFPA scratch area.
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct ManufacturerAreaProgInProgress(u32);
+pub struct FactoryAreaProgInProgress(u32);
 
-impl fmt::Debug for ManufacturerAreaProgInProgress {
+impl fmt::Debug for FactoryAreaProgInProgress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.0 {
             // 0x00000000 => f.write_str("empty"),
@@ -975,41 +976,41 @@ impl From<[bool; 2]> for DebugSecurityPolicy {
 pub struct DebugSecurityPolicies {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    nonsecure_noninvasive: DebugSecurityPolicy,
+    pub nonsecure_noninvasive: DebugSecurityPolicy,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    nonsecure_invasive: DebugSecurityPolicy,
+    pub nonsecure_invasive: DebugSecurityPolicy,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    secure_noninvasive: DebugSecurityPolicy,
+    pub secure_noninvasive: DebugSecurityPolicy,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    secure_invasive: DebugSecurityPolicy,
+    pub secure_invasive: DebugSecurityPolicy,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    cm33_invasive: DebugSecurityPolicy,
+    pub cm33_invasive: DebugSecurityPolicy,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    cm33_noninvasive: DebugSecurityPolicy,
+    pub cm33_noninvasive: DebugSecurityPolicy,
 
     /// JTAG test access port
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    jtag_tap: DebugSecurityPolicy,
+    pub jtag_tap: DebugSecurityPolicy,
 
     /// ISP boot command
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    isp_boot_command: DebugSecurityPolicy,
+    pub isp_boot_command: DebugSecurityPolicy,
     /// FA (fault analysis) command
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    fault_analysis_command: DebugSecurityPolicy,
+    pub fault_analysis_command: DebugSecurityPolicy,
 
     /// enforce UUID match during debug authentication
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    check_uuid: bool,
+    pub check_uuid: bool,
 }
 
 impl From<[u32; 2]> for DebugSecurityPolicies {
@@ -1150,7 +1151,7 @@ where
             };
             cursor.write_all(&enable_fa_mode.to_le_bytes())?;
 
-            // cmpa_prog
+            // factory_prog
             // "CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active
             // CFPA page each time CMPA page programming is going on. It shall always be set to
             // 0x00000000 in the CFPA scratch area."
@@ -1193,7 +1194,7 @@ where
 
         // double check format
         cursor.write_all(&(self.enable_fault_analysis_mode as u32).to_le_bytes()).ok();
-        // cmpa_prog
+        // factory_prog
         cursor.write_all(&[0u8; 4]).ok();
 
         cursor.write_all(&self.prince_ivs[0].0).ok();
@@ -1218,7 +1219,7 @@ where
     }
 }
 
-fn parse_cfpa_page<CustomerData: FieldAreaCustomerData, VendorUsage: FieldAreaVendorUsage>(input: &[u8])
+fn parse_field_page<CustomerData: FieldAreaCustomerData, VendorUsage: FieldAreaVendorUsage>(input: &[u8])
     -> IResult<&[u8], FieldAreaPage<CustomerData, VendorUsage>>
 {
     let (input, header) = le_u32(input)?;
@@ -1235,7 +1236,7 @@ fn parse_cfpa_page<CustomerData: FieldAreaCustomerData, VendorUsage: FieldAreaVe
     let (input, dcfg_cc_socu_ns_pin) = le_u32(input)?;
     let (input, dcfg_cc_socu_ns_default) = le_u32(input)?;
     let (input, enable_fa) = le_u32(input)?;
-    let (input, cmpa_prog_in_progress) = le_u32(input)?;
+    let (input, factory_prog_in_progress) = le_u32(input)?;
 
     let (input, prince_iv_code0) = take!(input, 14*4)?;
     let (input, prince_iv_code1) = take!(input, 14*4)?;
@@ -1258,7 +1259,7 @@ fn parse_cfpa_page<CustomerData: FieldAreaCustomerData, VendorUsage: FieldAreaVe
         rot_keys_status: RotKeysStatus::from(rot_keys_status),
         debug_settings: DebugSecurityPolicies::from([dcfg_cc_socu_ns_default, dcfg_cc_socu_ns_pin]),
         enable_fault_analysis_mode: enable_fa != 0,
-        cmpa_prog_in_progress: ManufacturerAreaProgInProgress(cmpa_prog_in_progress),
+        factory_prog_in_progress: FactoryAreaProgInProgress(factory_prog_in_progress),
         prince_ivs: [
             PrinceIvCode(prince_iv_code0.try_into().unwrap()),
             PrinceIvCode(prince_iv_code1.try_into().unwrap()),
@@ -1279,19 +1280,19 @@ where
 {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let (_input, page) = parse_cfpa_page(input).unwrap();
+        let (_input, page) = parse_field_page(input).unwrap();
         Ok(page)
     }
 }
 
-impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]> for ManufacturerArea<CustomerData, VendorUsage>
+impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]> for FactoryArea<CustomerData, VendorUsage>
 where
-    CustomerData: ManufacturerAreaCustomerData,
-    VendorUsage: ManufacturerAreaVendorUsage,
+    CustomerData: FactoryAreaCustomerData,
+    VendorUsage: FactoryAreaVendorUsage,
 {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let (_input, page) = parse_cmpa(input).unwrap();
+        let (_input, page) = parse_factory(input).unwrap();
         Ok(page)
     }
 }

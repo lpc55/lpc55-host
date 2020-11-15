@@ -1,6 +1,6 @@
 use crate::error::Result;
 use crate::types::to_hex_string;
-use crate::pfr::{FieldAreaPage, Keystore, ManufacturerArea, Sha256Hash};
+use crate::pfr::{FieldAreaPage, Keystore, FactoryArea, Sha256Hash};
 
 use core::convert::TryInto;
 use std::fs;
@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
     pub root_cert_filenames: [String; 4],
-    pub factory: ManufacturerArea,
+    pub factory: FactoryArea,
     pub field: FieldAreaPage,
     pub keystore: Keystore,
 }

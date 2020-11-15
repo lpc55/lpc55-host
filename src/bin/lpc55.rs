@@ -107,9 +107,9 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
         // let j = serde_json::to_string(&pfr).unwrap();
         // println!("{}", j);
 
-        // println!("CFPA-scratch == CFPA-ping: {}", pfr.cfpa.scratch == pfr.cfpa.ping);
-        // println!("CFPA-scratch == CFPA-pong: {}", pfr.cfpa.scratch == pfr.cfpa.pong);
-        // println!("CFPA-ping == CFPA-pong: {}", pfr.cfpa.ping == pfr.cfpa.pong);
+        // println!("CFPA-scratch == CFPA-ping: {}", pfr.field.scratch == pfr.field.ping);
+        // println!("CFPA-scratch == CFPA-pong: {}", pfr.field.scratch == pfr.field.pong);
+        // println!("CFPA-ping == CFPA-pong: {}", pfr.field.ping == pfr.field.pong);
     }
 
     if let Some(command) = args.subcommand_matches("read-memory") {
