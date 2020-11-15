@@ -156,6 +156,12 @@
 <span id="155">155</span>
 <span id="156">156</span>
 <span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="self">self</span>, <span class="ident">crate_authors</span>, <span class="ident">crate_version</span>, <span class="ident">App</span>, <span class="ident">Arg</span>, <span class="ident">SubCommand</span>};
 
@@ -236,6 +242,12 @@ Project homepage: https://github.com/nickray/lpc55
                  .<span class="ident">long</span>(<span class="string">&quot;port&quot;</span>)
                  .<span class="ident">default_value</span>(<span class="string">&quot;2020&quot;</span>)
              )
+        )
+
+        .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;enroll-puf&quot;</span>)
+            .<span class="ident">version</span>(<span class="macro">crate_version</span><span class="macro">!</span>())
+            .<span class="ident">long_version</span>(<span class="ident">LONG_VERSION</span>.<span class="ident">as_str</span>())
+            .<span class="ident">about</span>(<span class="string">&quot;enroll PUF&quot;</span>)
         )
 
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;info&quot;</span>)

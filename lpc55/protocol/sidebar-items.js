@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Protocol",""]]});
+initSidebarItems({"constant":[["READ_TIMEOUT",""]],"enum":[["ProtocolError",""],["ReceivedPacket",""]],"struct":[["Protocol",""],["ResponsePacket",""]]});

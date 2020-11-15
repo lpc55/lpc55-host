@@ -236,74 +236,7 @@
 <span id="235">235</span>
 <span id="236">236</span>
 <span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryInto</span>;
-
 <span class="kw">use</span> <span class="ident">hidapi</span>::<span class="ident">HidApi</span>;
 <span class="kw">use</span> <span class="ident">enum_iterator</span>::<span class="ident">IntoEnumIterator</span>;
 
@@ -339,7 +272,43 @@
         }
     }
 
-    <span class="doccomment">/// TODO: Need to expect erorrs such as: `Response status = 139 (0x8b) kStatus_FLASH_NmpaUpdateNotAllowed`</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enroll_puf</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// first time i ran this:</span>
+        <span class="comment">// 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000030 FF5F0030 00000020 FF5F0020 00000000 00000000</span>
+        <span class="comment">// second time i ran this:</span>
+        <span class="comment">// 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
+        <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command</span>::<span class="ident">KeyProvisioning</span>(<span class="ident">KeyProvisioningOperation</span>::<span class="ident">Enroll</span>)).<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
+        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;PUF enrolled&quot;</span>);
+    }
+
+    <span class="doccomment">/// The reason for this wrapper is that the device aborts early if more than 512 bytes are</span>
+    <span class="doccomment">/// requested. Unclear why it does this...</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is a traffic trace (requesting all of PFR in one go), removing the &quot;surplus junk&quot;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// --&gt; 01002000 03000002 00DE0900 000E0000 00000000 00000000 00000000 00000000 00000000</span>
+    <span class="doccomment">/// &lt;-- 03000C00 A3010002 00000000 000E0000</span>
+    <span class="doccomment">/// &lt;-- 04003800 00000000 02000000 02000000 02000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
+    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
+    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
+    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
+    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 02000000 00000000 00000000 00000000 00000000 00000000</span>
+    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
+    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
+    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
+    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 ECE6A668 2922E9CC F462A95F DF81E180 E1528642 7C520098</span>
+    <span class="doccomment">/// &lt;-- 04000000</span>
+    <span class="doccomment">/// &lt;-- 03000C00 A0000002 65000000 03000000</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The error is 101 = 100 + 1 = (supposedly) a flash driver &quot;alignment&quot; error (?!)</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The interesting thing is that at the point where the device aborts, there are 8 bytes</span>
+    <span class="doccomment">/// remaining, which it otherwise produces in a final</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// &lt;-- 04000800 2C80BA51 B067AF3C</span>
+    <span class="doccomment">/// &lt;-- 03000C00 A0000002 00000000 03000000</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// TODO: Need to expect errors such as: `Response status = 139 (0x8b) kStatus_FLASH_NmpaUpdateNotAllowed`</span>
     <span class="doccomment">/// This happens with `read-memory $((0x0009_FC70)) 16`, which would be the UUID</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// TODO: Need to expect errors such as: `Response status = 10200 (0x27d8) kStatusMemoryRangeInvalid`</span>
@@ -358,120 +327,21 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_memory_at_most_512</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">length</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-
-        <span class="comment">// construct</span>
-        <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Command</span>::<span class="ident">ReadMemory</span> { <span class="ident">address</span>, <span class="ident">length</span> }.<span class="ident">hid_packet</span>();
-
-        <span class="comment">// send</span>
-        <span class="comment">// println!(&quot;send ({}): {}&quot;, packet.len(), to_hex_string(&amp;packet));</span>
-        <span class="kw">let</span> <span class="ident">_wrote</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">write</span>(<span class="ident">packet</span>.<span class="ident">as_slice</span>()).<span class="ident">expect</span>(<span class="string">&quot;could not write&quot;</span>);
-        <span class="comment">//assert_eq!(_wrote, packet.len());</span>
-
-        <span class="comment">// expected memory readout from `blhost`:</span>
-        <span class="comment">// 00 00 04 20 c7 56 00 00 0b 57 00 00 5d 8d 00 00</span>
-        <span class="comment">// 0b 57 00 00 0b 57 00 00 0b 57 00 00 0b 57 00 00</span>
-        <span class="comment">// 00 00 00 00 00 00 00 00 00 00 00 00 0b 57 00 00</span>
-        <span class="comment">// 0b 57 00 00 00 00 00 00 0b 57 00 00 0b 57 00 00</span>
-
-        <span class="comment">// what happens:</span>
-        <span class="comment">// - we send</span>
-        <span class="comment">//                         Read    n_parms   addr     amount 512</span>
-        <span class="comment">// send (36): 01 00 20 00  03 00 00 02  00 00 00 00  00 02 00 00  00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00</span>
-        <span class="comment">//                0xC = 12 = header + 2 params                                                                                     Junk -&gt;</span>
-        <span class="comment">// read (60): 03 00 0C 00  A3 01 00 02  00 00 00 00  00 02 00 00  00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00  FA AB D2 99 02 F0 23 F9 FF E7 F4 A8 05 F0 05 FC CF 90 FF E7 CF 98 00 F0</span>
-        <span class="comment">//</span>
-        <span class="comment">// read (60): 04 00 38 00  00 00 04 20 C7 56 00 00 0B 57 00 00 5D 8D 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00</span>
-        <span class="comment">// read (60): 04 00 38 00  0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00</span>
-        <span class="comment">// read (60): 04 00 38 00  0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00</span>
-        <span class="comment">// read (60): 04 00 38 00  00 00 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00</span>
-        <span class="comment">// read (60): 04 00 38 00  00 00 00 00 00 00 00 00 0B 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00 0B 57 00 00 0B 57 00 00 0B 57 00 00 00 00 00 00</span>
-        <span class="comment">// read (60): 04 00 38 00  0B 57 00 00 00 00 00 00 0B 57 00 00 00 00 00 00 0B 57 00 00 0B 57 00 00 80 B5 6F 46 00 F0 01 F8 FE DE B0 B5 02 AF AD F5 06 5D 0D F5 A3 50 D5 A9 D4 90 08 46 02 F0 8C F9</span>
-        <span class="comment">// read (60): 04 00 38 00  FF E7 F0 A8 01 F0 59 FF FF E7 60 20 03 F0 C1 FB D3 90 FF E7 EC A8 F0 A9 D3 9A 01 F0 68 FF FF E7 68 46 E6 A9 01 60 E9 A8 EC A9 E4 AA E5 AB 04 F0 D3 FD FF E7 48 F6 9C 51</span>
-        <span class="comment">// read (60): 04 00 38 00  C0 F2 00 01 E9 A8 02 F0 3E F8 8D F8 A0 13 E7 90 FF E7 48 F6 C0 50 C0 F2 00 00 01 68 48 F6 D8 50 C0 F2 00 00 00 68 FC 90 FC 98 D4 9A C2 F8 1C 0C 42 F2 95 03 C0 F2 00 03</span>
-        <span class="comment">// read (60): 04 00 38 00  D2 91 19 46 05 F0 00 F9 D1 90 D0 91 FF E7 D1 98 FA 90 D0 99 FB 91 6A 46 01 23 13 60 F4 A8 02 22 FA AB D2 99 02 F0 23 F9 FF E7 F4 A8 05 F0 05 FC CF 90 FF E7 CF 98 00 F0</span>
-        <span class="comment">// read (60): 04 00 08 00  01 00 48 F6 DC 51 C0 F2 D1 90 D0 91 FF E7 D1 98 FA 90 D0 99 FB 91 6A 46 01 23 13 60 F4 A8 02 22 FA AB D2 99 02 F0 23 F9 FF E7 F4 A8 05 F0 05 FC CF 90 FF E7 CF 98 00 F0</span>
-        <span class="comment">//</span>
-        <span class="comment">// read (60): 03 00 0C 00  A0 00 00 02  00 00 00 00  03 00 00 00  FF E7 D1 98 FA 90 D0 99 FB 91 6A 46 01 23 13 60 F4 A8 02 22 FA AB D2 99 02 F0 23 F9 FF E7 F4 A8 05 F0 05 FC CF 90 FF E7 CF 98 00 F0</span>
-        <span class="comment">// read (0):</span>
-
-        <span class="comment">// fetch response</span>
-        <span class="kw">let</span> <span class="ident">initial_generic_response</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">read_timeout</span>(<span class="number">2000</span>).<span class="ident">expect</span>(<span class="string">&quot;generic reponse first&quot;</span>);
-        <span class="comment">// dbg!(to_hex_string(&amp;initial_generic_response));</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>([<span class="number">0x03</span>, <span class="number">0x00</span>, <span class="number">0x0C</span>, <span class="number">0x00</span>], <span class="kw-2">&amp;</span><span class="ident">initial_generic_response</span>[..<span class="number">4</span>]);
-        <span class="macro">assert_eq</span><span class="macro">!</span>([<span class="number">0xA3</span>, <span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x02</span>], <span class="kw-2">&amp;</span><span class="ident">initial_generic_response</span>[<span class="number">4</span>..][..<span class="number">4</span>]);
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">length</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-        <span class="kw">while</span> <span class="ident">remaining</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="comment">// dbg!(remaining);</span>
-            <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">read_timeout</span>(<span class="number">2000</span>).<span class="ident">expect</span>(<span class="string">&quot;could not read&quot;</span>);
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">len</span>() <span class="op">&gt;=</span> <span class="number">5</span>);
-            <span class="comment">// dbg!(to_hex_string(&amp;response));</span>
-            <span class="comment">// println!(&quot;read ({}): {}&quot;, response.len(), to_hex_string(&amp;response));</span>
-            <span class="kw">let</span> [<span class="ident">report_id</span>, <span class="kw">_</span>, <span class="ident">count</span>, <span class="kw">_</span>]: [<span class="ident">u8</span>; <span class="number">4</span>] <span class="op">=</span> <span class="ident">response</span>.<span class="ident">as_slice</span>()[..<span class="number">4</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">report_id</span>, <span class="ident">ReportId</span>::<span class="ident">DataIn</span> <span class="kw">as</span> <span class="ident">u8</span>);
-            <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>;
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">len</span>() <span class="op">&gt;=</span> <span class="number">4</span> <span class="op">+</span> <span class="ident">count</span>);
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&lt;=</span> <span class="ident">remaining</span>);
-            <span class="ident">data</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">response</span>[<span class="number">4</span>..][..<span class="ident">count</span>]);
-            <span class="ident">remaining</span> <span class="op">-=</span> <span class="ident">count</span>;
+        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command</span>::<span class="ident">ReadMemory</span> { <span class="ident">address</span>, <span class="ident">length</span> }).<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Response</span>::<span class="ident">ReadMemory</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">response</span> {
+            <span class="ident">data</span>
+        } <span class="kw">else</span> {
+            <span class="macro">todo</span><span class="macro">!</span>();
         }
-
-        <span class="kw">let</span> <span class="ident">final_generic_response</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">read_timeout</span>(<span class="number">2000</span>).<span class="ident">expect</span>(<span class="string">&quot;generic reponse first&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>([<span class="number">0x03</span>, <span class="number">0x00</span>, <span class="number">0x0C</span>, <span class="number">0x00</span>], <span class="kw-2">&amp;</span><span class="ident">final_generic_response</span>[..<span class="number">4</span>]);
-        <span class="macro">assert_eq</span><span class="macro">!</span>([<span class="number">0xA0</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x02</span>], <span class="kw-2">&amp;</span><span class="ident">final_generic_response</span>[<span class="number">4</span>..][..<span class="number">4</span>]);
-
-        <span class="ident">data</span>
     }
 
-    <span class="comment">// INFO:MBOOT:CMD: GetProperty(CurrentVersion, index=0)</span>
-    <span class="comment">// DEBUG:MBOOT:TX-PACKET: Tag=GetProperty, Flags=0x00, P[0]=0x00000001, P[1]=0x00000000</span>
-    <span class="comment">// DEBUG:MBOOT:USB:report-id == 1</span>
-    <span class="comment">// DEBUG:MBOOT:USB:HID-HEADER[4]: 01 00 20 00</span>
-    <span class="comment">// DEBUG:MBOOT:USB:OUT[59]: 01 00 20 00 07 00 00 02 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00</span>
-    <span class="comment">// writing 01 00 20 00 07 00 00 02 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00, (index: 32</span>
-    <span class="comment">// DEBUG:MBOOT:USB:IN [59]: 03 00 0C 00 A7 00 00 02 00 00 00 00 00 00 03 4B 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00</span>
-    <span class="comment">// DEBUG:MBOOT:RX-PACKET: Tag=GetPropertyResponse, Status=Success, V[0]=0x4B030000</span>
-    <span class="comment">// INFO:MBOOT:CMD: Done successfully</span>
-
     <span class="kw">fn</span> <span class="ident">property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">property</span>: <span class="ident">Property</span>) <span class="op">-&gt;</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">BootloaderError</span><span class="op">&gt;</span> {
-
-        <span class="comment">// construct command</span>
-        <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Command</span>::<span class="ident">GetProperty</span>(<span class="ident">property</span>).<span class="ident">hid_packet</span>();
-
-        <span class="comment">// send command</span>
-        <span class="comment">// println!(&quot;writing {:02x?}&quot;, &amp;packet);</span>
-        <span class="kw">let</span> <span class="ident">_wrote</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">write</span>(<span class="ident">packet</span>.<span class="ident">as_slice</span>()).<span class="ident">expect</span>(<span class="string">&quot;could not write&quot;</span>);
-        <span class="comment">// assert_eq!(_wrote, packet.len());</span>
-
-        <span class="comment">// fetch response</span>
-        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">read_timeout</span>(<span class="number">2000</span>).<span class="ident">expect</span>(<span class="string">&quot;could not read&quot;</span>);
-        <span class="comment">// println!(&quot;read: {:?}&quot;, &amp;response[..read]);</span>
-
-        <span class="comment">// interpret response</span>
-        <span class="kw">let</span> (<span class="ident">hid_header</span>, <span class="ident">rest</span>) <span class="op">=</span> <span class="ident">response</span>.<span class="ident">split_at</span>(<span class="number">4</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">hid_header</span>[..<span class="number">2</span>], (<span class="ident">ReportId</span>::<span class="ident">CommandIn</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="ident">u16</span>).<span class="ident">to_le_bytes</span>());
-
-        <span class="kw">let</span> (<span class="ident">packet_header</span>, <span class="ident">rest</span>) <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">split_at</span>(<span class="number">4</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">packet_header</span>[..<span class="number">3</span>], [<span class="ident">Response</span>::<span class="ident">GetProperty</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="number">0</span>, <span class="number">0</span>]);
-        <span class="kw">let</span> <span class="ident">num_params</span> <span class="op">=</span> <span class="ident">packet_header</span>[<span class="number">3</span>];
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">num_params</span> <span class="op">&gt;=</span> <span class="number">1</span>);
-
-        <span class="comment">// status</span>
-        <span class="kw">let</span> (<span class="ident">status</span>, <span class="ident">rest</span>) <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">split_at</span>(<span class="number">4</span>);
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">from_le_bytes</span>(<span class="ident">status</span>.<span class="ident">as_ref</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
-        <span class="kw">if</span> <span class="ident">status</span> <span class="op">!=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">BootloaderError</span>::<span class="ident">from</span>(<span class="ident">status</span>));
+        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command</span>::<span class="ident">GetProperty</span>(<span class="ident">property</span>)).<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Response</span>::<span class="ident">GetProperty</span>(<span class="ident">values</span>) <span class="op">=</span> <span class="ident">response</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">values</span>)
+        } <span class="kw">else</span> {
+            <span class="macro">todo</span><span class="macro">!</span>();
         }
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-        <span class="kw">for</span> <span class="ident">value_bytes</span> <span class="kw">in</span> <span class="ident">rest</span>.<span class="ident">chunks_exact</span>(<span class="number">4</span>).<span class="ident">take</span>(<span class="ident">num_params</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">1</span>) {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">from_le_bytes</span>(<span class="ident">value_bytes</span>.<span class="ident">as_ref</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
-            <span class="ident">values</span>.<span class="ident">push</span>(<span class="ident">value</span>);
-            <span class="comment">// println!(&quot;value: {:02x?} (0x{:08x} = {})&quot;, value_bytes, value, value);</span>
-        }
-
-        <span class="prelude-val">Ok</span>(<span class="ident">values</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">properties</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">GetProperties</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {

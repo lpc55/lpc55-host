@@ -1305,6 +1305,7 @@
 <span id="1304">1304</span>
 <span id="1305">1305</span>
 <span id="1306">1306</span>
+<span id="1307">1307</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryInto</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
@@ -1398,7 +1399,8 @@
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">prince_ivs</span>: [<span class="ident">PrinceIvCode</span>; <span class="number">3</span>],
+    <span class="kw">pub</span> <span class="ident">prince_ivs</span>: [
+        <span class="ident">PrinceIvCode</span>; <span class="number">3</span>],
 
     <span class="comment">// customer_data: [u32; 4*14],  // or [u128, 14]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
