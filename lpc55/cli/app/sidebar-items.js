@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["app",""],["long_version","Return the \"long\" format of lpc55's version string."]]});

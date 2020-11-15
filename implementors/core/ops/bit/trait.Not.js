@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["lpc55"] = [{"text":"impl Not for PrinceSubregion","synthetic":false,"types":[]},{"text":"impl Not for AvailablePeripherals","synthetic":false,"types":[]},{"text":"impl Not for AvailableCommands","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

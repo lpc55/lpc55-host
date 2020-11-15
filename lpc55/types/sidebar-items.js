@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Command",""],["FlashReadMargin",""],["PfrKeystoreUpdateOptions",""],["Property",""],["ReportId",""],["Response",""]],"fn":[["to_hex_string",""]],"struct":[["AvailableCommands",""],["AvailablePeripherals",""],["IrqNotificationPin",""],["Properties",""],["Version",""]]});
