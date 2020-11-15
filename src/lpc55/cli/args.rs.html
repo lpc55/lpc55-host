@@ -127,15 +127,6 @@
 <span id="126">126</span>
 <span id="127">127</span>
 <span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>;
@@ -224,15 +215,6 @@
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;failed to initialize logger: {}&quot;</span>, <span class="ident">err</span>).<span class="ident">into</span>());
         }
 
-        <span class="comment">// if early_matches.is_present(&quot;trace&quot;) {</span>
-        <span class="comment">//     log::set_max_level(log::LevelFilter::Trace);</span>
-        <span class="comment">// } else if early_matches.is_present(&quot;debug&quot;) {</span>
-        <span class="comment">//     log::set_max_level(log::LevelFilter::Debug);</span>
-        <span class="comment">// } else {</span>
-        <span class="comment">//     log::set_max_level(log::LevelFilter::Warn);</span>
-        <span class="comment">// }</span>
-
-        <span class="comment">// (...)</span>
         <span class="ident">early_matches</span>.<span class="ident">to_args</span>()
     }
 
