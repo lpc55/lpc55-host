@@ -250,20 +250,6 @@ impl core::convert::TryFrom<u8> for FlashReadMargin {
 //     }
 // }
 
-// #[derive(Copy, Clone, Debug)]
-// pub struct CommandHeader {
-//     tag: u8,
-//     flags: u8,
-//     params: u8,
-// }
-
-// impl CommandHeader {
-//     pub fn to_bytes(&self) -> [u8; 4] {
-//         let bytes = [0u8; 4];
-//         bytes[0] =
-//     }
-// }
-
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
 // naming taken from docs, could also be called Subcommand, or even Command

@@ -71,6 +71,28 @@ pub enum ReceivedPacket {
     Data(Vec<u8>),
 }
 
+impl TryFrom<ReceivedPacket> for ResponsePacket {
+    type Error = ProtocolError;
+    fn try_from(packet: ReceivedPacket) -> Result<Self, Self::Error> {
+        if let ReceivedPacket::Response(packet) = packet {
+            Ok(packet)
+        } else {
+            Err(ProtocolError::ExpectedResponsePacket)
+        }
+    }
+}
+
+impl TryFrom<ReceivedPacket> for Vec<u8> {
+    type Error = ProtocolError;
+    fn try_from(packet: ReceivedPacket) -> Result<Self, Self::Error> {
+        if let ReceivedPacket::Data(data) = packet {
+            Ok(data)
+        } else {
+            Err(ProtocolError::ExpectedDataPacket)
+        }
+    }
+}
+
 pub const READ_TIMEOUT: i32 = 2000;
 
 impl Protocol {
@@ -95,78 +117,64 @@ impl Protocol {
 
                 // we expect a non-data packet, not signaling additional data packets, with
                 // successful status, mirroring our command header
-                if let ReceivedPacket::Response(packet) = initial_response {
-                    assert_eq!(packet.has_data, false);
-                    assert!(packet.status.is_none());
-                    match command {
-                        types::Command::KeyProvisioning(types::KeyProvisioningOperation::Enroll) => {
-                            assert_eq!(packet.tag, types::ResponseTag::Generic);
+                let packet = ResponsePacket::try_from(initial_response)?;
 
-                            // general property of generic responses: 2 parameters, status and mirrored command header
-                            assert_eq!(packet.parameters.len(), 1);
-                            assert_eq!(packet.parameters[0].to_le_bytes(), command.header());
-
-                            Ok(types::Response::Generic)
-                        }
-                        types::Command::GetProperty(_property) => {
-                            assert_eq!(packet.tag, types::ResponseTag::GetProperty);
-                            assert!(!packet.parameters.is_empty());
-
-                            Ok(types::Response::GetProperty(packet.parameters))
-                        }
-                        _ => todo!()
-                    }
-                } else {
-                    Err(ProtocolError::ExpectedResponsePacket)?
-                }
-            }
-            (types::Command::ReadMemory { address: _, length }, _, _) => {
-
-                if let ReceivedPacket::Response(packet) = initial_response {
-                    // assert_eq!([0x03, 0x00, 0x0C, 0x00], &initial_generic_response[..4]);
-                    assert_eq!(packet.has_data, true);
-                    assert!(packet.status.is_none());
-                    assert_eq!(packet.tag, types::ResponseTag::ReadMemory);
-
-                    // ReadMemory response: 2 parameters, status and then number of bytes to be
-                    // sent in data phase
-                    assert_eq!(packet.parameters.len(), 1);
-                    assert_eq!(packet.parameters[0] as usize, length);
-
-                    let mut data = Vec::new();
-                    while data.len() < length {
-                        let maybe_data_packet = self.read_packet()?;
-                        if let ReceivedPacket::Data(partial_data) = maybe_data_packet {
-                            assert!(data.len() + partial_data.len() <= length);
-                            data.extend_from_slice(&partial_data);
-                        } else {
-                            Err(ProtocolError::ExpectedDataPacket)?
-                        }
-                    }
-
-                    let maybe_final_generic_packet = self.read_packet()?;
-
-                    if let ReceivedPacket::Response(packet) = maybe_final_generic_packet {
-                        assert_eq!(packet.has_data, false);
-                        assert!(packet.status.is_none());
-
+                assert_eq!(packet.has_data, false);
+                assert!(packet.status.is_none());
+                match command {
+                    types::Command::KeyProvisioning(types::KeyProvisioningOperation::Enroll) => {
                         assert_eq!(packet.tag, types::ResponseTag::Generic);
+
                         // general property of generic responses: 2 parameters, status and mirrored command header
                         assert_eq!(packet.parameters.len(), 1);
-                        // it seems the device "forgets" about the parameters the original command
-                        // contained (address + length)
-                        // ooorrr, Table 4-11 ("The Command tag parameter identifies the response to the command sent by the host.")
-                        // just means that the command tag is set
-                        assert_eq!(packet.parameters[0].to_le_bytes()[..2], command.header()[..2]);
+                        assert_eq!(packet.parameters[0].to_le_bytes(), command.header());
 
-                        Ok(types::Response::ReadMemory(data))
-                    } else {
-                        Err(ProtocolError::ExpectedResponsePacket)?
+                        Ok(types::Response::Generic)
                     }
+                    types::Command::GetProperty(_property) => {
+                        assert_eq!(packet.tag, types::ResponseTag::GetProperty);
+                        assert!(!packet.parameters.is_empty());
 
-                } else {
-                    Err(ProtocolError::ExpectedResponsePacket)?
+                        Ok(types::Response::GetProperty(packet.parameters))
+                    }
+                    _ => todo!()
                 }
+            }
+
+            (types::Command::ReadMemory { address: _, length }, _, _) => {
+
+                let packet = ResponsePacket::try_from(initial_response)?;
+                // assert_eq!([0x03, 0x00, 0x0C, 0x00], &initial_generic_response[..4]);
+                assert_eq!(packet.has_data, true);
+                assert!(packet.status.is_none());
+                assert_eq!(packet.tag, types::ResponseTag::ReadMemory);
+
+                // ReadMemory response: 2 parameters, status and then number of bytes to be
+                // sent in data phase
+                assert_eq!(packet.parameters.len(), 1);
+                assert_eq!(packet.parameters[0] as usize, length);
+
+                let mut data = Vec::new();
+                while data.len() < length {
+                    let partial_data: Vec<u8> = self.read_packet()?.try_into()?;
+                    assert!(data.len() + partial_data.len() <= length);
+                    data.extend_from_slice(&partial_data);
+                }
+
+                let packet = ResponsePacket::try_from(self.read_packet()?)?;
+                assert_eq!(packet.has_data, false);
+                assert!(packet.status.is_none());
+
+                assert_eq!(packet.tag, types::ResponseTag::Generic);
+                // general property of generic responses: 2 parameters, status and mirrored command header
+                assert_eq!(packet.parameters.len(), 1);
+                // it seems the device "forgets" about the parameters the original command
+                // contained (address + length)
+                // ooorrr, Table 4-11 ("The Command tag parameter identifies the response to the command sent by the host.")
+                // just means that the command tag is set
+                assert_eq!(packet.parameters[0].to_le_bytes()[..2], command.header()[..2]);
+
+                Ok(types::Response::ReadMemory(data))
             }
             _ => todo!()
         }
@@ -181,7 +189,7 @@ impl Protocol {
         data.resize(read, 0);
 
         // todo: what errors are appropriate? e.g. if report ID is invalid
-        let report_id = types::ReportId::try_from(data[0]).map_err(|err| ProtocolError::InvalidReportId(err))?;
+        let report_id = types::ReportId::try_from(data[0]).map_err(ProtocolError::InvalidReportId)?;
 
         // the device often sends "extra junk"; we split this off early
         let expected_packet_len = u16::from_le_bytes(data[2..4].try_into().unwrap()) as usize;
@@ -193,7 +201,7 @@ impl Protocol {
         // now handle the response packet
         Ok(match report_id {
             types::ReportId::Response => {
-                let tag = types::ResponseTag::try_from(response_packet[0]).map_err(|err| ProtocolError::UnknownResponseTag(err))?;
+                let tag = types::ResponseTag::try_from(response_packet[0]).map_err(ProtocolError::UnknownResponseTag)?;
                 let has_data = (response_packet[1] & 1) != 0;
                 let expected_param_count = response_packet[3] as usize;
 
