@@ -38,16 +38,20 @@ use crate::types;
 
 use hidapi::{HidDevice, HidResult};
 
+/// The NXP bootloader protocol. Interact via `fn call(Command) -> Result<Response>`
 pub struct Protocol {
     device: HidDevice,
 }
 
+/// The NXP bootloader protocol error type
 #[derive(thiserror::Error, Debug)]
-pub enum ProtocolError {
+pub enum Error {
     #[error("expected data response packet")]
     ExpectedDataPacket,
     #[error("expected (non-data) response packet")]
     ExpectedResponsePacket,
+    #[error("error from underlying hidapi")]
+    HidApi(#[from] hidapi::HidError),
     #[error("invalid HID report ID ({0})")]
     InvalidReportId(u8),
     #[error("unknown response tag ({0})")]
@@ -57,6 +61,8 @@ pub enum ProtocolError {
     Unspecified,
 }
 
+/// The NXP bootloader protocol result types
+pub type Result<T> = std::result::Result<T, Error>;
 
 pub struct ResponsePacket {
     pub tag: types::ResponseTag,
@@ -72,23 +78,23 @@ pub enum ReceivedPacket {
 }
 
 impl TryFrom<ReceivedPacket> for ResponsePacket {
-    type Error = ProtocolError;
-    fn try_from(packet: ReceivedPacket) -> Result<Self, Self::Error> {
+    type Error = Error;
+    fn try_from(packet: ReceivedPacket) -> Result<Self> {
         if let ReceivedPacket::Response(packet) = packet {
             Ok(packet)
         } else {
-            Err(ProtocolError::ExpectedResponsePacket)
+            Err(Error::ExpectedResponsePacket)
         }
     }
 }
 
 impl TryFrom<ReceivedPacket> for Vec<u8> {
-    type Error = ProtocolError;
-    fn try_from(packet: ReceivedPacket) -> Result<Self, Self::Error> {
+    type Error = Error;
+    fn try_from(packet: ReceivedPacket) -> Result<Self> {
         if let ReceivedPacket::Data(data) = packet {
             Ok(data)
         } else {
-            Err(ProtocolError::ExpectedDataPacket)
+            Err(Error::ExpectedDataPacket)
         }
     }
 }
@@ -97,7 +103,7 @@ pub const READ_TIMEOUT: i32 = 2000;
 
 impl Protocol {
 
-    pub fn call(&self, command: &types::Command) -> anyhow::Result<types::Response> {
+    pub fn call(&self, command: &types::Command) -> Result<types::Response> {
 
         // construct command packet
         let command_packet = command.hid_packet();
@@ -109,7 +115,6 @@ impl Protocol {
         let initial_response = self.read_packet()?;
 
         // parse initial reponse packet
-        // use types::CommandTag as Tag;
         match (*command, command.tag(), command.data_phase()) {
 
             // case 1: no data phases
@@ -180,7 +185,7 @@ impl Protocol {
         }
     }
 
-    pub fn read_packet(&self) -> anyhow::Result<ReceivedPacket> {
+    pub fn read_packet(&self) -> Result<ReceivedPacket> {
 
         // read data with timeout
         let mut data = Vec::new();
@@ -188,8 +193,7 @@ impl Protocol {
         let read = self.device.read_timeout(&mut data, READ_TIMEOUT)?;
         data.resize(read, 0);
 
-        // todo: what errors are appropriate? e.g. if report ID is invalid
-        let report_id = types::ReportId::try_from(data[0]).map_err(ProtocolError::InvalidReportId)?;
+        let report_id = types::ReportId::try_from(data[0]).map_err(Error::InvalidReportId)?;
 
         // the device often sends "extra junk"; we split this off early
         let expected_packet_len = u16::from_le_bytes(data[2..4].try_into().unwrap()) as usize;
@@ -201,7 +205,7 @@ impl Protocol {
         // now handle the response packet
         Ok(match report_id {
             types::ReportId::Response => {
-                let tag = types::ResponseTag::try_from(response_packet[0]).map_err(ProtocolError::UnknownResponseTag)?;
+                let tag = types::ResponseTag::try_from(response_packet[0]).map_err(Error::UnknownResponseTag)?;
                 let has_data = (response_packet[1] & 1) != 0;
                 let expected_param_count = response_packet[3] as usize;
 
@@ -237,14 +241,14 @@ impl Protocol {
         })
     }
 
-    pub fn write(&self, data: &[u8]) -> HidResult<()> {
-        // hidapi::HidError::IncompleteSendError { sent: usize, all: usize } exists but is not checked :/
+    pub fn write(&self, data: &[u8]) -> Result<()> {
         let sent = self.device.write(data)?;
         let all = data.len();
-        if sent != all {
-            return Err(hidapi::HidError::IncompleteSendError { sent, all });
+        if sent == all {
+            Ok(())
+        } else {
+            Err(hidapi::HidError::IncompleteSendError { sent, all })?
         }
-        Ok(())
     }
 
     pub fn read_timeout(&self, timeout: usize) -> HidResult<Vec<u8>> {

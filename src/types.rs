@@ -208,7 +208,7 @@ impl core::convert::TryFrom<u8> for FlashReadMargin {
             0 => Normal,
             1 => User,
             2 => Factory,
-            unknown => return Err(unknown),
+            _ => return Err(byte),
         })
     }
 }
@@ -480,7 +480,7 @@ impl TryFrom<u8> for ResponseTag {
             0xAF => FlashReadOnce,
             0xB0 => FlashReadResource,
             0xB5 => KeyProvisioning,
-            invalid => return Err(invalid),
+            _ => return Err(byte),
         })
     }
 }
@@ -517,14 +517,14 @@ pub enum ReportId {
 
 impl TryFrom<u8> for ReportId {
     type Error = u8;
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
+    fn try_from(byte: u8) -> Result<Self, Self::Error> {
         use ReportId::*;
-        Ok(match value {
+        Ok(match byte {
             1 => Command,
             2 => CommandData,
             3 => Response,
             4 => ResponseData,
-            x => return Err(x),
+            _ => return Err(byte),
         })
     }
 }

@@ -85,15 +85,6 @@ impl Args {
             return Err(format!("failed to initialize logger: {}", err).into());
         }
 
-        // if early_matches.is_present("trace") {
-        //     log::set_max_level(log::LevelFilter::Trace);
-        // } else if early_matches.is_present("debug") {
-        //     log::set_max_level(log::LevelFilter::Debug);
-        // } else {
-        //     log::set_max_level(log::LevelFilter::Warn);
-        // }
-
-        // (...)
         early_matches.to_args()
     }
 

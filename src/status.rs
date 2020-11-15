@@ -34,7 +34,7 @@ impl TryFrom<u32> for Group {
             104 => CrcChecker,
             105 => Packetizer,
             106 => ReliableUpdate,
-            unknown => return Err(unknown),
+            _ => return Err(group),
         })
     }
 }
