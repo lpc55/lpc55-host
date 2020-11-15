@@ -292,23 +292,23 @@ Project homepage: https://github.com/nickray/lpc55
                 .<span class="ident">version</span>(<span class="macro">crate_version</span><span class="macro">!</span>())
             )
 
-            .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;set-user-key&quot;</span>)
+            .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;set-key&quot;</span>)
                 .<span class="ident">version</span>(<span class="macro">crate_version</span><span class="macro">!</span>())
                 .<span class="ident">long_version</span>(<span class="ident">LONG_VERSION</span>.<span class="ident">as_str</span>())
-                .<span class="ident">about</span>(<span class="string">&quot;set user key&quot;</span>)
-                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;INDEX&quot;</span>)
-                    .<span class="ident">help</span>(<span class="string">&quot;index of key&quot;</span>)
+                .<span class="ident">about</span>(<span class="string">&quot;set key&quot;</span>)
+                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;KEY&quot;</span>)
+                    .<span class="ident">help</span>(<span class="string">&quot;name of key code&quot;</span>)
                     .<span class="ident">required</span>(<span class="bool-val">true</span>)
                     .<span class="ident">possible_values</span>(<span class="kw-2">&amp;</span>[
-                        <span class="string">&quot;secure-boot&quot;</span>,
-                        <span class="string">&quot;user&quot;</span>,
-                        <span class="string">&quot;uds&quot;</span>,
-                        <span class="string">&quot;prince-0&quot;</span>,
-                        <span class="string">&quot;prince-1&quot;</span>,
-                        <span class="string">&quot;prince-2&quot;</span>,
+                        <span class="string">&quot;secure-boot-kek&quot;</span>,
+                        <span class="string">&quot;firmware-update-kek&quot;</span>,
+                        <span class="string">&quot;unique-device-secret&quot;</span>,
+                        <span class="string">&quot;prince-region-0&quot;</span>,
+                        <span class="string">&quot;prince-region-1&quot;</span>,
+                        <span class="string">&quot;prince-region-2&quot;</span>,
                     ])
                 )
-                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;KEY_DATA_FILENAME&quot;</span>)
+                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;KEYDATA_FILENAME&quot;</span>)
                      .<span class="ident">help</span>(<span class="string">&quot;filename of file containing the raw key data bytes&quot;</span>)
                      .<span class="ident">required</span>(<span class="bool-val">true</span>))
             )

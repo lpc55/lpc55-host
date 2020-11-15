@@ -504,7 +504,7 @@
                 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">packet</span>.<span class="ident">has_data</span>, <span class="ident">command</span>.<span class="ident">data_phase</span>().<span class="ident">has_command_data</span>());
                 <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">packet</span>.<span class="ident">status</span>.<span class="ident">is_none</span>());
                 <span class="kw">match</span> <span class="ident">command</span>.<span class="ident">clone</span>() {
-                    <span class="ident">types</span>::<span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">types</span>::<span class="ident">KeystoreOperation</span>::<span class="ident">SetUserKey</span> { <span class="ident">index</span>: <span class="kw">_</span>, <span class="ident">data</span> }) <span class="op">=&gt;</span> {
+                    <span class="ident">types</span>::<span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">types</span>::<span class="ident">KeystoreOperation</span>::<span class="ident">SetKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">data</span> }) <span class="op">=&gt;</span> {
                         <span class="comment">// todo: can we use bigger chunks?</span>
                         <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">chunks</span>(<span class="number">32</span>) {
                             <span class="comment">// // TODO: somewhere in here, should &quot;peek&quot; a read to see if device sent</span>
