@@ -3,7 +3,8 @@ name = "lpc55"
 version = "0.1.0-pre"
 authors = ["Nicolas Stalder <n@stalder.io>"]
 edition = "2018"
-exclude = ["archlinux"]
+license = "Apache-2.0 OR MIT"
+exclude = ["pkg"]
 
 [[bin]]
 name = "lpc55"
