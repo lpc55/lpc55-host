@@ -252,13 +252,30 @@ impl core::convert::TryFrom<u8> for FlashReadMargin {
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub enum KekIndex {
-    Prince0 = 7,
-    Prince1 = 8,
-    Prince2 = 9,
-    SecureBoot = 3,
-    Uds = 12,
-    User = 11,
+pub enum Key {
+    PrinceRegion0 = 7,
+    PrinceRegion1 = 8,
+    PrinceRegion2 = 9,
+    SecureBootKek = 3,
+    UniqueDeviceSecret = 12,
+    FirmwareUpdateKek = 11,
+}
+
+impl TryFrom<&str> for Key {
+    type Error = String;
+
+    fn try_from(name: &str) -> Result<Self, Self::Error> {
+        use Key::*;
+        Ok(match name {
+            "prince-region-0" => PrinceRegion0,
+            "prince-region-1" => PrinceRegion1,
+            "prince-region-2" => PrinceRegion2,
+            "secure-boot-kek" => SecureBootKek,
+            "unique-device-secret" => UniqueDeviceSecret,
+            "firmware-update-kek" => FirmwareUpdateKek,
+            _ => return Err(name.to_string())
+        })
+    }
 }
 
 #[repr(u8)]
@@ -266,7 +283,7 @@ pub enum KekIndex {
 // naming taken from docs, could also be called Subcommand, or even Command
 pub enum KeystoreOperation {
     Enroll,
-    SetUserKey { index: KekIndex, data: Vec<u8> },
+    SetKey { key: Key, data: Vec<u8> },
     SetIntrinsicKey,
     WriteNonVolatile,
     ReadNonVolatile,
@@ -279,7 +296,7 @@ impl From<&KeystoreOperation> for u32 {
         use KeystoreOperation::*;
         match operation {
             Enroll => 0,
-            SetUserKey { index: _, data: _ } => 1,
+            SetKey { key: _, data: _ } => 1,
             SetIntrinsicKey => 2,
             WriteNonVolatile => 3,
             ReadNonVolatile => 4,
@@ -387,7 +404,7 @@ impl Command {
 
             (Command::Keystore(KeystoreOperation::Enroll), _) => DataPhase::None,
             (Command::Keystore(KeystoreOperation::ReadKeystore), _) => DataPhase::ResponseData,
-            (Command::Keystore(KeystoreOperation::SetUserKey { index: _, data }), _) => DataPhase::CommandData(data.clone()),
+            (Command::Keystore(KeystoreOperation::SetKey { key: _, data }), _) => DataPhase::CommandData(data.clone()),
 
             _ => todo!()
         }
@@ -413,8 +430,8 @@ impl Command {
                     ReadKeystore => {
                         vec![u32::from(&operation)]
                     }
-                    SetUserKey { index, data } => {
-                        vec![u32::from(&operation), index as u32, data.len() as u32]
+                    SetKey { key, data } => {
+                        vec![u32::from(&operation), key as u32, data.len() as u32]
                     }
                     _ => todo!()
 

@@ -99,22 +99,13 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
             return Ok(());
         }
 
-        if let Some(command) = subcommand.subcommand_matches("set-user-key") {
-            use lpc55::types::KekIndex::*;
-            let index = match command.value_of("INDEX").unwrap() {
-                "prince-0" => Prince0,
-                "prince-1" => Prince1,
-                "prince-2" => Prince2,
-                "secure-boot" => SecureBoot,
-                "uds" => Uds,
-                "user" => User,
-                _ => panic!()
-            };
-            let key_data_filename = command.value_of("KEY_DATA_FILENAME").unwrap();
-            let data = std::fs::read(key_data_filename)?;
+        if let Some(command) = subcommand.subcommand_matches("set-key") {
+            let key = lpc55::types::Key::try_from(command.value_of("KEY").unwrap()).unwrap();
+            let keydata_filename = command.value_of("KEYDATA_FILENAME").unwrap();
+            let data = std::fs::read(keydata_filename)?;
 
             let command = lpc55::types::Command::Keystore(
-                lpc55::types::KeystoreOperation::SetUserKey { index, data }
+                lpc55::types::KeystoreOperation::SetKey { key, data }
             );
 
             bootloader.protocol.call(&command).expect("success");

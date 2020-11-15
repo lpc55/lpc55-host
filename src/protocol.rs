@@ -153,7 +153,7 @@ impl Protocol {
                 assert_eq!(packet.has_data, command.data_phase().has_command_data());
                 assert!(packet.status.is_none());
                 match command.clone() {
-                    types::Command::Keystore(types::KeystoreOperation::SetUserKey { index: _, data }) => {
+                    types::Command::Keystore(types::KeystoreOperation::SetKey { key: _, data }) => {
                         // todo: can we use bigger chunks?
                         for chunk in data.chunks(32) {
                             // // TODO: somewhere in here, should "peek" a read to see if device sent

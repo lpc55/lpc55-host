@@ -209,7 +209,7 @@ impl AsRef<[u8]> for ActivationCode {
 
 /// All the keys :)
 ///
-/// We "unroll" the prince_keks array to be able to serialize_with hex_serialize.
+/// We "unroll" the prince_regions array to be able to serialize_with hex_serialize.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Keystore {
     #[serde(default)]
@@ -229,23 +229,23 @@ pub struct Keystore {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
-    pub user_kek: Keycode,
+    pub firmware_update_kek: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
-    pub uds_kek: Keycode,
+    pub unique_device_secret: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
-    pub prince_kek_0: Keycode,
+    pub prince_region_0: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
-    pub prince_kek_1: Keycode,
+    pub prince_region_1: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
-    pub prince_kek_2: Keycode,
+    pub prince_region_2: Keycode,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -262,11 +262,11 @@ impl Keystore {
         cursor.write_all(&self.puf_discharge_time_milliseconds.to_le_bytes()).ok();
         cursor.write_all(&self.activation_code.0).ok();
         cursor.write_all(&self.secure_boot_kek.0).ok();
-        cursor.write_all(&self.user_kek.0).ok();
-        cursor.write_all(&self.uds_kek.0).ok();
-        cursor.write_all(&self.prince_kek_0.0).ok();
-        cursor.write_all(&self.prince_kek_1.0).ok();
-        cursor.write_all(&self.prince_kek_2.0).ok();
+        cursor.write_all(&self.firmware_update_kek.0).ok();
+        cursor.write_all(&self.unique_device_secret.0).ok();
+        cursor.write_all(&self.prince_region_0.0).ok();
+        cursor.write_all(&self.prince_region_1.0).ok();
+        cursor.write_all(&self.prince_region_2.0).ok();
         assert!(cursor.is_empty());
         buf
     }
@@ -277,22 +277,22 @@ fn parse_keystore(input: &[u8]) -> IResult<&[u8], Keystore> {
     let (input, puf_discharge_time_milliseconds) = le_u32(input)?;
     let (input, activation_code) = take!(input, 1192)?;
     let (input, secure_boot_kek) = take!(input, 56)?;
-    let (input, user_kek) = take!(input, 56)?;
-    let (input, uds_kek) = take!(input, 56)?;
-    let (input, prince_kek_0) = take!(input, 56)?;
-    let (input, prince_kek_1) = take!(input, 56)?;
-    let (input, prince_kek_2) = take!(input, 56)?;
+    let (input, firmware_update_kek) = take!(input, 56)?;
+    let (input, unique_device_secret) = take!(input, 56)?;
+    let (input, prince_region_0) = take!(input, 56)?;
+    let (input, prince_region_1) = take!(input, 56)?;
+    let (input, prince_region_2) = take!(input, 56)?;
 
     let keystore = Keystore {
         header: KeystoreHeader(header),
         puf_discharge_time_milliseconds,
         activation_code: ActivationCode(activation_code.try_into().unwrap()),
         secure_boot_kek: Keycode(secure_boot_kek.try_into().unwrap()),
-        user_kek: Keycode(user_kek.try_into().unwrap()),
-        uds_kek: Keycode(uds_kek.try_into().unwrap()),
-        prince_kek_0: Keycode(prince_kek_0.try_into().unwrap()),
-        prince_kek_1: Keycode(prince_kek_1.try_into().unwrap()),
-        prince_kek_2: Keycode(prince_kek_2.try_into().unwrap()),
+        firmware_update_kek: Keycode(firmware_update_kek.try_into().unwrap()),
+        unique_device_secret: Keycode(unique_device_secret.try_into().unwrap()),
+        prince_region_0: Keycode(prince_region_0.try_into().unwrap()),
+        prince_region_1: Keycode(prince_region_1.try_into().unwrap()),
+        prince_region_2: Keycode(prince_region_2.try_into().unwrap()),
     };
 
     Ok((input, keystore))

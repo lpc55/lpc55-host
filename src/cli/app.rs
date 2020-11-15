@@ -95,23 +95,23 @@ pub fn app() -> clap::App<'static, 'static> {
                 .version(crate_version!())
             )
 
-            .subcommand(SubCommand::with_name("set-user-key")
+            .subcommand(SubCommand::with_name("set-key")
                 .version(crate_version!())
                 .long_version(LONG_VERSION.as_str())
-                .about("set user key")
-                .arg(Arg::with_name("INDEX")
-                    .help("index of key")
+                .about("set key")
+                .arg(Arg::with_name("KEY")
+                    .help("name of key code")
                     .required(true)
                     .possible_values(&[
-                        "secure-boot",
-                        "user",
-                        "uds",
-                        "prince-0",
-                        "prince-1",
-                        "prince-2",
+                        "secure-boot-kek",
+                        "firmware-update-kek",
+                        "unique-device-secret",
+                        "prince-region-0",
+                        "prince-region-1",
+                        "prince-region-2",
                     ])
                 )
-                .arg(Arg::with_name("KEY_DATA_FILENAME")
+                .arg(Arg::with_name("KEYDATA_FILENAME")
                      .help("filename of file containing the raw key data bytes")
                      .required(true))
             )
