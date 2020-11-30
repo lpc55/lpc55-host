@@ -31,6 +31,7 @@ openssl genrsa -out "$CA_PRIVATE" $bits
 openssl req -new -key "$CA_PRIVATE" -out "$CA_PRIVATE".csr  -subj "/C=$country/ST=$state/O=$organization/OU=$unit/CN=$CN/emailAddress=$email"
 
 # self sign the request
+# NB: see NXP AN12283, section 3.3 on this serial number
 openssl x509 -req -days 18250 -in "$CA_PRIVATE".csr -signkey "$CA_PRIVATE" -sha256 -outform der -out \
 	"$CA_DER" -extfile v3.ext -set_serial 0x3cc30000abababab
 

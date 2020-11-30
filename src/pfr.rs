@@ -580,6 +580,8 @@ pub struct SecureBootConfiguration {
     pub trustzone_mode: TrustzoneMode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    /// For this DICE stuff, see also https://www.microsoft.com/en-us/research/project/dice-device-identifier-composition-engine/
+    /// and the actual standard https://trustedcomputinggroup.org/resource/hardware-requirements-for-a-device-identifier-composition-engine/
     pub dice_computation_disabled: bool,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]

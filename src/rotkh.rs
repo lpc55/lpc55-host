@@ -29,6 +29,32 @@ pub struct Config {
     pub keystore: Keystore,
 }
 
+pub fn rot_key_hashes(certs: &[String; 4]) -> Result<[[u8; 32]; 4]> {
+    let mut hashes = [[0u8; 32]; 4];
+    for (i, cert_filename) in certs.iter().enumerate() {
+        let cert_content = fs::read(cert_filename)?;
+        let (rem, cert) = x509_parser::parse_x509_der(&cert_content)?;
+        assert!(rem.is_empty());
+
+        let spki = cert.tbs_certificate.subject_pki;
+        trace!("alg: {:?}", spki.algorithm.algorithm);
+        assert_eq!(x509_parser::objects::OID_RSA_ENCRYPTION, spki.algorithm.algorithm);
+
+        let public_key = rsa::RSAPublicKey::from_pkcs1(&spki.subject_public_key.data)?;
+        let n = public_key.n();
+        let e = public_key.e();
+        trace!("n = {}, e = {}", n, e);
+        trace!("n bytes = {:?}", crate::types::to_hex_string(&n.to_bytes_be()));
+
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(n.to_bytes_be());
+        hasher.update(e.to_bytes_be());
+        let result = hasher.finalize();
+        hashes[i].copy_from_slice(&result);
+    }
+    Ok(hashes)
+}
+
 pub fn calculate(config_filename: &str) -> Result<()> {
     let config = fs::read_to_string(config_filename)?;
     let mut config: Config = toml::from_str(&config)?;

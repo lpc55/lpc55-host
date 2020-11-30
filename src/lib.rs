@@ -30,6 +30,7 @@ pub mod logger;
 pub mod pfr;
 pub mod protocol;
 pub mod rotkh;
+pub mod bintosb;
 pub mod status;
 pub mod types;
 

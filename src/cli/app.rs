@@ -26,8 +26,6 @@ pub fn app() -> clap::App<'static, 'static> {
 
         .arg(Arg::with_name("VID")
              .long("vid")
-             // .long("verbose")
-             // .short("v")
              .default_value("0x1fc9")
              .help("VID of bootloader (hex)")
              // even without this, `cmd -v subcommand` passes -v flag to subcommand's matches
@@ -60,7 +58,7 @@ pub fn app() -> clap::App<'static, 'static> {
               .long("verbose")
               .multiple(true)
               .global(true)
-              .help("Sets the level of verbosity (use multiple times to increase, e.g. -vv means INFO level logs)"))
+              .help("Sets the level of verbosity (use multiple times to increase: -v = INFO, -vv = DEBUG, -vvv = TRACE)"))
 
         .subcommand(SubCommand::with_name("http")
             .version(crate_version!())
@@ -104,7 +102,7 @@ pub fn app() -> clap::App<'static, 'static> {
                     .required(true)
                     .possible_values(&[
                         "secure-boot-kek",
-                        "firmware-update-kek",
+                        "user-pre-shared-key",
                         "unique-device-secret",
                         "prince-region-0",
                         "prince-region-1",
@@ -170,6 +168,15 @@ pub fn app() -> clap::App<'static, 'static> {
                  .required(true))
         )
 
+        .subcommand(SubCommand::with_name("sign-fw")
+            .version(crate_version!())
+            .long_version(LONG_VERSION.as_str())
+            .about("sign firmware")
+            .arg(Arg::with_name("CONFIG")
+                 .help("Configuration file")
+                 .required(true))
+        )
+
         .setting(clap::AppSettings::ArgRequiredElseHelp)
 
     ;
@@ -189,7 +196,7 @@ pub fn long_version(revision_hash: Option<&str>) -> String {
         None => String::new(),
         Some(githash) => format!(" (rev {})", githash),
     };
-    format!("{}{}", crate_version!(), hash,)
+    format!("{}{}", crate_version!(), hash)
 }
 
 

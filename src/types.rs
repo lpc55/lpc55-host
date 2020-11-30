@@ -252,13 +252,16 @@ impl core::convert::TryFrom<u8> for FlashReadMargin {
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+/// numbers can be found in UM, Chap 7.3.2 "Key descriptions"
 pub enum Key {
     PrinceRegion0 = 7,
     PrinceRegion1 = 8,
     PrinceRegion2 = 9,
+    /// used by bootloader to decrypt SB2.1 firmware images
     SecureBootKek = 3,
     UniqueDeviceSecret = 12,
-    FirmwareUpdateKek = 11,
+    /// not used by bootloader. idea is to use as pre-shared secret for user/firmware/apps etc.
+    UserPsk = 11,
 }
 
 impl TryFrom<&str> for Key {
@@ -272,7 +275,7 @@ impl TryFrom<&str> for Key {
             "prince-region-2" => PrinceRegion2,
             "secure-boot-kek" => SecureBootKek,
             "unique-device-secret" => UniqueDeviceSecret,
-            "firmware-update-kek" => FirmwareUpdateKek,
+            "user-pre-shared-key" => UserPsk,
             _ => return Err(name.to_string())
         })
     }

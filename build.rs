@@ -50,6 +50,7 @@ fn main() {
 
     // Make the current git hash available to the build.
     if let Some(rev) = git_revision_hash() {
+        // this works, but it doesn't get picked up in app :/
         println!("cargo:rustc-env=LPC55_BUILD_GIT_HASH={}", rev);
     }
 }

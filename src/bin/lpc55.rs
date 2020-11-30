@@ -44,11 +44,11 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
     lpc55::logger::Logger::init().unwrap();
 
      match args.occurrences_of("v") {
-        0 => log::set_max_level(log::LevelFilter::Error),
-        1 => log::set_max_level(log::LevelFilter::Warn),
-        2 => log::set_max_level(log::LevelFilter::Info),
-        3 => log::set_max_level(log::LevelFilter::Debug),
-        4 | _ => log::set_max_level(log::LevelFilter::Trace),
+        // 0 => log::set_max_level(log::LevelFilter::Error),
+        0 => log::set_max_level(log::LevelFilter::Warn),
+        1 => log::set_max_level(log::LevelFilter::Info),
+        2 => log::set_max_level(log::LevelFilter::Debug),
+        3 | _ => log::set_max_level(log::LevelFilter::Trace),
     };
 
     // TODO: graceful parse error handling
@@ -173,6 +173,10 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
         lpc55::rotkh::calculate(config_filename)?;
     }
 
+    if let Some(command) = args.subcommand_matches("sign-fw") {
+        let config_filename = command.value_of("CONFIG").unwrap();
+        let signed_image = lpc55::bintosb::sign(config_filename)?;
+    }
 
     Ok(())
 }
