@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src\cli\app.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>app.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../lpc55/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src\cli\app.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>app.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../lpc55/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -194,6 +196,13 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="self">self</span>, <span class="ident">crate_authors</span>, <span class="ident">crate_version</span>, <span class="ident">App</span>, <span class="ident">Arg</span>, <span class="ident">SubCommand</span>};
 
@@ -204,7 +213,7 @@ Use -h for short descriptions and --help for more details
 
 Project homepage: https://github.com/nickray/lpc55
 &quot;</span>;
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">app</span>() <span class="op">-&gt;</span> <span class="ident">clap</span>::<span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">app</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">clap</span>::<span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="comment">// We need to specify our version in a static because we&#39;ve painted clap</span>
     <span class="comment">// into a corner. We&#39;ve told it that every string we give it will be</span>
     <span class="comment">// &#39;static, but we need to build the version string dynamically. We can</span>
@@ -223,8 +232,6 @@ Project homepage: https://github.com/nickray/lpc55
 
         .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;VID&quot;</span>)
              .<span class="ident">long</span>(<span class="string">&quot;vid&quot;</span>)
-             <span class="comment">// .long(&quot;verbose&quot;)</span>
-             <span class="comment">// .short(&quot;v&quot;)</span>
              .<span class="ident">default_value</span>(<span class="string">&quot;0x1fc9&quot;</span>)
              .<span class="ident">help</span>(<span class="string">&quot;VID of bootloader (hex)&quot;</span>)
              <span class="comment">// even without this, `cmd -v subcommand` passes -v flag to subcommand&#39;s matches</span>
@@ -257,7 +264,7 @@ Project homepage: https://github.com/nickray/lpc55
               .<span class="ident">long</span>(<span class="string">&quot;verbose&quot;</span>)
               .<span class="ident">multiple</span>(<span class="bool-val">true</span>)
               .<span class="ident">global</span>(<span class="bool-val">true</span>)
-              .<span class="ident">help</span>(<span class="string">&quot;Sets the level of verbosity (use multiple times to increase, e.g. -vv means INFO level logs)&quot;</span>))
+              .<span class="ident">help</span>(<span class="string">&quot;Sets the level of verbosity (use multiple times to increase: -v = INFO, -vv = DEBUG, -vvv = TRACE)&quot;</span>))
 
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;http&quot;</span>)
             .<span class="ident">version</span>(<span class="macro">crate_version</span><span class="macro">!</span>())
@@ -301,7 +308,7 @@ Project homepage: https://github.com/nickray/lpc55
                     .<span class="ident">required</span>(<span class="bool-val">true</span>)
                     .<span class="ident">possible_values</span>(<span class="kw-2">&amp;</span>[
                         <span class="string">&quot;secure-boot-kek&quot;</span>,
-                        <span class="string">&quot;firmware-update-kek&quot;</span>,
+                        <span class="string">&quot;user-pre-shared-key&quot;</span>,
                         <span class="string">&quot;unique-device-secret&quot;</span>,
                         <span class="string">&quot;prince-region-0&quot;</span>,
                         <span class="string">&quot;prince-region-1&quot;</span>,
@@ -367,6 +374,15 @@ Project homepage: https://github.com/nickray/lpc55
                  .<span class="ident">required</span>(<span class="bool-val">true</span>))
         )
 
+        .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;sign-fw&quot;</span>)
+            .<span class="ident">version</span>(<span class="macro">crate_version</span><span class="macro">!</span>())
+            .<span class="ident">long_version</span>(<span class="ident">LONG_VERSION</span>.<span class="ident">as_str</span>())
+            .<span class="ident">about</span>(<span class="string">&quot;sign firmware&quot;</span>)
+            .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;CONFIG&quot;</span>)
+                 .<span class="ident">help</span>(<span class="string">&quot;Configuration file&quot;</span>)
+                 .<span class="ident">required</span>(<span class="bool-val">true</span>))
+        )
+
         .<span class="ident">setting</span>(<span class="ident">clap</span>::<span class="ident">AppSettings</span>::<span class="ident">ArgRequiredElseHelp</span>)
 
     ;
@@ -379,14 +395,14 @@ Project homepage: https://github.com/nickray/lpc55
 <span class="doccomment">/// If a revision hash is given, then it is used. If one isn&#39;t given, then</span>
 <span class="doccomment">/// the LPC55_BUILD_GIT_HASH env var is inspected for it. If that isn&#39;t set,</span>
 <span class="doccomment">/// then a revision hash is not included in the version string returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">long_version</span>(<span class="ident">revision_hash</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">long_version</span>(<span class="ident">revision_hash</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="comment">// Do we have a git hash?</span>
     <span class="comment">// (Yes, if ripgrep was built on a machine with `git` installed.)</span>
     <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">revision_hash</span>.<span class="ident">or</span>(<span class="macro">option_env</span><span class="macro">!</span>(<span class="string">&quot;LPC55_BUILD_GIT_HASH&quot;</span>)) {
-        <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">String</span>::<span class="ident">new</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">githash</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; (rev {})&quot;</span>, <span class="ident">githash</span>),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String</span>::<span class="ident">new</span>(),
+        <span class="prelude-val">Some</span>(<span class="ident">githash</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; (rev {})&quot;</span>, <span class="ident">githash</span>),
     };
-    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="macro">crate_version</span><span class="macro">!</span>(), <span class="ident">hash</span>,)
+    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="macro">crate_version</span><span class="macro">!</span>(), <span class="ident">hash</span>)
 }
 
 

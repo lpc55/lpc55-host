@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src\status.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>status.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../lpc55/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src\status.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>status.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../lpc55/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -217,21 +219,21 @@
 
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Group</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u32</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">group</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">group</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">Group</span>::<span class="kw-2">*</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">group</span> {
-            <span class="number">0</span> <span class="op">=&gt;</span> <span class="ident">Generic</span>,
-            <span class="number">1</span> <span class="op">=&gt;</span> <span class="ident">FlashDriver</span>,
-            <span class="number">4</span> <span class="op">=&gt;</span> <span class="ident">QuadSpiDriver</span>,
-            <span class="number">5</span> <span class="op">=&gt;</span> <span class="ident">OtfadDriver</span>,
-            <span class="number">100</span> <span class="op">=&gt;</span> <span class="ident">Bootloader</span>,
-            <span class="number">101</span> <span class="op">=&gt;</span> <span class="ident">SbLoader</span>,
-            <span class="number">102</span> <span class="op">=&gt;</span> <span class="ident">MemoryInterface</span>,
-            <span class="number">103</span> <span class="op">=&gt;</span> <span class="ident">PropertyStore</span>,
-            <span class="number">104</span> <span class="op">=&gt;</span> <span class="ident">CrcChecker</span>,
-            <span class="number">105</span> <span class="op">=&gt;</span> <span class="ident">Packetizer</span>,
-            <span class="number">106</span> <span class="op">=&gt;</span> <span class="ident">ReliableUpdate</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">group</span>),
+            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Generic</span>,
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FlashDriver</span>,
+            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">QuadSpiDriver</span>,
+            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OtfadDriver</span>,
+            <span class="number">100</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Bootloader</span>,
+            <span class="number">101</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SbLoader</span>,
+            <span class="number">102</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MemoryInterface</span>,
+            <span class="number">103</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PropertyStore</span>,
+            <span class="number">104</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CrcChecker</span>,
+            <span class="number">105</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Packetizer</span>,
+            <span class="number">106</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ReliableUpdate</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">group</span>),
         })
     }
 }
@@ -258,16 +260,16 @@
 
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GenericError</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u8</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">code</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">code</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">GenericError</span>::<span class="kw-2">*</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">code</span> {
-            <span class="number">1</span> <span class="op">=&gt;</span> <span class="ident">Fail</span>,
-            <span class="number">2</span> <span class="op">=&gt;</span> <span class="ident">ReadOnly</span>,
-            <span class="number">3</span> <span class="op">=&gt;</span> <span class="ident">OutOfRange</span>,
-            <span class="number">4</span> <span class="op">=&gt;</span> <span class="ident">InvalidArgument</span>,
-            <span class="number">5</span> <span class="op">=&gt;</span> <span class="ident">Timeout</span>,
-            <span class="number">6</span> <span class="op">=&gt;</span> <span class="ident">NoTransferInProgress</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">code</span>),
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Fail</span>,
+            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ReadOnly</span>,
+            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutOfRange</span>,
+            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">InvalidArgument</span>,
+            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Timeout</span>,
+            <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NoTransferInProgress</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">code</span>),
         })
     }
 }
@@ -289,20 +291,20 @@
 
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FlashDriverError</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u8</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">code</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">code</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">FlashDriverError</span>::<span class="kw-2">*</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">code</span> {
-            <span class="number">0</span> <span class="op">=&gt;</span> <span class="ident">Size</span>,
-            <span class="number">1</span> <span class="op">=&gt;</span> <span class="ident">Alignment</span>,
-            <span class="number">2</span> <span class="op">=&gt;</span> <span class="ident">Address</span>,
-            <span class="number">3</span> <span class="op">=&gt;</span> <span class="ident">Access</span>,
-            <span class="number">4</span> <span class="op">=&gt;</span> <span class="ident">ProtectionViolation</span>,
-            <span class="number">5</span> <span class="op">=&gt;</span> <span class="ident">CommandFailure</span>,
-            <span class="number">6</span> <span class="op">=&gt;</span> <span class="ident">UnknownProperty</span>,
-            <span class="number">7</span> <span class="op">=&gt;</span> <span class="ident">EraseKeyError</span>,
-            <span class="number">8</span> <span class="op">=&gt;</span> <span class="ident">ExecuteOnlyRegion</span>,
-            <span class="number">15</span> <span class="op">=&gt;</span> <span class="ident">UnsupportedApi</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">code</span>),
+            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Size</span>,
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Alignment</span>,
+            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Address</span>,
+            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Access</span>,
+            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ProtectionViolation</span>,
+            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CommandFailure</span>,
+            <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UnknownProperty</span>,
+            <span class="number">7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EraseKeyError</span>,
+            <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExecuteOnlyRegion</span>,
+            <span class="number">15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UnsupportedApi</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">code</span>),
         })
     }
 }
@@ -317,13 +319,13 @@
 
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyStoreError</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u8</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">code</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">code</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">PropertyStoreError</span>::<span class="kw-2">*</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">code</span> {
-            <span class="number">0</span> <span class="op">=&gt;</span> <span class="ident">UnknownProperty</span>,
-            <span class="number">1</span> <span class="op">=&gt;</span> <span class="ident">ReadOnlyProperty</span>,
-            <span class="number">2</span> <span class="op">=&gt;</span> <span class="ident">InvalidValue</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">code</span>),
+            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UnknownProperty</span>,
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ReadOnlyProperty</span>,
+            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">InvalidValue</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">code</span>),
         })
     }
 }
@@ -340,50 +342,50 @@
 
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CrcCheckerError</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u8</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">code</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">code</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">CrcCheckerError</span>::<span class="kw-2">*</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">code</span> {
-            <span class="number">0</span> <span class="op">=&gt;</span> <span class="ident">Passed</span>,
-            <span class="number">1</span> <span class="op">=&gt;</span> <span class="ident">Failed</span>,
-            <span class="number">2</span> <span class="op">=&gt;</span> <span class="ident">Inactive</span>,
-            <span class="number">3</span> <span class="op">=&gt;</span> <span class="ident">Invalid</span>,
-            <span class="number">4</span> <span class="op">=&gt;</span> <span class="ident">OutOfRange</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">code</span>),
+            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Passed</span>,
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Failed</span>,
+            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Inactive</span>,
+            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Invalid</span>,
+            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutOfRange</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">code</span>),
         })
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span>(<span class="ident">Group</span>, <span class="ident">u8</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BootloaderError</span> {
-    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">Group</span>, <span class="ident">u8</span>) {
+    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Group</span>, <span class="ident">u8</span>) {
         <span class="kw">use</span> <span class="ident">BootloaderError</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Generic</span>(<span class="ident">error</span>) <span class="op">=&gt;</span> (<span class="ident">Group</span>::<span class="ident">Generic</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
-            <span class="ident">FlashDriver</span>(<span class="ident">error</span>) <span class="op">=&gt;</span> (<span class="ident">Group</span>::<span class="ident">FlashDriver</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
-            <span class="ident">PropertyStore</span>(<span class="ident">error</span>) <span class="op">=&gt;</span> (<span class="ident">Group</span>::<span class="ident">PropertyStore</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
-            <span class="ident">CrcChecker</span>(<span class="ident">error</span>) <span class="op">=&gt;</span> (<span class="ident">Group</span>::<span class="ident">CrcChecker</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
-            <span class="ident">Unknown</span>(<span class="ident">_status</span>) <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(),
+            <span class="ident">Generic</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Group</span>::<span class="ident">Generic</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
+            <span class="ident">FlashDriver</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Group</span>::<span class="ident">FlashDriver</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
+            <span class="ident">PropertyStore</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Group</span>::<span class="ident">PropertyStore</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
+            <span class="ident">CrcChecker</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Group</span>::<span class="ident">CrcChecker</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
+            <span class="ident">Unknown</span>(<span class="ident">_status</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BootloaderError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">error</span>: <span class="ident">BootloaderError</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">error</span>: <span class="ident">BootloaderError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">let</span> (<span class="ident">group</span>, <span class="ident">code</span>) <span class="op">=</span> <span class="ident">error</span>.<span class="ident">into</span>();
         (<span class="ident">group</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">*</span> <span class="number">100</span>) <span class="op">+</span> <span class="ident">code</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BootloaderError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">status</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">status</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">use</span> <span class="ident">BootloaderError</span>::<span class="kw-2">*</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">group</span>) <span class="op">=</span> <span class="ident">Group</span>::<span class="ident">try_from</span>(<span class="ident">status</span><span class="op">/</span><span class="number">100</span>) {
             <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> (<span class="ident">status</span> <span class="op">%</span> <span class="number">100</span>) <span class="kw">as</span> <span class="ident">u8</span>;
             <span class="kw">match</span> (<span class="ident">group</span>, <span class="ident">code</span>) {
-                (<span class="ident">Group</span>::<span class="ident">Generic</span>, <span class="ident">code</span>) <span class="op">=&gt;</span> <span class="ident">GenericError</span>::<span class="ident">try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">Generic</span>),
-                (<span class="ident">Group</span>::<span class="ident">FlashDriver</span>, <span class="ident">code</span>) <span class="op">=&gt;</span> <span class="ident">FlashDriverError</span>::<span class="ident">try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">FlashDriver</span>),
-                (<span class="ident">Group</span>::<span class="ident">PropertyStore</span>, <span class="ident">code</span>) <span class="op">=&gt;</span> <span class="ident">PropertyStoreError</span>::<span class="ident">try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">PropertyStore</span>),
-                (<span class="ident">Group</span>::<span class="ident">CrcChecker</span>, <span class="ident">code</span>) <span class="op">=&gt;</span> <span class="ident">CrcCheckerError</span>::<span class="ident">try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">CrcChecker</span>),
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Unknown</span>(<span class="ident">status</span>),
+                (<span class="ident">Group</span>::<span class="ident">Generic</span>, <span class="ident">code</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">GenericError</span>::<span class="ident">try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">Generic</span>),
+                (<span class="ident">Group</span>::<span class="ident">FlashDriver</span>, <span class="ident">code</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FlashDriverError</span>::<span class="ident">try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">FlashDriver</span>),
+                (<span class="ident">Group</span>::<span class="ident">PropertyStore</span>, <span class="ident">code</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PropertyStoreError</span>::<span class="ident">try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">PropertyStore</span>),
+                (<span class="ident">Group</span>::<span class="ident">CrcChecker</span>, <span class="ident">code</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CrcCheckerError</span>::<span class="ident">try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">CrcChecker</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Unknown</span>(<span class="ident">status</span>),
             }
         } <span class="kw">else</span> {
             <span class="ident">Unknown</span>(<span class="ident">status</span>)
