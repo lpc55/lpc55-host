@@ -203,6 +203,20 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="self">self</span>, <span class="ident">crate_authors</span>, <span class="ident">crate_version</span>, <span class="ident">App</span>, <span class="ident">Arg</span>, <span class="ident">SubCommand</span>};
 
@@ -381,6 +395,20 @@ Project homepage: https://github.com/nickray/lpc55
             .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;CONFIG&quot;</span>)
                  .<span class="ident">help</span>(<span class="string">&quot;Configuration file&quot;</span>)
                  .<span class="ident">required</span>(<span class="bool-val">true</span>))
+        )
+
+        .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;sb&quot;</span>)
+            .<span class="ident">version</span>(<span class="macro">crate_version</span><span class="macro">!</span>())
+            .<span class="ident">long_version</span>(<span class="ident">LONG_VERSION</span>.<span class="ident">as_str</span>())
+            .<span class="ident">about</span>(<span class="string">&quot;firmware commands&quot;</span>)
+            .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;show&quot;</span>)
+                .<span class="ident">version</span>(<span class="macro">crate_version</span><span class="macro">!</span>())
+                .<span class="ident">long_version</span>(<span class="ident">LONG_VERSION</span>.<span class="ident">as_str</span>())
+                .<span class="ident">about</span>(<span class="string">&quot;show information about file&quot;</span>)
+                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;FILE&quot;</span>)
+                     .<span class="ident">help</span>(<span class="string">&quot;file to show&quot;</span>)
+                     .<span class="ident">required</span>(<span class="bool-val">true</span>))
+            )
         )
 
         .<span class="ident">setting</span>(<span class="ident">clap</span>::<span class="ident">AppSettings</span>::<span class="ident">ArgRequiredElseHelp</span>)

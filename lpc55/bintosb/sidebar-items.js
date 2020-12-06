@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["sign",""]],"struct":[["CertificateBlockHeader",""],["Config",""]]});
+initSidebarItems({"enum":[["BootCommand",""],["BootTag",""],["Filetype",""]],"fn":[["show",""],["sign",""],["sniff",""]],"mod":[["crc",""]],"struct":[["CertificateBlockHeader",""],["Config",""],["FullCertificateBlockHeader",""],["Keyblob",""],["RawBootCommand",""],["Sb2Header","full size: 0x60 = 96 bytes"],["Version",""]]});
