@@ -37,11 +37,15 @@ pub mod types;
 #[macro_use]
 extern crate log;
 
-pub fn print_hex(data: impl AsRef<[u8]>, chunk_size: usize) {
-    for chunk in data.as_ref().chunks(chunk_size) {
-        println!("{}", types::to_hex_string(chunk));
-    }
-}
+#[macro_use]
+extern crate delog;
+
+// pub fn print_hex(data: impl AsRef<[u8]>, chunk_size: usize) {
+//     println!("{}", hex_str!(data.as_ref(), chunk_size));
+//     // for chunk in data.as_ref().chunks(chunk_size) {
+//     //     println!("{}", types::to_hex_string(chunk));
+//     // }
+// }
 
 #[derive(Debug)]
 pub enum Error {

@@ -110,7 +110,7 @@ impl Protocol {
 
         // send command packet
         self.write(command_packet.as_slice())?;
-        trace!("--> {}", types::to_hex_string(&command_packet));
+        trace!("--> {}", hex_str!(&command_packet));
 
         let initial_response = self.read_packet()?;
 

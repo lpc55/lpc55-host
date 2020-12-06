@@ -177,6 +177,20 @@ pub fn app() -> clap::App<'static, 'static> {
                  .required(true))
         )
 
+        .subcommand(SubCommand::with_name("sb")
+            .version(crate_version!())
+            .long_version(LONG_VERSION.as_str())
+            .about("firmware commands")
+            .subcommand(SubCommand::with_name("show")
+                .version(crate_version!())
+                .long_version(LONG_VERSION.as_str())
+                .about("show information about file")
+                .arg(Arg::with_name("FILE")
+                     .help("file to show")
+                     .required(true))
+            )
+        )
+
         .setting(clap::AppSettings::ArgRequiredElseHelp)
 
     ;

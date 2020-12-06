@@ -1,3 +1,4 @@
+use delog::hex_str;
 // use core::convert::{TryFrom, TryInto};
 use core::convert::TryFrom;
 use std::io::{self, Write as _};
@@ -163,7 +164,8 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
             file.write_all(&data)?;
             file.sync_all()?;
         } else {
-            lpc55::print_hex(data, 16);
+            // lpc55::print_hex(data, 16);
+            println!("{}", hex_str!(&data, 16));
         }
         return Ok(());
     }
@@ -175,7 +177,14 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
 
     if let Some(command) = args.subcommand_matches("sign-fw") {
         let config_filename = command.value_of("CONFIG").unwrap();
-        let signed_image = lpc55::bintosb::sign(config_filename)?;
+        let _signed_image = lpc55::bintosb::sign(config_filename)?;
+    }
+
+    if let Some(subcommand) = args.subcommand_matches("sb") {
+        if let Some(command) = subcommand.subcommand_matches("show") {
+            let filename = command.value_of("FILE").unwrap();
+            lpc55::bintosb::show(filename)?;
+        }
     }
 
     Ok(())

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub use crate::status::*;
 
 pub fn to_hex_string(bytes: &[u8]) -> String {
+    // delog::render::render_arguments(format!("{}", hex_str!(bytes, 4)))
     const HEX_CHARS_UPPER: &[u8; 16] = b"0123456789ABCDEF";
     let mut string = String::new();
     let mut first = true;
