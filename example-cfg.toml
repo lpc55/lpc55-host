@@ -10,6 +10,24 @@ root_cert_filenames = [
 	"example-root-certs/ca_certificate_3.der",
 ]
 
+[[commands]]
+kind = "Erase"
+from = 0x0
+to = 0x8_9800
+
+[[commands]]
+kind = "Load"
+file = "example-app-signed.bin"
+offset = 512
+to = 512
+
+[[commands]]
+kind = "Load"
+file = "example-app-signed.bin"
+offset = 512
+length = 512
+to = 0
+
 [field]
 rot_keys_status = ["Enabled", "Enabled", "Enabled", "Enabled"]
 version = 3

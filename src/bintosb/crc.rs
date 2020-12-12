@@ -20,6 +20,26 @@ pub fn crc32(data: &[u8]) -> u32 {
     crc
 }
 
+pub fn crc32_2(data: &[u8]) -> u32 {
+    let mut crc: u32 = 0x0;
+
+    for byte in data.iter() {
+        let i = ((crc >> 24) as u8) ^ *byte;
+        crc = (crc << 8) ^ TABLE[i as usize];
+    }
+
+    let jagged = data.len() % 16;
+    if jagged > 0 {
+        for _ in jagged..16 {
+            // let i = ((crc >> 24) as u8) ^ 0;
+            // crc = (crc << 8) ^ TABLE[i as usize];
+            crc = (crc << 8) ^ TABLE[(crc >> 24) as usize];
+        }
+    }
+
+    crc
+}
+
 pub const TABLE: [u32; 256] = [
     0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b, 0x1a864db2, 0x1e475005, 0x2608edb8,
     0x22c9f00f, 0x2f8ad6d6, 0x2b4bcb61, 0x350c9b64, 0x31cd86d3, 0x3c8ea00a, 0x384fbdbd, 0x4c11db70, 0x48d0c6c7,

@@ -57,10 +57,10 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
     let (_, vid) = hexadecimal_value(args.value_of("VID").unwrap()).unwrap();
     let pid = u16::from_str_radix(args.value_of("PID").unwrap().trim_start_matches("0x"), 16).unwrap();
 
-    let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
     // debug!("{:?}", &bootloader);
 
     if let Some(command) = args.subcommand_matches("http") {
+        let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
         let addr = command.value_of("ADDR").unwrap().to_string();
         let port = u16::from_str_radix(command.value_of("PORT").unwrap(), 10).unwrap();
         let http_config = lpc55::http::HttpConfig { addr, port, timeout_ms: 5000 };
@@ -70,6 +70,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
     }
 
     if let Some(_command) = args.subcommand_matches("info") {
+        let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
         bootloader.info();
         println!("{:#?}", bootloader.all_properties());
         return Ok(());
@@ -77,11 +78,13 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
 
     if let Some(subcommand) = args.subcommand_matches("keystore") {
         if subcommand.subcommand_matches("enroll").is_some() {
+            let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
             bootloader.enroll_puf();
             return Ok(());
         }
 
         if subcommand.subcommand_matches("read").is_some() {
+            let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
             // let data = bootloader.read_memory(0x9_DE60, 3*512);
 
             let command = lpc55::types::Command::Keystore(
@@ -101,6 +104,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
         }
 
         if let Some(command) = subcommand.subcommand_matches("set-key") {
+            let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
             let key = lpc55::types::Key::try_from(command.value_of("KEY").unwrap()).unwrap();
             let keydata_filename = command.value_of("KEYDATA_FILENAME").unwrap();
             let data = std::fs::read(keydata_filename)?;
@@ -116,6 +120,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
     }
 
     if let Some(command) = args.subcommand_matches("pfr") {
+        let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
         let data = bootloader.read_memory(0x9_DE00, 7*512);
         // let empty = data.iter().all(|&byte| byte == 0);
         // if empty {
@@ -153,6 +158,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
     }
 
     if let Some(command) = args.subcommand_matches("read-memory") {
+        let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
         let address = clap::value_t!(command.value_of("ADDRESS"), usize).unwrap();
         let length = clap::value_t!(command.value_of("LENGTH"), usize).unwrap();
         // let data = bootloader.read_memory_at_most_512(address, length);
