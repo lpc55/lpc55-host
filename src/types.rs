@@ -2,7 +2,7 @@ use core::convert::TryFrom;
 
 use serde::{Deserialize, Serialize};
 
-pub use crate::status::*;
+// pub use crate::bootloader::error::*};
 
 pub fn to_hex_string(bytes: &[u8]) -> String {
     // delog::render::render_arguments(format!("{}", hex_str!(bytes, 4)))
@@ -616,7 +616,7 @@ pub struct Properties {
     pub max_packet_size: usize,
     pub device_uuid: u128,
     pub system_uuid: u64,
-    pub crc_check_status: BootloaderError,
+    pub crc_check_status: crate::bootloader::Error,
     pub reserved_regions: Vec<(usize, usize)>,
     pub irq_notification_pin: IrqNotificationPin,
 }

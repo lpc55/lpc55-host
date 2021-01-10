@@ -18,49 +18,31 @@
 //!
 //! pyMBoot is instructive but in Python (and a bit buggy in parts).
 
-use hidapi::HidError;
-
-pub mod bootloader;
-#[cfg(feature = "cli")]
-pub mod cli;
-pub mod error;
-#[cfg(feature = "http")]
-pub mod http;
-pub mod logger;
-pub mod pfr;
-pub mod protocol;
-pub mod rotkh;
-pub mod bintosb;
-pub mod status;
-pub mod types;
 
 #[macro_use]
 extern crate log;
 
-#[macro_use]
+#[macro_use(hex_str, hexstr)]
 extern crate delog;
 
-// pub fn print_hex(data: impl AsRef<[u8]>, chunk_size: usize) {
-//     println!("{}", hex_str!(data.as_ref(), chunk_size));
-//     // for chunk in data.as_ref().chunks(chunk_size) {
-//     //     println!("{}", types::to_hex_string(chunk));
-//     // }
-// }
 
-#[derive(Debug)]
-pub enum Error {
-    HidApi(HidError),
-    Other,
-}
+// modules
+pub mod bootloader;
+pub mod logger;
+pub mod protected_flash;
+pub mod rot_fingerprints;
+pub mod secure_binary;
+pub mod signing;
+pub mod types;
 
-pub type Result<T> = std::result::Result<T, Error>;
+// optional modules
+#[cfg(feature = "cli")]
+pub mod cli;
+#[cfg(feature = "http")]
+pub mod http;
 
+// re-exports
 pub use bootloader::Bootloader;
-pub use status::BootloaderError;
-pub use types::Properties;
+pub use bootloader::Error as BootloaderError;
+pub use bootloader::protocol::Error as ProtocolError;
 
-impl From<HidError> for Error {
-    fn from(err: HidError) -> Self {
-        Self::HidApi(err)
-    }
-}

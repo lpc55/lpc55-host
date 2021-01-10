@@ -1,46 +1,19 @@
-use delog::hex_str;
-// use core::convert::{TryFrom, TryInto};
 use core::convert::TryFrom;
 use std::io::{self, Write as _};
 
+use anyhow::{anyhow, Context as _};
+use delog::hex_str;
+
+
 fn main() {
-    // if let Err(err) = Args::parse().and_then(try_main) {
-    let args = lpc55::cli::app::app().get_matches();
+    let args = lpc55::cli::app().get_matches();
     if let Err(err) = try_main(args) {
-        eprintln!("{}", err);
-        std::process::exit(2);
+        eprintln!("Error: {}", err);
+        std::process::exit(1);
     }
 }
 
-fn hexadecimal_value(input: &str) -> nom::IResult<&str, u16> {
-    use nom::{
-        combinator::map_res,
-        sequence::preceded,
-        branch::alt,
-        bytes::complete::tag,
-        combinator::recognize,
-        multi::many1,
-        sequence::terminated,
-        character::complete::one_of,
-        multi::many0,
-        character::complete::char,
-    };
-
-  map_res(
-    preceded(
-      alt((tag("0x"), tag("0X"))),
-      recognize(
-        many1(
-          terminated(one_of("0123456789abcdefABCDEF"), many0(char('_')))
-        )
-      )
-    ),
-    |out: &str| u16::from_str_radix(&str::replace(&out, "_", ""), 16)
-  )(input)
-}
-
-// fn try_main(args: Args) -> Result<()> {
-fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
+fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
     lpc55::logger::Logger::init().unwrap();
 
@@ -49,15 +22,13 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
         0 => log::set_max_level(log::LevelFilter::Warn),
         1 => log::set_max_level(log::LevelFilter::Info),
         2 => log::set_max_level(log::LevelFilter::Debug),
-        3 | _ => log::set_max_level(log::LevelFilter::Trace),
+        _ => log::set_max_level(log::LevelFilter::Trace),
     };
 
-    // TODO: graceful parse error handling
-    // let vid = u16::from_str_radix(args.value_of("vid").unwrap().trim_start_matches("0x"), 16).unwrap();
-    let (_, vid) = hexadecimal_value(args.value_of("VID").unwrap()).unwrap();
-    let pid = u16::from_str_radix(args.value_of("PID").unwrap().trim_start_matches("0x"), 16).unwrap();
-
-    // debug!("{:?}", &bootloader);
+    let vid = u16::from_str_radix(args.value_of("VID").ok_or(anyhow!("Need a VID"))?.trim_start_matches("0x"), 16)
+        .with_context(|| format!("Failed to parse VID"))?;
+    let pid = u16::from_str_radix(args.value_of("PID").ok_or(anyhow!("Need a PID"))?.trim_start_matches("0x"), 16)
+        .with_context(|| format!("Failed to parse PID"))?;
 
     if let Some(command) = args.subcommand_matches("http") {
         let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
@@ -70,14 +41,14 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
     }
 
     if let Some(_command) = args.subcommand_matches("info") {
-        let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
+        let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid)?;
         bootloader.info();
         println!("{:#?}", bootloader.all_properties());
         return Ok(());
     }
 
     if let Some(subcommand) = args.subcommand_matches("keystore") {
-        if subcommand.subcommand_matches("enroll").is_some() {
+        if subcommand.subcommand_matches("enroll-puf").is_some() {
             let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid).unwrap();
             bootloader.enroll_puf();
             return Ok(());
@@ -98,7 +69,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
                 todo!();
             };
 
-            let keystore = lpc55::pfr::Keystore::try_from(data.as_slice()).unwrap();
+            let keystore = lpc55::protected_flash::Keystore::try_from(data.as_slice()).unwrap();
             println!("{}", serde_json::to_string(&keystore).unwrap());
             return Ok(());
         }
@@ -128,7 +99,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
         // } else {
         //     println!("PFR region is not completely zeroed out");
         // }
-        let pfr = lpc55::pfr::ProtectedFlash::try_from(&data[..]).unwrap();
+        let pfr = lpc55::protected_flash::ProtectedFlash::try_from(&data[..]).unwrap();
         // println!("PFR = {:#?}", &pfr);
         // println!("PFR = {:?}", &pfr);
 
@@ -178,18 +149,18 @@ fn try_main(args: clap::ArgMatches<'_>) -> lpc55::cli::args::Result<()> {
 
     if let Some(command) = args.subcommand_matches("rotkh") {
         let config_filename = command.value_of("CONFIG").unwrap();
-        lpc55::rotkh::calculate(config_filename)?;
+        lpc55::rot_fingerprints::calculate(config_filename)?;
     }
 
     if let Some(command) = args.subcommand_matches("sign-fw") {
         let config_filename = command.value_of("CONFIG").unwrap();
-        let _signed_image = lpc55::bintosb::sign(config_filename)?;
+        let _signed_image = lpc55::secure_binary::sign(config_filename)?;
     }
 
     if let Some(subcommand) = args.subcommand_matches("sb") {
         if let Some(command) = subcommand.subcommand_matches("show") {
             let filename = command.value_of("FILE").unwrap();
-            lpc55::bintosb::show(filename)?;
+            lpc55::secure_binary::show(filename)?;
         }
     }
 

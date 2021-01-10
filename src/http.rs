@@ -1,10 +1,12 @@
+//! HTTP server interface to this crate's functionality
+
 use core::convert::TryFrom;
 use std::io;
 
 use tiny_http as http;
 
 use crate::bootloader;
-use crate::error::Error;
+use anyhow::Result;
 
 
 #[derive(Clone, Debug)]
@@ -34,7 +36,7 @@ pub struct Server {
 
 impl Server {
 
-    pub fn new(config: &HttpConfig, bootloader: bootloader::Bootloader) -> Result<Server, Error> {
+    pub fn new(config: &HttpConfig, bootloader: bootloader::Bootloader) -> Result<Server> {
 
         let server = http::Server::http(format!("{}:{}", &config.addr, config.port))
             .map_err(|e| anyhow::format_err!("couldn't create HTTP server: {}", e))?;
@@ -47,14 +49,14 @@ impl Server {
 
     }
 
-    pub fn run(&self) -> Result<(), Error> {
+    pub fn run(&self) -> Result<()> {
         info!("Server({:?}) run", &self.config);
         loop {
             self.handle_request()?;
         }
     }
 
-    pub fn handle_request(&self) -> Result<(), Error> {
+    pub fn handle_request(&self) -> Result<()> {
         let /*mut*/ request = self.server.recv()?;
 
         let response = match *request.method() {
@@ -84,19 +86,19 @@ impl Server {
         Ok(())
     }
 
-    fn pfr(&self) -> Result<http::Response<io::Cursor<Vec<u8>>>, Error> {
+    fn pfr(&self) -> Result<http::Response<io::Cursor<Vec<u8>>>> {
         info!("lpc55::http[{:04x}:{:04x}, {}:{}]: GET /pfr",
             &self.bootloader.vid, &self.bootloader.pid,
             &self.config.addr, &self.config.port,
         );
         let data = self.bootloader.read_memory(0x9_DE00, 7*512);
-        let pfr = crate::pfr::ProtectedFlash::try_from(&data[..]).unwrap();
+        let pfr = crate::protected_flash::ProtectedFlash::try_from(&data[..]).unwrap();
         let json = serde_json::to_string_pretty(&pfr).unwrap();
 
         Ok(http::Response::from_string(json))
     }
 
-    fn status(&self) -> Result<http::Response<io::Cursor<Vec<u8>>>, Error> {
+    fn status(&self) -> Result<http::Response<io::Cursor<Vec<u8>>>> {
         info!("lpc55::http[{:04x}:{:04x}, {}:{}]: GET /status",
             &self.bootloader.vid, &self.bootloader.pid,
             &self.config.addr, &self.config.port,

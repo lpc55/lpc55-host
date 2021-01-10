@@ -1,3 +1,5 @@
+//! The protected flash area (PFR) as Rust types
+//!
 use core::convert::TryInto;
 use core::fmt;
 use std::io::Write as _;
@@ -1129,7 +1131,7 @@ impl From<DebugSecurityPolicies> for [u32; 2] {
     }
 }
 
-fn fill_returning_hash(buf: &mut [u8; 512], f: impl FnOnce(&mut [u8]) -> crate::error::Result<()>) -> Sha256Hash {
+fn fill_returning_hash(buf: &mut [u8; 512], f: impl FnOnce(&mut [u8]) -> anyhow::Result<()>) -> Sha256Hash {
 
     // let cursor = buf.as_mut();
     f(buf.as_mut()).unwrap();

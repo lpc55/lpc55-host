@@ -1,9 +1,10 @@
+//! Generator and parser for signed firmware and SB (secure binary) files
+
 #![allow(unused_imports)]
 use std::fs;
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
-
-use crate::error::Result;
 use x509_parser::certificate::X509Certificate;
 
 use nom::{
@@ -22,6 +23,8 @@ use nom::{
     },
     sequence::tuple,
 };
+
+use crate::signing::{SigningKey, SigningKeySource};
 
 pub mod crc;
 
@@ -528,10 +531,10 @@ impl UnsignedSb21File {
         };
 
         let rot_key_hashes = [
-            crate::rotkh::rot_key_hash(self.certificates.certificate(0)).unwrap(),
-            crate::rotkh::rot_key_hash(self.certificates.certificate(1)).unwrap(),
-            crate::rotkh::rot_key_hash(self.certificates.certificate(2)).unwrap(),
-            crate::rotkh::rot_key_hash(self.certificates.certificate(3)).unwrap(),
+            crate::rot_fingerprints::cert_fingerprint(self.certificates.certificate(0)).unwrap(),
+            crate::rot_fingerprints::cert_fingerprint(self.certificates.certificate(1)).unwrap(),
+            crate::rot_fingerprints::cert_fingerprint(self.certificates.certificate(2)).unwrap(),
+            crate::rot_fingerprints::cert_fingerprint(self.certificates.certificate(3)).unwrap(),
         ];
 
         let header = Sb2Header {
@@ -657,9 +660,10 @@ impl UnsignedSb21File {
     }
 
     /// TODO: figure out how generic this "key" should be. We want to cover
-    /// - on-disk/file keys
-    /// - PKCS#11 keys, so any kind of HSM can be used
-    /// - possibly other hardware interfaces, such as Tony's yubihsm crate
+    /// - on-disk/file keys (cf. RFC 8089: The "file" URI Scheme)
+    /// - PKCS#11 keys, so any kind of HSM can be used (cf. RFC 7512: The PKCS #11 URI Scheme)
+    /// - possibly other hardware interfaces, such as Tony's yubihsm crate (perhaps: yubihsm:id=<u16>)
+    ///   cf: https://docs.rs/yubihsm/0.37.0/yubihsm/client/struct.Client.html#method.sign_rsa_pkcs1v15_sha256
     pub fn sign(&self, secret_key: &rsa::RSAPrivateKey) -> SignedSb21File {
         let header_part = self.header_part();
         let header_bytes = header_part.to_bytes();
@@ -908,33 +912,31 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
     todo!();
 }
 
+pub fn split_once(s: &str, delimiter: char) -> Option<(&str, &str)> {
+    let i = s.find(delimiter)?;
+    Some((&s[..i], &s[i + 1..]))
+}
+
 pub fn sign(config_filename: &str) -> Result<Vec<u8>> {
     let config = fs::read_to_string(config_filename)?;
     let config: Config = toml::from_str(&config)?;
     let plain_image = fs::read(config.image)?;
     let der = fs::read(&config.root_cert_filenames[0])?;
 
-    let sk_data = fs::read_to_string(&config.root_cert_secret_key)?;
-    // do this instead:
-    // https://docs.rs/rsa/0.3.0/rsa/struct.RSAPrivateKey.html?search=#example
-    let der_bytes = pem_parser::pem_to_der(&sk_data);
-    // use std::io::BufRead;
-    // let der_encoded = sk_data
-    //     .lines()
-    //     .filter(|line| !line.starts_with("-"))
-    //     .fold(String::new(), |mut data, line| {
-    //         data.push_str(&line);
-    //         data
-    //     });
-    // let der_bytes = base64::decode(&der_encoded).expect("failed to decode base64 content");
-    let sk = rsa::RSAPrivateKey::from_pkcs1(&der_bytes)?;
+    let (scheme, content) = split_once(&config.root_cert_secret_key, ':').unwrap();
+    let key_source = match scheme {
+        "file" => SigningKeySource::Pkcs1PemFile(std::path::PathBuf::from(content)),
+        "pkcs11" => SigningKeySource::Pkcs11Uri(config.root_cert_secret_key.to_string()),
+        _ => return Err(anyhow::anyhow!("only file and pkcs11 secret key URIs supported")),
+    };
+    let key = SigningKey::try_load(&key_source)?;
 
-    let rotkh = crate::rotkh::rot_key_hashes(&config.root_cert_filenames)?;
+    let rotkh = crate::rot_fingerprints::rot_key_hashes(&config.root_cert_filenames)?;
     let signed_image = assemble_signed_image(
         &plain_image,
         &der,
         rotkh,
-        &sk,
+        &key,
     );
     fs::write(&config.signed_image, &signed_image)?;
     Ok(signed_image)
@@ -1048,7 +1050,7 @@ fn certificate_block_header_bytes(total_image_length: usize, aligned_cert_length
     bytes
 }
 
-fn assemble_signed_image(plain_image: &[u8], certificate_der: &[u8], rot_key_hashes: [[u8; 32]; 4], secret_key: &rsa::RSAPrivateKey) -> Vec<u8> {
+fn assemble_signed_image(plain_image: &[u8], certificate_der: &[u8], rot_key_hashes: [[u8; 32]; 4], signing_key: &SigningKey) -> Vec<u8> {
 
     let mut image = padded_alignment(plain_image);
     let certificate = padded_alignment(certificate_der);
@@ -1075,14 +1077,8 @@ fn assemble_signed_image(plain_image: &[u8], certificate_der: &[u8], rot_key_has
         image.extend_from_slice(rot_key_hash.as_ref());
     }
     // signature
-    let padding_scheme = rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
-    use sha2::Digest;
-    let mut hasher = sha2::Sha256::new();
-    hasher.update(&image);
-    let hashed_image = hasher.finalize();
-    let signature = secret_key.sign(padding_scheme, &hashed_image).expect("signatures work");
-    assert_eq!(256, signature.len());
-    image.extend_from_slice(&signature);
+    let signature = signing_key.sign(&image);
+    image.extend_from_slice(signature.as_ref());
 
     image
 

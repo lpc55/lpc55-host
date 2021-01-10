@@ -5,8 +5,8 @@ use std::process;
 
 #[cfg(feature = "cli")]
 #[allow(dead_code)]
-#[path = "src/cli/app.rs"]
-mod app;
+#[path = "src/cli.rs"]
+mod cli;
 
 fn main() {
     // OUT_DIR is set by Cargo and it's where any additional build artifacts
@@ -39,7 +39,7 @@ fn main() {
 
         // Use clap to build completion files.
         // Pro-tip: use `fd -HIe bash` to get OUT_DIR
-        let mut app = app::app();
+        let mut app = cli::app();
         app.gen_completions("lpc55", Shell::Bash, &outdir);
         app.gen_completions("lpc55", Shell::Fish, &outdir);
         app.gen_completions("lpc55", Shell::PowerShell, &outdir);

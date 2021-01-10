@@ -35,6 +35,7 @@
 
 use core::convert::{TryFrom, TryInto};
 use crate::types;
+use super::Error as BootloaderError;
 
 use hidapi::{HidDevice, HidResult};
 
@@ -61,13 +62,13 @@ pub enum Error {
     Unspecified,
 }
 
-/// The NXP bootloader protocol result types
+/// The NXP bootloader protocol result type, with split status as error
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub struct ResponsePacket {
     pub tag: types::ResponseTag,
     pub has_data: bool,
-    pub status: Option<types::BootloaderError>,
+    pub status: Option<BootloaderError>,
     // pub mirrored_command_header: [u8; 4],
     pub parameters: Vec<u32>,
 }
@@ -286,7 +287,7 @@ impl Protocol {
                 let status_code = parameters.remove(0);
                 let status = match status_code {
                     0 => None,
-                    code => Some(types::BootloaderError::from(code)),
+                    code => Some(BootloaderError::from(code)),
                 };
 
                 // NB: this is only true for Generic responses

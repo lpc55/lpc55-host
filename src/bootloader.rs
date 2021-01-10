@@ -1,10 +1,17 @@
-use hidapi::HidApi;
-use enum_iterator::IntoEnumIterator;
+//! The bootloader interface
 
-use crate::protocol::Protocol;
-use crate::status::BootloaderError;
+use enum_iterator::IntoEnumIterator;
+use hidapi::HidApi;
+use serde::{Deserialize, Serialize};
+
+pub mod error;
+pub use error::*;
+
+// use error::Error as BootloaderError;
 use crate::types::*;
-use crate::Result;
+
+pub mod protocol;
+use protocol::Protocol;
 
 #[derive(Debug)]
 pub struct Bootloader {
@@ -15,8 +22,23 @@ pub struct Bootloader {
     pub pid: u16,
 }
 
+/// Bootloader commands return a "status". The non-zero statii can be split
+/// as `100*group + code`. We map these groups into enum variants, containing
+/// the code interpreted as an error the area.
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub enum Error {
+    Generic(error::GenericError),
+    FlashDriver(error::FlashDriverError),
+    PropertyStore(error::PropertyStoreError),
+    CrcChecker(error::CrcCheckerError),
+    Unknown(u32),
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
+
 impl Bootloader {
-    pub fn try_new(vid: u16, pid: u16) -> Result<Self> {
+    pub fn try_new(vid: u16, pid: u16) -> anyhow::Result<Self> {
         let api = HidApi::new()?;
         let device = api.open(vid, pid)?;
         let protocol = Protocol::new(device);
@@ -28,7 +50,7 @@ impl Bootloader {
 
     pub fn info(&self) {
         for property in Property::into_enum_iter() {
-            println!("\n{:?}", property);
+            // println!("\n{:?}", property);
             self.property(property).ok();
         }
     }
@@ -99,7 +121,7 @@ impl Bootloader {
         }
     }
 
-    fn property(&self, property: Property) -> std::result::Result<Vec<u32>, BootloaderError> {
+    fn property(&self, property: Property) -> Result<Vec<u32>> {
         let response = self.protocol.call(&Command::GetProperty(property)).expect("success");
         if let Response::GetProperty(values) = response {
             Ok(values)
@@ -143,55 +165,55 @@ pub struct GetProperties<'a> {
 }
 
 impl GetProperties<'_> {
-    pub fn current_version(&self) -> std::result::Result<Version, BootloaderError> {
+    pub fn current_version(&self) -> Result<Version> {
         Ok(Version::from(self.bl.property(Property::CurrentVersion)?[0]))
     }
-    pub fn target_version(&self) -> std::result::Result<Version, BootloaderError> {
+    pub fn target_version(&self) -> Result<Version> {
         Ok(Version::from(self.bl.property(Property::TargetVersion)?[0]))
     }
-    pub fn ram_start_address(&self) -> std::result::Result<usize, BootloaderError> {
+    pub fn ram_start_address(&self) -> Result<usize> {
         Ok(self.bl.property(Property::RamStartAddress)?[0] as _)
     }
-    pub fn ram_size(&self) -> std::result::Result<usize, BootloaderError> {
+    pub fn ram_size(&self) -> Result<usize> {
         Ok(self.bl.property(Property::RamSize)?[0] as _)
     }
-    pub fn flash_start_address(&self) -> std::result::Result<usize, BootloaderError> {
+    pub fn flash_start_address(&self) -> Result<usize> {
         Ok(self.bl.property(Property::FlashStartAddress)?[0] as _)
     }
-    pub fn flash_size(&self) -> std::result::Result<usize, BootloaderError> {
+    pub fn flash_size(&self) -> Result<usize> {
         Ok(self.bl.property(Property::FlashSize)?[0] as _)
     }
-    pub fn flash_page_size(&self) -> std::result::Result<usize, BootloaderError> {
+    pub fn flash_page_size(&self) -> Result<usize> {
         Ok(self.bl.property(Property::FlashPageSize)?[0] as _)
     }
-    pub fn flash_sector_size(&self) -> std::result::Result<usize, BootloaderError> {
+    pub fn flash_sector_size(&self) -> Result<usize> {
         Ok(self.bl.property(Property::FlashSectorSize)?[0] as _)
     }
-    pub fn max_packet_size(&self) -> std::result::Result<usize, BootloaderError> {
+    pub fn max_packet_size(&self) -> Result<usize> {
         Ok(self.bl.property(Property::MaxPacketSize)?[0] as _)
     }
-    pub fn available_peripherals(&self) -> std::result::Result<crate::types::AvailablePeripherals, BootloaderError> {
+    pub fn available_peripherals(&self) -> Result<crate::types::AvailablePeripherals> {
         Ok(AvailablePeripherals::from_bits_truncate(self.bl.property(Property::AvailablePeripherals)?[0]))
     }
-    pub fn available_commands(&self) -> std::result::Result<crate::types::AvailableCommands, BootloaderError> {
+    pub fn available_commands(&self) -> Result<crate::types::AvailableCommands> {
         Ok(AvailableCommands::from_bits_truncate(self.bl.property(Property::AvailableCommands)?[0]))
     }
-    pub fn pfr_keystore_update_option(&self) -> std::result::Result<crate::types::PfrKeystoreUpdateOptions, BootloaderError> {
+    pub fn pfr_keystore_update_option(&self) -> Result<crate::types::PfrKeystoreUpdateOptions> {
         let values = self.bl.property(Property::PfrKeystoreUpdateOptions)?;
         assert_eq!(values.len(), 1);
         Ok(PfrKeystoreUpdateOptions::from(values[0]))
     }
-    pub fn verify_writes(&self) -> std::result::Result<bool, BootloaderError> {
+    pub fn verify_writes(&self) -> Result<bool> {
         Ok(self.bl.property(Property::VerifyWrites)?[0] == 1)
     }
-    pub fn flash_locked(&self) -> std::result::Result<bool, BootloaderError> {
+    pub fn flash_locked(&self) -> Result<bool> {
         Ok(match self.bl.property(Property::FlashSecurityState)?[0] {
             0x0 | 0x5AA55AA5 => false,
             0x1 | 0xC33CC33C => true,
             _ => panic!(),
         })
     }
-    pub fn device_uuid(&self) -> std::result::Result<u128, BootloaderError> {
+    pub fn device_uuid(&self) -> Result<u128> {
         let values = self.bl.property(Property::UniqueDeviceIdent)?;
         assert_eq!(values.len(), 4);
         Ok(
@@ -201,17 +223,17 @@ impl GetProperties<'_> {
             ((values[0] as u128))
         )
     }
-    pub fn system_uuid(&self) -> std::result::Result<u64, BootloaderError> {
+    pub fn system_uuid(&self) -> Result<u64> {
         let values = self.bl.property(Property::SystemDeviceIdent)?;
         assert_eq!(values.len(), 2);
         Ok(((values[1] as u64) << 32) + (values[0] as u64))
     }
 
-    pub fn crc_check_status(&self) -> std::result::Result<BootloaderError, BootloaderError> {
-        Ok(BootloaderError::from(self.bl.property(Property::CrcCheckStatus)?[0]))
+    pub fn crc_check_status(&self) -> Result<Error> {
+        Ok(Error::from(self.bl.property(Property::CrcCheckStatus)?[0]))
     }
 
-    pub fn reserved_regions(&self) -> std::result::Result<Vec<(usize, usize)>, BootloaderError> {
+    pub fn reserved_regions(&self) -> Result<Vec<(usize, usize)>> {
         let values = self.bl.property(Property::ReservedRegions)?;
         assert_eq!(values.len() % 2, 0);
         let mut pairs = Vec::new();
@@ -226,7 +248,7 @@ impl GetProperties<'_> {
         Ok(pairs)
     }
 
-    pub fn irq_notification_pin(&self) -> std::result::Result<crate::types::IrqNotificationPin, BootloaderError> {
+    pub fn irq_notification_pin(&self) -> Result<crate::types::IrqNotificationPin> {
         Ok(IrqNotificationPin::from(self.bl.property(Property::IrqNotificationPin)?[0]))
     }
 }
