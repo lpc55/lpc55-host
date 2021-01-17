@@ -17,6 +17,8 @@
 //! they are BSD-licensed, but code is only available behind a login screen.
 //!
 //! pyMBoot is instructive but in Python (and a bit buggy in parts).
+//!
+//! There is also the somehow underadvertised <https://github.com/NXPmicro/spsdk>.
 
 
 #[macro_use]
@@ -28,7 +30,6 @@ extern crate delog;
 
 // modules
 pub mod bootloader;
-pub mod logger;
 pub mod protected_flash;
 pub mod rot_fingerprints;
 pub mod secure_binary;
@@ -36,8 +37,6 @@ pub mod signing;
 pub mod types;
 
 // optional modules
-#[cfg(feature = "cli")]
-pub mod cli;
 #[cfg(feature = "http")]
 pub mod http;
 

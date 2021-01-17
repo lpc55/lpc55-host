@@ -4,8 +4,7 @@ use std::path;
 use std::process;
 
 #[cfg(feature = "cli")]
-#[allow(dead_code)]
-#[path = "src/cli.rs"]
+#[path = "src/bin/lpc55/cli.rs"]
 mod cli;
 
 fn main() {

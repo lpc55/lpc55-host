@@ -65,7 +65,7 @@ pub fn cert_fingerprint(certificate: X509Certificate<'_>) -> Result<[u8; 32]> {
     Ok(key_fingerprint(public_key))
 }
 
-pub fn rot_key_hashes(certs: &[String; 4]) -> Result<[[u8; 32]; 4]> {
+pub fn rot_fingerprints(certs: &[String; 4]) -> Result<[[u8; 32]; 4]> {
     let mut hashes = [[0u8; 32]; 4];
     for (i, cert_filename) in certs.iter().enumerate() {
         let cert_content = fs::read(cert_filename)?;
@@ -87,15 +87,14 @@ pub fn calculate(config_filename: &str) -> Result<()> {
 
     let mut hash = sha2::Sha256::new();
 
-    let rotkhs = rot_key_hashes(&config.root_cert_filenames)?;
-    for rot_key_hash in rotkhs.iter() {
-        hash.update(&rot_key_hash);
+    let fingerprints = rot_fingerprints(&config.root_cert_filenames)?;
+    for fingerprint in fingerprints.iter() {
+        hash.update(&fingerprint);
     }
-    let rotkh = hash.finalize();
+    let rot_fingerprint = hash.finalize();
 
-    config.factory.rot_keys_table_hash = Sha256Hash(rotkh.try_into().unwrap());
-    info!("rotkh = {}", to_hex_string(&rotkh));
-    println!("{}", to_hex_string(&rotkh));
+    config.factory.rot_fingerprint = Sha256Hash(rot_fingerprint.try_into().unwrap());
+    info!("RoT fingerprint: {}", to_hex_string(&rot_fingerprint));
 
     debug!("loaded config: {}", serde_yaml::to_string(&config)?);
     debug!("rot_keys_status as u32: 0x{:x}", u32::from(config.field.rot_keys_status));

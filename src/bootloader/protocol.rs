@@ -126,9 +126,38 @@ impl Protocol {
                 let packet = ResponsePacket::try_from(initial_response)?;
 
                 assert_eq!(packet.has_data, false);
-                assert!(packet.status.is_none());
+                if let Some(status) = packet.status {
+                    panic!("{:?}", status);
+                }
                 match command {
                     types::Command::Keystore(types::KeystoreOperation::Enroll) => {
+                        assert_eq!(packet.tag, types::ResponseTag::Generic);
+
+                        // general property of generic responses: 2 parameters, status and mirrored command header
+                        assert_eq!(packet.parameters.len(), 1);
+                        assert_eq!(packet.parameters[0].to_le_bytes()[..2], command.header()[..2]);
+
+                        Ok(types::Response::Generic)
+                    }
+                    types::Command::Keystore(types::KeystoreOperation::GenerateKey { key: _, len: _ }) => {
+                        assert_eq!(packet.tag, types::ResponseTag::Generic);
+
+                        // general property of generic responses: 2 parameters, status and mirrored command header
+                        assert_eq!(packet.parameters.len(), 1);
+                        assert_eq!(packet.parameters[0].to_le_bytes()[..2], command.header()[..2]);
+
+                        Ok(types::Response::Generic)
+                    }
+                    types::Command::Keystore(types::KeystoreOperation::WriteNonVolatile { memory_id: _ }) => {
+                        assert_eq!(packet.tag, types::ResponseTag::Generic);
+
+                        // general property of generic responses: 2 parameters, status and mirrored command header
+                        assert_eq!(packet.parameters.len(), 1);
+                        assert_eq!(packet.parameters[0].to_le_bytes()[..2], command.header()[..2]);
+
+                        Ok(types::Response::Generic)
+                    }
+                    types::Command::Keystore(types::KeystoreOperation::ReadNonVolatile { memory_id: _ }) => {
                         assert_eq!(packet.tag, types::ResponseTag::Generic);
 
                         // general property of generic responses: 2 parameters, status and mirrored command header
@@ -176,7 +205,10 @@ impl Protocol {
 
                         let packet = ResponsePacket::try_from(self.read_packet()?)?;
                         assert_eq!(packet.has_data, false);
-                        assert!(packet.status.is_none());
+                        if let Some(status) = packet.status {
+                            panic!("unexpected status {:?}", &status);
+                        }
+                        // assert!(packet.status.is_none());
 
                         assert_eq!(packet.tag, types::ResponseTag::Generic);
                         // general property of generic responses: 2 parameters, status and mirrored command header

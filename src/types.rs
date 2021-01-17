@@ -265,6 +265,16 @@ pub enum Key {
     UserPsk = 11,
 }
 
+// unfortunately duplicated in cli.rs, for why see there
+pub const KEYSTORE_KEY_NAMES: [&'static str; 6] = [
+    "secure-boot-kek",
+    "user-key",
+    "unique-device-secret",
+    "prince-region-0",
+    "prince-region-1",
+    "prince-region-2",
+];
+
 impl TryFrom<&str> for Key {
     type Error = String;
 
@@ -276,7 +286,7 @@ impl TryFrom<&str> for Key {
             "prince-region-2" => PrinceRegion2,
             "secure-boot-kek" => SecureBootKek,
             "unique-device-secret" => UniqueDeviceSecret,
-            "user-pre-shared-key" => UserPsk,
+            "user-key" => UserPsk,
             _ => return Err(name.to_string())
         })
     }
@@ -285,12 +295,23 @@ impl TryFrom<&str> for Key {
 #[repr(u8)]
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 // naming taken from docs, could also be called Subcommand, or even Command
+/// This is the interface definition to a somewhat limited bootloader API,
+/// that then operates on the actual PFR data and PUF periphreal.
+///
+/// The operations Enroll, SetKey, GenerateKey create activation codes or key codes,
+/// which the bootloader keeps in RAM and only writes to PFR once WriteNonVolatile is
+/// called. If this is not done, on reboot, the PUF is unenrolled again, or the keys
+/// are not set anymore.
+///
+/// It doesn't however seem possible to set/generate new keys after reboot without
+/// re-enrolling PUF, calling set/generate key results in a `Generic(Fail)`. Calling
+/// ReadNonVolatile does not help; the author does not understand the effect of this command.
 pub enum KeystoreOperation {
     Enroll,
     SetKey { key: Key, data: Vec<u8> },
-    SetIntrinsicKey,
-    WriteNonVolatile,
-    ReadNonVolatile,
+    GenerateKey { key: Key, len: u32 },
+    WriteNonVolatile { memory_id: u32 },
+    ReadNonVolatile { memory_id: u32 },
     WriteKeystore,
     ReadKeystore,
 }
@@ -301,9 +322,9 @@ impl From<&KeystoreOperation> for u32 {
         match operation {
             Enroll => 0,
             SetKey { key: _, data: _ } => 1,
-            SetIntrinsicKey => 2,
-            WriteNonVolatile => 3,
-            ReadNonVolatile => 4,
+            GenerateKey { key: _, len: _ } => 2,
+            WriteNonVolatile { memory_id: _ } => 3,
+            ReadNonVolatile { memory_id: _ } => 4,
             WriteKeystore => 5,
             ReadKeystore => 6,
         }
@@ -409,6 +430,9 @@ impl Command {
             (Command::Keystore(KeystoreOperation::Enroll), _) => DataPhase::None,
             (Command::Keystore(KeystoreOperation::ReadKeystore), _) => DataPhase::ResponseData,
             (Command::Keystore(KeystoreOperation::SetKey { key: _, data }), _) => DataPhase::CommandData(data.clone()),
+            (Command::Keystore(KeystoreOperation::GenerateKey { key: _, len: _ }), _) => DataPhase::None,
+            (Command::Keystore(KeystoreOperation::WriteNonVolatile { memory_id: _ }), _) => DataPhase::None,
+            (Command::Keystore(KeystoreOperation::ReadNonVolatile { memory_id: _ }), _) => DataPhase::None,
 
             _ => todo!()
         }
@@ -436,6 +460,15 @@ impl Command {
                     }
                     SetKey { key, data } => {
                         vec![u32::from(&operation), key as u32, data.len() as u32]
+                    }
+                    GenerateKey { key, len } => {
+                        vec![u32::from(&operation), key as u32, len]
+                    }
+                    WriteNonVolatile { memory_id } => {
+                        vec![u32::from(&operation), memory_id]
+                    }
+                    ReadNonVolatile { memory_id } => {
+                        vec![u32::from(&operation), memory_id]
                     }
                     _ => todo!()
 

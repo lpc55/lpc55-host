@@ -113,7 +113,7 @@ where
 //     s.serialize_str(&to_hex_string(&x.0))
 // }
 
-fn is_default<T: Default + PartialEq>(t: &T) -> bool {
+pub(crate) fn is_default<T: Default + PartialEq>(t: &T) -> bool {
     *t == Default::default()
 }
 
@@ -147,7 +147,16 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
-    pub rot_keys_table_hash: Sha256Hash,
+    /// Fingerprint of allowed root certificates for signed firmware update process.
+    ///
+    /// Called "ROTKH" for "root of trust key table hash" in vendor documentation.
+    ///
+    /// There can be up to four root certificate authorities; each have a "fingerprint" (cf.
+    /// elsewhere), the fingerprint here is the SHA256 hash of the concatenation of these
+    /// fingerprints. Due to this construction, each SB2.1 firmware container needs to contain
+    /// all the root certificates (plus possibly a certificate chain to the authority actually
+    /// signing the firmware).
+    pub rot_fingerprint: Sha256Hash,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
@@ -162,6 +171,14 @@ where
 pub struct KeystoreHeader(pub u32);
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+/// Input to regenerate keys "stored" in the PUF.
+///
+/// Empirically, these arrays start with either '59595959 01000002' for 16B keys,
+/// or '59595959 00000004' for 32B keys.
+///
+/// Presumably (entire paragraph is speculative), this is followed by 32B of input to be XOR'd or
+/// whatnot with the 32B "fingerprint" derived from PUF "startup data" via error correction with
+/// the "activation code" (and then truncated to key length). Which would leave 16B hash.
 pub struct Keycode(
     #[serde(with = "BigArray")]
     [u8; 56]
@@ -216,37 +233,56 @@ impl AsRef<[u8]> for ActivationCode {
 pub struct Keystore {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    /// The Excel spreadsheet says "Valid Key Sore Header : 0x95959595u".
+    ///
+    /// Empirically, this value 2509608341 appears as header in the PFR
+    /// as soon as PUF is enrolled, regardless of number of key codes stored.
     pub header: KeystoreHeader,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    /// Excel spreadsheet specifies this interpretation.
+    ///
+    /// Seems this can't be actually set anywhere.
     pub puf_discharge_time_milliseconds: u32,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
+    /// 1192 bytes of data, generated when PUF is enrolled.
     pub activation_code: ActivationCode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
+    /// KEK for secure boot, aka SBKEK.
+    ///
+    /// This is an actual "key encryption key". The SB2.1 container format uses two "random"
+    /// firmware encryption and MAC keys, which are stored via AES keywrap with this SBKEK in the
+    /// container.
     pub secure_boot_kek: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
-    pub firmware_update_kek: Keycode,
+    pub user_key: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
+    /// Key intended for use with the "DICE" algorithm, which is a Microsoft standard to ensure
+    /// devices and their firmware are authentic; based on symmetric cryptography.
     pub unique_device_secret: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
+    /// Key used when PRINCE is activated for the first PRINCE region (first 256K flash)
     pub prince_region_0: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
+    /// Key used when PRINCE is activated for the first PRINCE region (second 256K flash)
     pub prince_region_1: Keycode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
+    /// Key used when PRINCE is activated for the first PRINCE region (last 128K flash, or more
+    /// precisely, 119.5K -- excluding PFR itself)
     pub prince_region_2: Keycode,
 }
 
@@ -264,7 +300,7 @@ impl Keystore {
         cursor.write_all(&self.puf_discharge_time_milliseconds.to_le_bytes()).ok();
         cursor.write_all(&self.activation_code.0).ok();
         cursor.write_all(&self.secure_boot_kek.0).ok();
-        cursor.write_all(&self.firmware_update_kek.0).ok();
+        cursor.write_all(&self.user_key.0).ok();
         cursor.write_all(&self.unique_device_secret.0).ok();
         cursor.write_all(&self.prince_region_0.0).ok();
         cursor.write_all(&self.prince_region_1.0).ok();
@@ -279,7 +315,7 @@ fn parse_keystore(input: &[u8]) -> IResult<&[u8], Keystore> {
     let (input, puf_discharge_time_milliseconds) = le_u32(input)?;
     let (input, activation_code) = take!(input, 1192)?;
     let (input, secure_boot_kek) = take!(input, 56)?;
-    let (input, firmware_update_kek) = take!(input, 56)?;
+    let (input, user_key) = take!(input, 56)?;
     let (input, unique_device_secret) = take!(input, 56)?;
     let (input, prince_region_0) = take!(input, 56)?;
     let (input, prince_region_1) = take!(input, 56)?;
@@ -290,7 +326,7 @@ fn parse_keystore(input: &[u8]) -> IResult<&[u8], Keystore> {
         puf_discharge_time_milliseconds,
         activation_code: ActivationCode(activation_code.try_into().unwrap()),
         secure_boot_kek: Keycode(secure_boot_kek.try_into().unwrap()),
-        firmware_update_kek: Keycode(firmware_update_kek.try_into().unwrap()),
+        user_key: Keycode(user_key.try_into().unwrap()),
         unique_device_secret: Keycode(unique_device_secret.try_into().unwrap()),
         prince_region_0: Keycode(prince_region_0.try_into().unwrap()),
         prince_region_1: Keycode(prince_region_1.try_into().unwrap()),
@@ -326,7 +362,7 @@ where
             cursor.write_all(&self.prince_subregions[1].bits.to_le_bytes())?;
             cursor.write_all(&self.prince_subregions[2].bits.to_le_bytes())?;
             cursor.write_all(&[0u8; 32])?;
-            cursor.write_all(&self.rot_keys_table_hash.0)?;
+            cursor.write_all(&self.rot_fingerprint.0)?;
             cursor.write_all(&[0u8; 144])?;
             cursor.write_all(self.customer_data.as_ref())?;
             assert_eq!(cursor.len(), 32);
@@ -360,7 +396,7 @@ fn parse_factory<CustomerData: FactoryAreaCustomerData, VendorUsage: FactoryArea
     // reserved
     let (input, _) = take!(input, 8 * 4)?;
 
-    let (input, rot_keys_table_hash) = take!(input, 32)?;
+    let (input, rot_fingerprint) = take!(input, 32)?;
 
     // reserved
     let (input, _) = take!(input, 9 * 4 * 4)?;
@@ -381,7 +417,7 @@ fn parse_factory<CustomerData: FactoryAreaCustomerData, VendorUsage: FactoryArea
             PrinceSubregion::from_bits_truncate(prince_sr_1),
             PrinceSubregion::from_bits_truncate(prince_sr_2),
         ],
-        rot_keys_table_hash: Sha256Hash(rot_keys_table_hash.try_into().unwrap()),
+        rot_fingerprint: Sha256Hash(rot_fingerprint.try_into().unwrap()),
         customer_data: CustomerData::from(customer_data.try_into().unwrap()),
         sha256_hash: Sha256Hash(sha256_hash.try_into().unwrap()),
     };
@@ -507,10 +543,18 @@ impl From<BootConfiguration> for u32 {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+/// The PID/VID pair of the bootloader can be set arbitrarily, the default
+/// is `1fc9:0021`.
 pub struct UsbId {
     pub vid: u16,
     pub pid: u16,
+}
+
+impl Default for UsbId {
+    fn default() -> Self {
+        Self { vid: 0x1fc9, pid: 0x0021 }
+    }
 }
 
 impl From<u32> for UsbId {

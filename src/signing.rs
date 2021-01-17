@@ -3,12 +3,31 @@
 //!
 //! TODO: compare/contrast https://github.com/iqlusioninc/signatory
 
-use std::convert::TryInto;
+use std::convert::{TryFrom, TryInto};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SigningKeySource {
     Pkcs1PemFile(std::path::PathBuf),
     Pkcs11Uri(std::string::String),
+}
+
+pub fn split_once(s: &str, delimiter: char) -> Option<(&str, &str)> {
+    let i = s.find(delimiter)?;
+    Some((&s[..i], &s[i + 1..]))
+}
+
+
+impl TryFrom<&'_ str> for SigningKeySource {
+    type Error = anyhow::Error;
+    fn try_from(uri: &str) -> anyhow::Result<Self> {
+        let (scheme, content) = split_once(uri, ':').unwrap();
+        let key_source = match scheme {
+            "file" => SigningKeySource::Pkcs1PemFile(std::path::PathBuf::from(content)),
+            "pkcs11" => SigningKeySource::Pkcs11Uri(uri.to_string()),
+            _ => return Err(anyhow::anyhow!("only file and pkcs11 secret key URIs supported")),
+        };
+        Ok(key_source)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -23,6 +42,11 @@ const SIGNATURE_LENGTH: usize = 256;
 pub struct Signature(pub [u8; SIGNATURE_LENGTH]);
 
 impl SigningKey {
+    pub fn try_from_uri(uri: &str) -> anyhow::Result<Self> {
+        let source = SigningKeySource::try_from(uri)?;
+        Self::try_load(&source)
+    }
+
     pub fn try_load(source: &SigningKeySource) -> anyhow::Result<SigningKey> {
         use SigningKeySource::*;
         Ok(match source {

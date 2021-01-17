@@ -1,6 +1,8 @@
 //! Generator and parser for signed firmware and SB (secure binary) files
 
 #![allow(unused_imports)]
+
+use std::convert::{TryFrom, TryInto};
 use std::fs;
 
 use anyhow::Result;
@@ -19,12 +21,14 @@ use nom::{
         fill,
     },
     number::complete::{
-        u8, le_u16, be_u32, le_u32, le_u64, le_u128,
+        u8, be_u16, le_u16, be_u32, le_u32, le_u64, le_u128,
     },
     sequence::tuple,
 };
 
+use crate::protected_flash::is_default;
 use crate::signing::{SigningKey, SigningKeySource};
+use signature::Signature as _;
 
 pub mod crc;
 
@@ -32,15 +36,51 @@ const IMAGE_ALIGNMENT: usize = 4;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
+    /// URI specifying the private RSA2K key used for signing firmware.
+    ///
+    /// Currently, two options are supported
+    /// - `file:` path to PKCS #1 encoded PEM file containing private key
+    /// - `pkcs11:` PKCS #11 URI (RFC 7512), with the extension that `pin-source` can be `env:PIN`.
+    ///
+    /// Note that in PKCS #11 URIs, whitespace is stripped, and must be percent-encoded (`%20`) if
+    /// it is significant, such as in token or object labels.
+    ///
+    /// Examples:
+    /// - `file:/path/to/ca-0-private-key.pem`
+    /// - `pkcs11:token=my-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&pin-source=file:pin.txt`
     pub root_cert_secret_key: String,
+
+    /// Paths to the four root certificates.
+    ///
+    /// Encoded as X.509 DER files.
     pub root_cert_filenames: [String; 4],
+
+    /// Path to the input image (can be ELF, signed or unsigned BIN)
     pub image: String,
+
+    /// Path to place signed SB2.1 file
     pub signed_image: String,
     // pub factory: FactoryArea,
     // pub field: FieldAreaPage,
     // pub keystore: Keystore,
+
+    pub build: u32,
+    pub component: Version,
+    pub product: Version,
+
+    /// Commands for the SB file
+    pub commands: Vec<BootCommandDescriptor>
 }
 
+impl TryFrom<&'_ str> for Config {
+    type Error = anyhow::Error;
+    fn try_from(config_filename: &str) -> anyhow::Result<Self> {
+        let config = fs::read_to_string(config_filename)?;
+        let config: Config = toml::from_str(&config)?;
+        println!("{:#?}", &config);
+        Ok(config)
+    }
+}
 #[derive(Clone, Copy, Debug, Hash)]
 pub enum Filetype {
     Elf,
@@ -105,12 +145,12 @@ pub enum BootTag {
 // struct boot_command_t
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct RawBootCommand {
-    checksum: u8,
-    tag: u8,
-    flags: u16,
-    address: u32,
-    count: u32,
-    data: u32,
+    pub checksum: u8,
+    pub tag: u8,
+    pub flags: u16,
+    pub address: u32,
+    pub count: u32,
+    pub data: u32,
 }
 
 impl RawBootCommand {
@@ -119,12 +159,11 @@ impl RawBootCommand {
         buffer.push(0);
         buffer.push(self.tag);
         buffer.extend_from_slice(self.flags.to_le_bytes().as_ref());
-        buffer.extend_from_slice(self.flags.to_le_bytes().as_ref());
+        buffer.extend_from_slice(self.address.to_le_bytes().as_ref());
         buffer.extend_from_slice(self.count.to_le_bytes().as_ref());
         buffer.extend_from_slice(self.data.to_le_bytes().as_ref());
         let checksum = buffer[1..].iter().fold(0x5au8, |acc, x| acc.wrapping_add(*x));
         buffer[0] = checksum;
-        use core::convert::TryInto;
         buffer.try_into().unwrap()
     }
 
@@ -154,7 +193,105 @@ impl RawBootCommand {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+/// Commands used to define SB2.1 files
+///
+/// Currently, we only need to erase and load (partial) files.
+///
+/// ### Example
+/// Since there does not seem to exit a command to enter the bootloader, but
+/// a corrupt / missing firmware makes the MCU enter the bootloader, one way
+/// to do so is the following specification, which erases the first flash page.
+/// ```
+/// [[commands]]
+/// cmd = "Erase"
+/// start = 0
+/// end = 512
+/// ```
+///
+/// ### Example
+/// To securely flash firmware, it is advised to write the first page last, so that
+/// if flashing goes wrong or is interrupted, the MCU stays in the bootloader on next boot.
+/// ```
+/// [[commands]]
+/// cmd = "Erase"
+/// start = 0
+/// end = 0x8_9800
+///
+/// [[commands]]
+/// ## write firmware, skipping first flash page
+/// cmd = "Load"
+/// file = "example.sb2"
+/// src = 512
+/// dst = 512
+///
+/// [[commands]]
+/// ## write first flash page of firmware
+/// cmd = "Load"
+/// file = "example.sb2"
+/// len = 512
+/// ```
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "cmd")]
+pub enum BootCommandDescriptor {
+    /// Maps to `BootCommand::EraseRegion`, but `start` and `end` are given in bytes.
+    Erase { start: u32, end: u32 },
+    /// Load (part) of the data reference in `source` to flash.
+    ///
+    /// The syntax is such that if source data and destination flash were slices
+    /// `src: &[u8]` and `dst: &mut [u8]`, this command would do:
+    /// ```
+    /// let src_len = src.len() - cmd.src;
+    /// let len = cmd.len.unwrap_or(src_len);
+    /// dst[cmd.dst..][..len].copy_from_slice(&src[cmd.src..][..len]);
+    /// ```
+    Load {
+        file: String,
+
+        /// source offset in bytes (default 0)
+        #[serde(default)]
+        #[serde(skip_serializing_if = "is_default")]
+        src: u32,
+
+        /// destination offset in bytes (default 0)
+        #[serde(default)]
+        #[serde(skip_serializing_if = "is_default")]
+        dst: u32,
+
+        /// number of bytes to copy
+        // #[serde(default)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        len: Option<u32>,
+    },
+}
+
+impl<'a> TryFrom<&'a BootCommandDescriptor> for BootCommand {
+    type Error = anyhow::Error;
+
+    fn try_from(cmd: &'a BootCommandDescriptor) -> anyhow::Result<BootCommand> {
+
+        use BootCommandDescriptor::*;
+        Ok(match cmd {
+            Erase { start, end } => BootCommand::EraseRegion { address: *start, bytes: core::cmp::max(0, *end - *start) },
+            Load { file, src, dst, len } => {
+                let image = fs::read(file)?;
+
+                if let Some(len) = len {
+                    if (image.len() as u32) < len + src {
+                        return Err(anyhow::anyhow!("image too small!"));
+                    }
+
+                }
+                let src_len = image.len() - *src as usize;
+                let len = len.unwrap_or(src_len as u32) as usize;
+                let data = Vec::from(&image[*src as usize..][..len]);
+                BootCommand::Load { address: *dst, data }
+
+            }
+        })
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 // The LPC55xx ROM loader provides the support for the following bootloader commands:
 // * WriteMemory, FillMemory, ConfigureMemory, FlashEraseAll, FlashEraseRegion,
 // SB 2.1 introduces two new commands that can be used to prevent firmware roll-back:
@@ -340,10 +477,6 @@ pub struct Certificates {
     certificate_ders: [Vec<u8>; 4],
 }
 
-// impl Index<usize> for Certificates {
-//     type Output =
-// }
-
 impl Certificates {
     pub fn try_from_ders(certificate_ders: [Vec<u8>; 4]) -> Result<Self> {
         // ensure all the certificates are valid
@@ -409,6 +542,7 @@ pub struct Sb21FileParameters {
     // https://github.com/NXPmicro/spsdk/blob/master/spsdk/sbfile/headers.py#L65)
     // is 0x08 which means "Signed" image (and they even `else "Unsigned"`
     // flags: u16,
+    /// millisec since 2000-01-01
     timestamp: u64,
     product: Version,
     component: Version,
@@ -418,20 +552,20 @@ pub struct Sb21FileParameters {
 #[derive(Clone, Debug)]
 pub struct UnsignedSb21File {
     // header stuff
-    parameters: Sb21FileParameters,
+    pub parameters: Sb21FileParameters,
 
     // would like to have the decoded certificates here,
     // but they're always "views". Maybe create our own X509Certificate struct,
     // which owns the DER-encoded cert as Vec<u8>, and returns parsed view on demand.
     // certificates: [X509Certificate<'static>; 4],
-    certificates: Certificates,
-    keyblob: Keyblob,
-    commands: Vec<BootCommand>,
+    pub certificates: Certificates,
+    pub keyblob: Keyblob,
+    pub commands: Vec<BootCommand>,
 }
 
 #[derive(Clone, Debug)]
 pub struct Sb21CommandPart {
-    encrypted_boot_tag: [u8; 32],
+    encrypted_boot_tag: [u8; 16],
     unencrypted_hmac_of_encrypted_boot_tag: [u8; 32],
     unencrypted_hmac_of_encrypted_section: [u8; 32],
     encrypted_section: Vec<u8>,
@@ -499,6 +633,57 @@ pub struct Sb21HeaderPart {
 }
 
 impl UnsignedSb21File {
+
+    pub fn try_assemble_from(config: &Config) -> anyhow::Result<Self> {
+        // // would like to have the decoded certificates here,
+        // // but they're always "views". Maybe create our own X509Certificate struct,
+        // // which owns the DER-encoded cert as Vec<u8>, and returns parsed view on demand.
+        // // certificates: [X509Certificate<'static>; 4],
+        // pub certificates: Certificates,
+        // pub keyblob: Keyblob,
+        // pub commands: Vec<BootCommand>,
+
+        let parameters = Sb21FileParameters {
+            nonce: rand::random(),
+            timestamp: {
+                use std::time::SystemTime;
+                // let nxp_epoch = ?
+                // let now = SystemTime::now().duration_since(nxp_epoch);
+                // now.as_millis()
+
+                // double check, Python's `datetime.datetime(2000, 1, 1, 0, 0, 0, 0).timestamp()` is `946681200.0`
+                (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() - 946_681_200_000) as _
+            },
+            build: config.build,
+            component: config.component,
+            product: config.product,
+        };
+        dbg!("aaa");
+
+        let mut certificates = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
+        for (certificate, filename) in certificates.iter_mut().zip(config.root_cert_filenames.iter()) {
+            *certificate = fs::read(filename)?;
+        }
+        let certificates = Certificates::try_from_ders(certificates)?;
+        dbg!("bbb");
+
+        let keyblob = Keyblob::default();
+        dbg!("ccc");
+
+        let mut commands: Vec<BootCommand> = Vec::new();
+        for command_descriptor in config.commands.iter() {
+            commands.push(command_descriptor.try_into()?);
+        }
+        dbg!("ddd");
+
+        Ok(Self {
+            parameters,
+            certificates,
+            keyblob,
+            commands,
+        })
+    }
+
     // let (i, header) = Sb2Header::inner_from_bytes(&data)?;//.unwrap();//.1;//.map_err(|_| anyhow::anyhow!("could not parse SB2 file"))?.1;
     // let (i, digest_hmac) = take::<_, _, ()>(32u8)(i)?;
     // let (i, keyblob) = Keyblob::from_bytes(i)?;
@@ -507,7 +692,7 @@ impl UnsignedSb21File {
     // let (i, certificate_data) = take::<_, _, ()>(certificate_length)(i)?;
     // let (i, _rot_key_hashes) = take::<_, _, ()>(128usize)(i)?;
     // let (i, signature) = take::<_, _, ()>(256usize)(i)?;
-    fn header_part(&self) -> Sb21HeaderPart {
+    pub fn header_part(&self) -> Sb21HeaderPart {
         // todo: should we mark this method as unsafe and pass command part
         // as another parameter "for efficiency"?
         let digest = self.command_part().digest_hmac(self.keyblob.mac);
@@ -649,8 +834,9 @@ impl UnsignedSb21File {
             self.parameters.nonce,
             self.boot_tag_offset_blocks() as u32,
         );
+        dbg!(&encrypted_boot_tag);
+        dbg!(encrypted_boot_tag.len());
 
-        use core::convert::TryInto;
         Sb21CommandPart {
             encrypted_boot_tag: encrypted_boot_tag[..].try_into().unwrap(),
             unencrypted_hmac_of_encrypted_boot_tag: hmac(self.keyblob.mac, &encrypted_boot_tag),
@@ -664,23 +850,24 @@ impl UnsignedSb21File {
     /// - PKCS#11 keys, so any kind of HSM can be used (cf. RFC 7512: The PKCS #11 URI Scheme)
     /// - possibly other hardware interfaces, such as Tony's yubihsm crate (perhaps: yubihsm:id=<u16>)
     ///   cf: https://docs.rs/yubihsm/0.37.0/yubihsm/client/struct.Client.html#method.sign_rsa_pkcs1v15_sha256
-    pub fn sign(&self, secret_key: &rsa::RSAPrivateKey) -> SignedSb21File {
+    pub fn sign(&self, signing_key: &SigningKey) -> SignedSb21File {
         let header_part = self.header_part();
         let header_bytes = header_part.to_bytes();
 
-        let padding_scheme = rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
-        use sha2::Digest;
-        let mut hasher = sha2::Sha256::new();
-        hasher.update(&header_bytes);
-        let hashed_header = hasher.finalize();
-        let signature = secret_key.sign(padding_scheme, &hashed_header).expect("signatures work");
-        assert_eq!(256, signature.len());
+        let signature = signing_key.sign(&header_bytes);
+        // let padding_scheme = rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
+        // use sha2::Digest;
+        // let mut hasher = sha2::Sha256::new();
+        // hasher.update(&header_bytes);
+        // let hashed_header = hasher.finalize();
+        // let signature = secret_key.sign(padding_scheme, &hashed_header).expect("signatures work");
+        // assert_eq!(256, signature.len());
 
         SignedSb21File {
             unsigned_file: self.clone(),
             header_part,
             command_part: self.command_part(),
-            signature,
+            signature: Vec::from(signature.as_bytes()),
         }
     }
 }
@@ -912,30 +1099,17 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
     todo!();
 }
 
-pub fn split_once(s: &str, delimiter: char) -> Option<(&str, &str)> {
-    let i = s.find(delimiter)?;
-    Some((&s[..i], &s[i + 1..]))
-}
-
-pub fn sign(config_filename: &str) -> Result<Vec<u8>> {
-    let config = fs::read_to_string(config_filename)?;
-    let config: Config = toml::from_str(&config)?;
-    let plain_image = fs::read(config.image)?;
+pub fn sign(config: &Config) -> Result<Vec<u8>> {
+    let plain_image = fs::read(&config.image)?;
     let der = fs::read(&config.root_cert_filenames[0])?;
 
-    let (scheme, content) = split_once(&config.root_cert_secret_key, ':').unwrap();
-    let key_source = match scheme {
-        "file" => SigningKeySource::Pkcs1PemFile(std::path::PathBuf::from(content)),
-        "pkcs11" => SigningKeySource::Pkcs11Uri(config.root_cert_secret_key.to_string()),
-        _ => return Err(anyhow::anyhow!("only file and pkcs11 secret key URIs supported")),
-    };
-    let key = SigningKey::try_load(&key_source)?;
+    let key = SigningKey::try_from_uri(config.root_cert_secret_key.as_ref())?;
 
-    let rotkh = crate::rot_fingerprints::rot_key_hashes(&config.root_cert_filenames)?;
+    let rot_fingerprints = crate::rot_fingerprints::rot_fingerprints(&config.root_cert_filenames)?;
     let signed_image = assemble_signed_image(
         &plain_image,
         &der,
-        rotkh,
+        rot_fingerprints,
         &key,
     );
     fs::write(&config.signed_image, &signed_image)?;
@@ -1085,41 +1259,138 @@ fn assemble_signed_image(plain_image: &[u8], certificate_der: &[u8], rot_key_has
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct Bcd(u16);
+
+impl<'a> From<&'a str> for Bcd {
+    fn from(bcd: &'a str) -> Bcd {
+        let number = bcd.parse().unwrap();
+        Bcd(number)
+    }
+}
+
+impl Into<[u8; 4]> for Bcd {
+    fn into(self) -> [u8; 4] {
+        let bcd = format!("{:04x}", self.0);
+        let bcd: [u8; 4] = bcd.as_bytes().try_into().unwrap();
+        bcd
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Version {
     pub major: u16,
     pub minor: u16,
     pub patch: u16,
 }
 
+// not sure if 999 or 9999
+const MAX_BCD: u16 = 999;
+
+fn bcd(x: u16) -> [u8; 2] {
+    assert!(x <= MAX_BCD);
+    let mut bcd = [0u8; 2];
+    let mut x = x;
+    bcd[1] = (x % 10) as _;
+    x /= 10;
+    bcd[1] |= ((x % 10) << 4) as u8;
+    x /= 10;
+    bcd[0] = (x % 10) as _;
+
+    bcd
+
+}
+
 impl Version {
+    /// For binary consumption, padded with zero bytes
     pub fn to_bytes(&self) -> [u8; 12] {
-        todo!("check");
-        // let bytes = [0u8; 12];
-        // bytes[..2].copy_from_slice(&self.major.to_le_bytes());
-        // bytes[4..6].copy_from_slice(&self.minor.to_le_bytes());
-        // bytes[8..10].copy_from_slice(&self.patch.to_le_bytes());
-        // bytes
+        // The m_padding0 and m_padding1 fields are used to align other fields and round out the structure size to an even cipher block.
+        // These bytes are set to random values when the image is created to add to the “whiteness” of the header for cryptographic
+        // purposes.
+        let mut binary = [0u8; 12];
+        binary[..2].copy_from_slice(&bcd(self.major));
+        binary[4..6].copy_from_slice(&bcd(self.minor));
+        binary[8..10].copy_from_slice(&bcd(self.patch));
+
+        binary
+    }
+
+    /// For end-user consumption, period-separated, not BCD
+    pub fn to_pretty(&self) -> String {
+        let pretty = format!("{}.{}.{}", self.major, self.minor, self.patch);
+        pretty
     }
 }
 
+impl<'a> From<&'a str> for Version {
+    fn from(bcd: &'a str) -> Version {
+        let parts: Vec<&'a str> = bcd.splitn(3, '.').collect();
+        assert_eq!(parts.len(), 3);
+        Version {
+            major: parts[0].parse().unwrap(),
+            minor: parts[1].parse().unwrap(),
+            patch: parts[2].parse().unwrap(),
+        }
+    }
+}
+
+// todo: be stricter about format errors?
 fn version_entry(input: &[u8]) -> nom::IResult<&[u8], u16, ()> {
   let literal_u16 = |x: u16| verify(le_u16, move |y| *y == x);
   map(
-    tuple((le_u16, literal_u16(0))),
-    // take_while_m_n(2, 2, is_hex_digit),
-    |(entry, _padding)| entry
+    tuple((u8, u8, literal_u16(0))),
+    |(hi, lo, _padding)| ((hi & 0b1111)as u16)*100 + (((lo >> 4)*10 + (lo & 0b1111)) as u16)
   )(input)
 }
 
-fn version(i: &[u8]) -> nom::IResult<&[u8], Version, ()> {
+fn parse_version(i: &[u8]) -> nom::IResult<&[u8], Version, ()> {
     let mut entries = [0u16; 3];
     let (i, ()) = fill(version_entry, &mut entries)(i)?;
     Ok((i, Version { major: entries[0], minor: entries[1], patch: entries[2] }))
 }
+
+#[cfg(test)]
+pub mod bcd_tests {
+    use super::*;
+
+    #[test]
+    fn bcd() {
+        // let version = Version { major: 123, minor: 456, patch: 999};
+        let version = Version::from("123.456.999");
+        assert_eq!(version, Version { major: 123, minor: 456, patch: 999});
+        let bcd_version = version.to_bytes();
+        assert_eq!([
+           0x01, 0x23, 0x00, 0x00,
+           0x04, 0x56, 0x00, 0x00,
+           0x09, 0x99, 0x00, 0x00,
+        ], bcd_version);
+
+        let also_version: Version = parse_version(&bcd_version).unwrap().1;
+        assert_eq!(version, also_version);
+    }
+}
+
 // fn from_hex(input: &str) -> Result<u8, std::num::ParseIntError> {
 //   u8::from_str_radix(input, 16)
 // }
 
+impl serde::Serialize for Version {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_str(&self.to_pretty())
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for Version {
+    fn deserialize<D>(deserializer: D) -> Result<Version, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let s: &str = serde::de::Deserialize::deserialize(deserializer)?;
+        Ok(s.into())
+    }
+}
 
 // const FEISTEL_ROUNDS: usize = 5;
 
@@ -1139,13 +1410,18 @@ fn version(i: &[u8]) -> nom::IResult<&[u8], Version, ()> {
 //     }
 // }
 
-fn aes_wrap(_key: &[u8; 32], _data: &[u8]) -> Vec<u8> {
-    todo!();
+#[allow(non_snake_case)]
+fn aes_wrap(_key: &[u8; 32], data: &[u8]) -> Vec<u8> {
+    // todo!();
+
+    // let mut X = Vec::new();
+    let mut X = Vec::from([0u8; 8].as_ref());
+    X.extend_from_slice(data);
+    X
 }
 
 fn aes_unwrap(key: &[u8; 32], wrapped: &[u8]) -> Vec<u8> {
     #![allow(non_snake_case)]
-    use core::convert::TryInto;
     if key.len() % 8 != 0 {
         // return Err(());
         todo!();
@@ -1407,8 +1683,8 @@ impl Sb2Header {
         let (i, max_section_mac_count) = literal_u16(1)(i)?;
         let (i, _signature2) = tag("sgtl")(i)?;
         let (i, timestamp_microseconds_since_millenium) = le_u64(i)?;
-        let (i, product_version) = version(i)?;
-        let (i, component_version) = version(i)?;
+        let (i, product_version) = parse_version(i)?;
+        let (i, component_version) = parse_version(i)?;
         let (i, build_number) = le_u32(i)?;
         let (i, _) = take(4u8)(i)?;
         // nom::exact!(i, take(4u8));
@@ -1622,3 +1898,4 @@ impl Sb2Header {
 //    assert!(length % 8 == 0);
 //    modify_header(&mut bin);
 //}
+//

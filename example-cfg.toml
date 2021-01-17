@@ -1,8 +1,18 @@
+# [bins]
+# raw = "../lpc55-secure-config/example-app.bin"
+# signed = "./hopefully-example-bin-signed.bin"
+# secure_boot = "./example-app.sb2"
 image = "../lpc55-secure-config/example-app.bin"
 signed_image = "./hopefully-example-bin-signed.bin"
-root_cert_secret_key = "pkcs11:token=solo-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&pin-source=file:pin.txt"
+secure_boot_image = "./example-app.sb2"
+
+build = 0
+component = "0.0.0"
+product = "0.0.0"
+
+# [pki]
 root_cert_secret_key = "file:example-root-certs/ca_private_key_0.pem"
-root_cert_modulus = "21180609610011908974245154634009773742409228475924832420640732487602371552607208434815604239733761061624595772266076892772797402260546921881940097799828803122149358818132191889899441450923166919457193292916001584543268399036684342230632304039418343776750540042195439119799724089028829483927297432554313701904867373619640752457487405782173272827509578742485272792121363761115153135595006648746766049001063218844454972346390444289285459567420247245376227517357296502996294373645061373559719690903237831034883266667892726893796797389886027843919406367649873994790265470728806388647429250289865772615066974316813540762961"
+# root_cert_secret_key = "pkcs11:token=solo-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&pin-source=file:pin.txt"
 
 root_cert_filenames = [
 	"example-root-certs/ca_certificate_0.der",
@@ -10,34 +20,6 @@ root_cert_filenames = [
 	"example-root-certs/ca_certificate_2.der",
 	"example-root-certs/ca_certificate_3.der",
 ]
-
-[[commands]]
-kind = "Erase"
-from = 0x0
-to = 0x8_9800
-
-[[commands]]
-kind = "Load"
-file = "example-app-signed.bin"
-offset = 512
-to = 512
-
-[[commands]]
-kind = "Load"
-file = "example-app-signed.bin"
-offset = 512
-length = 512
-to = 0
-
-[field]
-rot_keys_status = ["Enabled", "Enabled", "Enabled", "Enabled"]
-version = 3
-secure_firmware_version = 1
-nonsecure_firmware_version = 1
-
-[field.boot_configuration]
-speed = "48Mhz"
-mode = "Usb"
 
 [factory.usb_id]
 vid = 0x1209
@@ -53,5 +35,35 @@ bits = 0
 [[factory.prince_subregions]]
 bits = 0xffff
 
+[infield]
+rot_keys_status = ["Enabled", "Enabled", "Enabled", "Enabled"]
+version = 3
+secure_firmware_version = 1
+nonsecure_firmware_version = 1
+
+[infield.boot_configuration]
+speed = "48Mhz"
+mode = "Usb"
+
 [keystore]
 puf_discharge_time_milliseconds = 50
+sbkek = "0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA"
+
+[[commands]]
+cmd = "Erase"
+start = 0x0
+end = 0x8_9800
+
+[[commands]]
+cmd = "Load"
+# file = "example-app.sb2"
+file = "./hopefully-example-bin-signed.bin"
+src = 512
+dst = 512
+
+[[commands]]
+cmd = "Load"
+# file = "example-app.sb2"
+file = "./hopefully-example-bin-signed.bin"
+len = 512
+
