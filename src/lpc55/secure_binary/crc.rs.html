@@ -1,0 +1,152 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src\secure_binary\crc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>crc.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../lpc55/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+</pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">/// Soooo.... This &quot;uses&quot; the &quot;Ethernet CRC algorithm&quot; values,</span>
+<span class="doccomment">/// but it doesn&#39;t really do CRC32.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc32</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">crc</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xFFFF_FFFF</span>;
+
+    <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">iter</span>() {
+        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> ((<span class="ident">crc</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">^</span> <span class="kw-2">*</span><span class="ident">byte</span>;
+        <span class="ident">crc</span> <span class="op">=</span> (<span class="ident">crc</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">^</span> <span class="ident">TABLE</span>[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>];
+    }
+
+    <span class="kw">let</span> <span class="ident">jagged</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">16</span>;
+    <span class="kw">if</span> <span class="ident">jagged</span> <span class="op">&gt;</span> <span class="number">0</span> {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="ident">jagged</span>..<span class="number">16</span> {
+            <span class="comment">// let i = ((crc &gt;&gt; 24) as u8) ^ 0;</span>
+            <span class="comment">// crc = (crc &lt;&lt; 8) ^ TABLE[i as usize];</span>
+            <span class="ident">crc</span> <span class="op">=</span> (<span class="ident">crc</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">^</span> <span class="ident">TABLE</span>[(<span class="ident">crc</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">usize</span>];
+        }
+    }
+
+    <span class="ident">crc</span>
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc32_2</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">crc</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x0</span>;
+
+    <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">iter</span>() {
+        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> ((<span class="ident">crc</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">^</span> <span class="kw-2">*</span><span class="ident">byte</span>;
+        <span class="ident">crc</span> <span class="op">=</span> (<span class="ident">crc</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">^</span> <span class="ident">TABLE</span>[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>];
+    }
+
+    <span class="kw">let</span> <span class="ident">jagged</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">16</span>;
+    <span class="kw">if</span> <span class="ident">jagged</span> <span class="op">&gt;</span> <span class="number">0</span> {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="ident">jagged</span>..<span class="number">16</span> {
+            <span class="comment">// let i = ((crc &gt;&gt; 24) as u8) ^ 0;</span>
+            <span class="comment">// crc = (crc &lt;&lt; 8) ^ TABLE[i as usize];</span>
+            <span class="ident">crc</span> <span class="op">=</span> (<span class="ident">crc</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">^</span> <span class="ident">TABLE</span>[(<span class="ident">crc</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">usize</span>];
+        }
+    }
+
+    <span class="ident">crc</span>
+}
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TABLE</span>: [<span class="ident">u32</span>; <span class="number">256</span>] <span class="op">=</span> [
+    <span class="number">0x00000000</span>, <span class="number">0x04c11db7</span>, <span class="number">0x09823b6e</span>, <span class="number">0x0d4326d9</span>, <span class="number">0x130476dc</span>, <span class="number">0x17c56b6b</span>, <span class="number">0x1a864db2</span>, <span class="number">0x1e475005</span>, <span class="number">0x2608edb8</span>,
+    <span class="number">0x22c9f00f</span>, <span class="number">0x2f8ad6d6</span>, <span class="number">0x2b4bcb61</span>, <span class="number">0x350c9b64</span>, <span class="number">0x31cd86d3</span>, <span class="number">0x3c8ea00a</span>, <span class="number">0x384fbdbd</span>, <span class="number">0x4c11db70</span>, <span class="number">0x48d0c6c7</span>,
+    <span class="number">0x4593e01e</span>, <span class="number">0x4152fda9</span>, <span class="number">0x5f15adac</span>, <span class="number">0x5bd4b01b</span>, <span class="number">0x569796c2</span>, <span class="number">0x52568b75</span>, <span class="number">0x6a1936c8</span>, <span class="number">0x6ed82b7f</span>, <span class="number">0x639b0da6</span>,
+    <span class="number">0x675a1011</span>, <span class="number">0x791d4014</span>, <span class="number">0x7ddc5da3</span>, <span class="number">0x709f7b7a</span>, <span class="number">0x745e66cd</span>, <span class="number">0x9823b6e0</span>, <span class="number">0x9ce2ab57</span>, <span class="number">0x91a18d8e</span>, <span class="number">0x95609039</span>,
+    <span class="number">0x8b27c03c</span>, <span class="number">0x8fe6dd8b</span>, <span class="number">0x82a5fb52</span>, <span class="number">0x8664e6e5</span>, <span class="number">0xbe2b5b58</span>, <span class="number">0xbaea46ef</span>, <span class="number">0xb7a96036</span>, <span class="number">0xb3687d81</span>, <span class="number">0xad2f2d84</span>,
+    <span class="number">0xa9ee3033</span>, <span class="number">0xa4ad16ea</span>, <span class="number">0xa06c0b5d</span>, <span class="number">0xd4326d90</span>, <span class="number">0xd0f37027</span>, <span class="number">0xddb056fe</span>, <span class="number">0xd9714b49</span>, <span class="number">0xc7361b4c</span>, <span class="number">0xc3f706fb</span>,
+    <span class="number">0xceb42022</span>, <span class="number">0xca753d95</span>, <span class="number">0xf23a8028</span>, <span class="number">0xf6fb9d9f</span>, <span class="number">0xfbb8bb46</span>, <span class="number">0xff79a6f1</span>, <span class="number">0xe13ef6f4</span>, <span class="number">0xe5ffeb43</span>, <span class="number">0xe8bccd9a</span>,
+    <span class="number">0xec7dd02d</span>, <span class="number">0x34867077</span>, <span class="number">0x30476dc0</span>, <span class="number">0x3d044b19</span>, <span class="number">0x39c556ae</span>, <span class="number">0x278206ab</span>, <span class="number">0x23431b1c</span>, <span class="number">0x2e003dc5</span>, <span class="number">0x2ac12072</span>,
+    <span class="number">0x128e9dcf</span>, <span class="number">0x164f8078</span>, <span class="number">0x1b0ca6a1</span>, <span class="number">0x1fcdbb16</span>, <span class="number">0x018aeb13</span>, <span class="number">0x054bf6a4</span>, <span class="number">0x0808d07d</span>, <span class="number">0x0cc9cdca</span>, <span class="number">0x7897ab07</span>,
+    <span class="number">0x7c56b6b0</span>, <span class="number">0x71159069</span>, <span class="number">0x75d48dde</span>, <span class="number">0x6b93dddb</span>, <span class="number">0x6f52c06c</span>, <span class="number">0x6211e6b5</span>, <span class="number">0x66d0fb02</span>, <span class="number">0x5e9f46bf</span>, <span class="number">0x5a5e5b08</span>,
+    <span class="number">0x571d7dd1</span>, <span class="number">0x53dc6066</span>, <span class="number">0x4d9b3063</span>, <span class="number">0x495a2dd4</span>, <span class="number">0x44190b0d</span>, <span class="number">0x40d816ba</span>, <span class="number">0xaca5c697</span>, <span class="number">0xa864db20</span>, <span class="number">0xa527fdf9</span>,
+    <span class="number">0xa1e6e04e</span>, <span class="number">0xbfa1b04b</span>, <span class="number">0xbb60adfc</span>, <span class="number">0xb6238b25</span>, <span class="number">0xb2e29692</span>, <span class="number">0x8aad2b2f</span>, <span class="number">0x8e6c3698</span>, <span class="number">0x832f1041</span>, <span class="number">0x87ee0df6</span>,
+    <span class="number">0x99a95df3</span>, <span class="number">0x9d684044</span>, <span class="number">0x902b669d</span>, <span class="number">0x94ea7b2a</span>, <span class="number">0xe0b41de7</span>, <span class="number">0xe4750050</span>, <span class="number">0xe9362689</span>, <span class="number">0xedf73b3e</span>, <span class="number">0xf3b06b3b</span>,
+    <span class="number">0xf771768c</span>, <span class="number">0xfa325055</span>, <span class="number">0xfef34de2</span>, <span class="number">0xc6bcf05f</span>, <span class="number">0xc27dede8</span>, <span class="number">0xcf3ecb31</span>, <span class="number">0xcbffd686</span>, <span class="number">0xd5b88683</span>, <span class="number">0xd1799b34</span>,
+    <span class="number">0xdc3abded</span>, <span class="number">0xd8fba05a</span>, <span class="number">0x690ce0ee</span>, <span class="number">0x6dcdfd59</span>, <span class="number">0x608edb80</span>, <span class="number">0x644fc637</span>, <span class="number">0x7a089632</span>, <span class="number">0x7ec98b85</span>, <span class="number">0x738aad5c</span>,
+    <span class="number">0x774bb0eb</span>, <span class="number">0x4f040d56</span>, <span class="number">0x4bc510e1</span>, <span class="number">0x46863638</span>, <span class="number">0x42472b8f</span>, <span class="number">0x5c007b8a</span>, <span class="number">0x58c1663d</span>, <span class="number">0x558240e4</span>, <span class="number">0x51435d53</span>,
+    <span class="number">0x251d3b9e</span>, <span class="number">0x21dc2629</span>, <span class="number">0x2c9f00f0</span>, <span class="number">0x285e1d47</span>, <span class="number">0x36194d42</span>, <span class="number">0x32d850f5</span>, <span class="number">0x3f9b762c</span>, <span class="number">0x3b5a6b9b</span>, <span class="number">0x0315d626</span>,
+    <span class="number">0x07d4cb91</span>, <span class="number">0x0a97ed48</span>, <span class="number">0x0e56f0ff</span>, <span class="number">0x1011a0fa</span>, <span class="number">0x14d0bd4d</span>, <span class="number">0x19939b94</span>, <span class="number">0x1d528623</span>, <span class="number">0xf12f560e</span>, <span class="number">0xf5ee4bb9</span>,
+    <span class="number">0xf8ad6d60</span>, <span class="number">0xfc6c70d7</span>, <span class="number">0xe22b20d2</span>, <span class="number">0xe6ea3d65</span>, <span class="number">0xeba91bbc</span>, <span class="number">0xef68060b</span>, <span class="number">0xd727bbb6</span>, <span class="number">0xd3e6a601</span>, <span class="number">0xdea580d8</span>,
+    <span class="number">0xda649d6f</span>, <span class="number">0xc423cd6a</span>, <span class="number">0xc0e2d0dd</span>, <span class="number">0xcda1f604</span>, <span class="number">0xc960ebb3</span>, <span class="number">0xbd3e8d7e</span>, <span class="number">0xb9ff90c9</span>, <span class="number">0xb4bcb610</span>, <span class="number">0xb07daba7</span>,
+    <span class="number">0xae3afba2</span>, <span class="number">0xaafbe615</span>, <span class="number">0xa7b8c0cc</span>, <span class="number">0xa379dd7b</span>, <span class="number">0x9b3660c6</span>, <span class="number">0x9ff77d71</span>, <span class="number">0x92b45ba8</span>, <span class="number">0x9675461f</span>, <span class="number">0x8832161a</span>,
+    <span class="number">0x8cf30bad</span>, <span class="number">0x81b02d74</span>, <span class="number">0x857130c3</span>, <span class="number">0x5d8a9099</span>, <span class="number">0x594b8d2e</span>, <span class="number">0x5408abf7</span>, <span class="number">0x50c9b640</span>, <span class="number">0x4e8ee645</span>, <span class="number">0x4a4ffbf2</span>,
+    <span class="number">0x470cdd2b</span>, <span class="number">0x43cdc09c</span>, <span class="number">0x7b827d21</span>, <span class="number">0x7f436096</span>, <span class="number">0x7200464f</span>, <span class="number">0x76c15bf8</span>, <span class="number">0x68860bfd</span>, <span class="number">0x6c47164a</span>, <span class="number">0x61043093</span>,
+    <span class="number">0x65c52d24</span>, <span class="number">0x119b4be9</span>, <span class="number">0x155a565e</span>, <span class="number">0x18197087</span>, <span class="number">0x1cd86d30</span>, <span class="number">0x029f3d35</span>, <span class="number">0x065e2082</span>, <span class="number">0x0b1d065b</span>, <span class="number">0x0fdc1bec</span>,
+    <span class="number">0x3793a651</span>, <span class="number">0x3352bbe6</span>, <span class="number">0x3e119d3f</span>, <span class="number">0x3ad08088</span>, <span class="number">0x2497d08d</span>, <span class="number">0x2056cd3a</span>, <span class="number">0x2d15ebe3</span>, <span class="number">0x29d4f654</span>, <span class="number">0xc5a92679</span>,
+    <span class="number">0xc1683bce</span>, <span class="number">0xcc2b1d17</span>, <span class="number">0xc8ea00a0</span>, <span class="number">0xd6ad50a5</span>, <span class="number">0xd26c4d12</span>, <span class="number">0xdf2f6bcb</span>, <span class="number">0xdbee767c</span>, <span class="number">0xe3a1cbc1</span>, <span class="number">0xe760d676</span>,
+    <span class="number">0xea23f0af</span>, <span class="number">0xeee2ed18</span>, <span class="number">0xf0a5bd1d</span>, <span class="number">0xf464a0aa</span>, <span class="number">0xf9278673</span>, <span class="number">0xfde69bc4</span>, <span class="number">0x89b8fd09</span>, <span class="number">0x8d79e0be</span>, <span class="number">0x803ac667</span>,
+    <span class="number">0x84fbdbd0</span>, <span class="number">0x9abc8bd5</span>, <span class="number">0x9e7d9662</span>, <span class="number">0x933eb0bb</span>, <span class="number">0x97ffad0c</span>, <span class="number">0xafb010b1</span>, <span class="number">0xab710d06</span>, <span class="number">0xa6322bdf</span>, <span class="number">0xa2f33668</span>,
+    <span class="number">0xbcb4666d</span>, <span class="number">0xb8757bda</span>, <span class="number">0xb5365d03</span>, <span class="number">0xb1f740b4</span>
+];
+</pre></div>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "lpc55";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

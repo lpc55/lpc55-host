@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src\types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src\types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../lpc55/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../lpc55/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -646,12 +646,54 @@
 <span id="643">643</span>
 <span id="644">644</span>
 <span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
 
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">status</span>::<span class="kw-2">*</span>;
+<span class="comment">// pub use crate::bootloader::error::*};</span>
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_hex_string</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="comment">// delog::render::render_arguments(format!(&quot;{}&quot;, hex_str!(bytes, 4)))</span>
@@ -914,6 +956,16 @@
     <span class="ident">UserPsk</span> <span class="op">=</span> <span class="number">11</span>,
 }
 
+<span class="comment">// unfortunately duplicated in cli.rs, for why see there</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KEYSTORE_KEY_NAMES</span>: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">6</span>] <span class="op">=</span> [
+    <span class="string">&quot;secure-boot-kek&quot;</span>,
+    <span class="string">&quot;user-key&quot;</span>,
+    <span class="string">&quot;unique-device-secret&quot;</span>,
+    <span class="string">&quot;prince-region-0&quot;</span>,
+    <span class="string">&quot;prince-region-1&quot;</span>,
+    <span class="string">&quot;prince-region-2&quot;</span>,
+];
+
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Key</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">String</span>;
 
@@ -925,7 +977,7 @@
             <span class="string">&quot;prince-region-2&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PrinceRegion2</span>,
             <span class="string">&quot;secure-boot-kek&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SecureBootKek</span>,
             <span class="string">&quot;unique-device-secret&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UniqueDeviceSecret</span>,
-            <span class="string">&quot;user-pre-shared-key&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UserPsk</span>,
+            <span class="string">&quot;user-key&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UserPsk</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">name</span>.<span class="ident">to_string</span>())
         })
     }
@@ -934,12 +986,23 @@
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="comment">// naming taken from docs, could also be called Subcommand, or even Command</span>
+<span class="doccomment">/// This is the interface definition to a somewhat limited bootloader API,</span>
+<span class="doccomment">/// that then operates on the actual PFR data and PUF periphreal.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The operations Enroll, SetKey, GenerateKey create activation codes or key codes,</span>
+<span class="doccomment">/// which the bootloader keeps in RAM and only writes to PFR once WriteNonVolatile is</span>
+<span class="doccomment">/// called. If this is not done, on reboot, the PUF is unenrolled again, or the keys</span>
+<span class="doccomment">/// are not set anymore.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// It doesn&#39;t however seem possible to set/generate new keys after reboot without</span>
+<span class="doccomment">/// re-enrolling PUF, calling set/generate key results in a `Generic(Fail)`. Calling</span>
+<span class="doccomment">/// ReadNonVolatile does not help; the author does not understand the effect of this command.</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">KeystoreOperation</span> {
     <span class="ident">Enroll</span>,
     <span class="ident">SetKey</span> { <span class="ident">key</span>: <span class="ident">Key</span>, <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> },
-    <span class="ident">SetIntrinsicKey</span>,
-    <span class="ident">WriteNonVolatile</span>,
-    <span class="ident">ReadNonVolatile</span>,
+    <span class="ident">GenerateKey</span> { <span class="ident">key</span>: <span class="ident">Key</span>, <span class="ident">len</span>: <span class="ident">u32</span> },
+    <span class="ident">WriteNonVolatile</span> { <span class="ident">memory_id</span>: <span class="ident">u32</span> },
+    <span class="ident">ReadNonVolatile</span> { <span class="ident">memory_id</span>: <span class="ident">u32</span> },
     <span class="ident">WriteKeystore</span>,
     <span class="ident">ReadKeystore</span>,
 }
@@ -950,9 +1013,9 @@
         <span class="kw">match</span> <span class="ident">operation</span> {
             <span class="ident">Enroll</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
             <span class="ident">SetKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">data</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident">SetIntrinsicKey</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
-            <span class="ident">WriteNonVolatile</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
-            <span class="ident">ReadNonVolatile</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="ident">GenerateKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">len</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+            <span class="ident">WriteNonVolatile</span> { <span class="ident">memory_id</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
+            <span class="ident">ReadNonVolatile</span> { <span class="ident">memory_id</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
             <span class="ident">WriteKeystore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
             <span class="ident">ReadKeystore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
         }
@@ -1015,7 +1078,7 @@
     <span class="ident">FlashEraseAll</span>,
     <span class="ident">FlashEraseRegion</span>,
     <span class="ident">ReadMemory</span> { <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">length</span>: <span class="ident">usize</span> },
-    <span class="ident">WriteMemory</span>,
+    <span class="ident">WriteMemory</span> { <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> },
     <span class="ident">FillMemory</span>,
     <span class="ident">FlashSecurityDisable</span>,
     <span class="comment">// there is actually a second parameter, Memory ID</span>
@@ -1054,10 +1117,16 @@
         <span class="kw">match</span> (<span class="self">self</span>, <span class="self">self</span>.<span class="ident">tag</span>()) {
             (<span class="kw">_</span>, <span class="ident">Tag</span>::<span class="ident">ReadMemory</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataPhase</span>::<span class="ident">ResponseData</span>,
             (<span class="kw">_</span>, <span class="ident">Tag</span>::<span class="ident">GetProperty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataPhase</span>::<span class="prelude-val">None</span>,
+            (<span class="kw">_</span>, <span class="ident">Tag</span>::<span class="ident">Reset</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataPhase</span>::<span class="prelude-val">None</span>,
+
+            (<span class="ident">Command</span>::<span class="ident">WriteMemory</span> { <span class="ident">address</span>: <span class="kw">_</span>, <span class="ident">data</span> }, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataPhase</span>::<span class="ident">CommandData</span>(<span class="ident">data</span>.<span class="ident">clone</span>()),
 
             (<span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">KeystoreOperation</span>::<span class="ident">Enroll</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataPhase</span>::<span class="prelude-val">None</span>,
             (<span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">KeystoreOperation</span>::<span class="ident">ReadKeystore</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataPhase</span>::<span class="ident">ResponseData</span>,
             (<span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">KeystoreOperation</span>::<span class="ident">SetKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">data</span> }), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataPhase</span>::<span class="ident">CommandData</span>(<span class="ident">data</span>.<span class="ident">clone</span>()),
+            (<span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">KeystoreOperation</span>::<span class="ident">GenerateKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">len</span>: <span class="kw">_</span> }), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataPhase</span>::<span class="prelude-val">None</span>,
+            (<span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">KeystoreOperation</span>::<span class="ident">WriteNonVolatile</span> { <span class="ident">memory_id</span>: <span class="kw">_</span> }), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataPhase</span>::<span class="prelude-val">None</span>,
+            (<span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">KeystoreOperation</span>::<span class="ident">ReadNonVolatile</span> { <span class="ident">memory_id</span>: <span class="kw">_</span> }), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataPhase</span>::<span class="prelude-val">None</span>,
 
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo</span><span class="macro">!</span>()
         }
@@ -1074,6 +1143,12 @@
                 <span class="comment">// (but the third one is set to zero)</span>
                 <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">address</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">length</span> <span class="kw">as</span> <span class="ident">u32</span>]
             }
+            <span class="ident">WriteMemory</span> { <span class="ident">address</span>, <span class="ident">data</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">address</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="number">0</span>]
+            }
+            <span class="ident">Reset</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">vec</span><span class="macro">!</span>[]
+            }
             <span class="ident">Keystore</span>(<span class="ident">operation</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">use</span> <span class="ident">KeystoreOperation</span>::<span class="kw-2">*</span>;
                 <span class="kw">match</span> <span class="ident">operation</span>.<span class="ident">clone</span>() {
@@ -1085,6 +1160,15 @@
                     }
                     <span class="ident">SetKey</span> { <span class="ident">key</span>, <span class="ident">data</span> } <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">u32</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>), <span class="ident">key</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>]
+                    }
+                    <span class="ident">GenerateKey</span> { <span class="ident">key</span>, <span class="ident">len</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">u32</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>), <span class="ident">key</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">len</span>]
+                    }
+                    <span class="ident">WriteNonVolatile</span> { <span class="ident">memory_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">u32</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>), <span class="ident">memory_id</span>]
+                    }
+                    <span class="ident">ReadNonVolatile</span> { <span class="ident">memory_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">u32</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>), <span class="ident">memory_id</span>]
                     }
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo</span><span class="macro">!</span>()
 
@@ -1101,7 +1185,7 @@
             <span class="ident">FlashEraseAll</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Tag</span>::<span class="ident">FlashEraseAll</span>,
             <span class="ident">FlashEraseRegion</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Tag</span>::<span class="ident">FlashEraseRegion</span>,
             <span class="ident">ReadMemory</span> { <span class="ident">address</span>: <span class="kw">_</span>, <span class="ident">length</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Tag</span>::<span class="ident">ReadMemory</span>,
-            <span class="ident">WriteMemory</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Tag</span>::<span class="ident">WriteMemory</span>,
+            <span class="ident">WriteMemory</span> { <span class="ident">address</span>: <span class="kw">_</span>, <span class="ident">data</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Tag</span>::<span class="ident">WriteMemory</span>,
             <span class="ident">FillMemory</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Tag</span>::<span class="ident">FillMemory</span>,
             <span class="ident">FlashSecurityDisable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Tag</span>::<span class="ident">FlashSecurityDisable</span>,
             <span class="ident">GetProperty</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Tag</span>::<span class="ident">GetProperty</span>,
@@ -1265,7 +1349,7 @@
     <span class="kw">pub</span> <span class="ident">max_packet_size</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">device_uuid</span>: <span class="ident">u128</span>,
     <span class="kw">pub</span> <span class="ident">system_uuid</span>: <span class="ident">u64</span>,
-    <span class="kw">pub</span> <span class="ident">crc_check_status</span>: <span class="ident">BootloaderError</span>,
+    <span class="kw">pub</span> <span class="ident">crc_check_status</span>: <span class="kw">crate</span>::<span class="ident">bootloader</span>::<span class="ident">Error</span>,
     <span class="kw">pub</span> <span class="ident">reserved_regions</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">irq_notification_pin</span>: <span class="ident">IrqNotificationPin</span>,
 }

@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Logger","The simplest possible logger that logs to stderr."]]});

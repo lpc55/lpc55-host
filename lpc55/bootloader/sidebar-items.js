@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Bootloader",""],["GetProperties",""]]});
+initSidebarItems({"enum":[["Error","Bootloader commands return a \"status\". The non-zero statii can be split as `100*group + code`. We map these groups into enum variants, containing the code interpreted as an error the area."]],"mod":[["error",""],["protocol",""]],"struct":[["Bootloader",""],["GetProperties",""]],"type":[["Result",""]]});

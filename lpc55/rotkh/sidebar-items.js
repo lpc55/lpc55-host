@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["calculate",""],["rot_key_hash","NXP-specific construction that gives a \"fingerprint\" of the certificate's public key"],["rot_key_hashes",""]],"struct":[["Config",""]]});
