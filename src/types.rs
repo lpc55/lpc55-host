@@ -387,7 +387,7 @@ pub enum Command {
     FlashEraseAll,
     FlashEraseRegion,
     ReadMemory { address: usize, length: usize },
-    WriteMemory,
+    WriteMemory { address: usize, data: Vec<u8> },
     FillMemory,
     FlashSecurityDisable,
     // there is actually a second parameter, Memory ID
@@ -426,6 +426,9 @@ impl Command {
         match (self, self.tag()) {
             (_, Tag::ReadMemory) => DataPhase::ResponseData,
             (_, Tag::GetProperty) => DataPhase::None,
+            (_, Tag::Reset) => DataPhase::None,
+
+            (Command::WriteMemory { address: _, data }, _) => DataPhase::CommandData(data.clone()),
 
             (Command::Keystore(KeystoreOperation::Enroll), _) => DataPhase::None,
             (Command::Keystore(KeystoreOperation::ReadKeystore), _) => DataPhase::ResponseData,
@@ -448,6 +451,12 @@ impl Command {
                 // PyMBOOT is kinda bugged here, it signals sending 3 parameters
                 // (but the third one is set to zero)
                 vec![address as u32, length as u32]
+            }
+            WriteMemory { address, data } => {
+                vec![address as u32, data.len() as u32, 0]
+            }
+            Reset => {
+                vec![]
             }
             Keystore(operation) => {
                 use KeystoreOperation::*;
@@ -485,7 +494,7 @@ impl Command {
             FlashEraseAll => Tag::FlashEraseAll,
             FlashEraseRegion => Tag::FlashEraseRegion,
             ReadMemory { address: _, length: _ } => Tag::ReadMemory,
-            WriteMemory => Tag::WriteMemory,
+            WriteMemory { address: _, data: _ } => Tag::WriteMemory,
             FillMemory => Tag::FillMemory,
             FlashSecurityDisable => Tag::FlashSecurityDisable,
             GetProperty(_) => Tag::GetProperty,

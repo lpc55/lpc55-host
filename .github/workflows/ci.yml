@@ -121,11 +121,15 @@ jobs:
         run: sudo apt-get install -qq libudev-dev > /dev/null
         if: matrix.os == 'ubuntu-latest'
 
+      - name: Try to understand issue
+        run: env && tree -R && pwd
+        if: matrix.os == 'ubuntu-latest'
+
       - name: cargo build
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --target=${{ matrix.target }}
+          args: --release --target=${{ matrix.target }} --verbose
           use-cross: ${{ matrix.cross }}
 
       - uses: actions/upload-artifact@v2

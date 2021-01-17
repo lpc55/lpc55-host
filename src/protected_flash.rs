@@ -22,10 +22,17 @@ big_array! {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+/// For a graphical overview: <https://whimsical.com/lpc55-flash-memory-map-4eU3ei4wsqiAD7D2cAiv5s>
+///
+/// - infield page: one flash page (512B) of configuration data that may be updated during the device's
+/// lifecycle via a scratch/ping/pong process
+/// - factory page: one flash page (512B) of configuration data, to be set during manufacturing process
+/// - keystore: three flash pages, technically considered part of the factory configuration data,
+/// containing activation and key codes for the PUF keys.
 pub struct ProtectedFlash {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub field: FieldArea,
+    pub infield: InfieldAreas,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub factory: FactoryArea,
@@ -44,10 +51,62 @@ where
 
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct FieldAreaPage<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+pub struct FactoryArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
-    CustomerData: FieldAreaCustomerData,
-    VendorUsage: FieldAreaVendorUsage,
+    CustomerData: FactoryAreaCustomerData,
+    VendorUsage: FactoryAreaVendorUsage,
+{
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub boot_configuration: BootConfiguration,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub usb_id: UsbId,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub debug_settings: DebugSecurityPolicies,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub vendor_usage: VendorUsage,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub secure_boot_configuration: SecureBootConfiguration,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub prince_configuration: PrinceConfiguration,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub prince_subregions: [PrinceSubregion; 3],
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
+    /// Fingerprint of allowed root certificates for signed firmware update process.
+    ///
+    /// Called "ROTKH" for "root of trust key table hash" in vendor documentation.
+    ///
+    /// There can be up to four root certificate authorities; each have a "fingerprint" (cf.
+    /// elsewhere), the fingerprint here is the SHA256 hash of the concatenation of these
+    /// fingerprints. Due to this construction, each SB2.1 firmware container needs to contain
+    /// all the root certificates (plus possibly a certificate chain to the authority actually
+    /// signing the firmware).
+    pub rot_fingerprint: Sha256Hash,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
+    pub customer_data: CustomerData,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
+    pub sha256_hash: Sha256Hash,
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+/// See `InfieldAreas` documentation for how this part of the configuration is
+/// used and updated by the ROM bootloader.
+pub struct InfieldArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+where
+    CustomerData: InfieldAreaCustomerData,
+    VendorUsage: InfieldAreaVendorUsage,
 {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -55,7 +114,7 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     /// monotonic counter
-    pub version: MonotonicCounter,
+    pub infield_version: MonotonicCounter,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     /// monotonic counter
@@ -115,56 +174,6 @@ where
 
 pub(crate) fn is_default<T: Default + PartialEq>(t: &T) -> bool {
     *t == Default::default()
-}
-
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct FactoryArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
-where
-    CustomerData: FactoryAreaCustomerData,
-    VendorUsage: FactoryAreaVendorUsage,
-{
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub boot_configuration: BootConfiguration,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub usb_id: UsbId,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub debug_settings: DebugSecurityPolicies,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub vendor_usage: VendorUsage,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub secure_boot_configuration: SecureBootConfiguration,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub prince_configuration: PrinceConfiguration,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub prince_subregions: [PrinceSubregion; 3],
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    #[serde(serialize_with = "hex_serialize")]
-    /// Fingerprint of allowed root certificates for signed firmware update process.
-    ///
-    /// Called "ROTKH" for "root of trust key table hash" in vendor documentation.
-    ///
-    /// There can be up to four root certificate authorities; each have a "fingerprint" (cf.
-    /// elsewhere), the fingerprint here is the SHA256 hash of the concatenation of these
-    /// fingerprints. Due to this construction, each SB2.1 firmware container needs to contain
-    /// all the root certificates (plus possibly a certificate chain to the authority actually
-    /// signing the firmware).
-    pub rot_fingerprint: Sha256Hash,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    #[serde(serialize_with = "hex_serialize")]
-    pub customer_data: CustomerData,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    #[serde(serialize_with = "hex_serialize")]
-    pub sha256_hash: Sha256Hash,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -293,8 +302,8 @@ pub struct NxpArea {
 }
 
 impl Keystore {
-    pub fn to_bytes(&self) -> [u8; 512] {
-        let mut buf = [0u8; 512];
+    pub fn to_bytes(&self) -> [u8; 3*512] {
+        let mut buf = [0u8; 3*512];
         let mut cursor = buf.as_mut();
         cursor.write_all(&self.header.0.to_le_bytes()).ok();
         cursor.write_all(&self.puf_discharge_time_milliseconds.to_le_bytes()).ok();
@@ -341,17 +350,24 @@ where
     CustomerData: FactoryAreaCustomerData,
     VendorUsage: FactoryAreaVendorUsage,
 {
-    pub fn to_bytes(&mut self) -> [u8; 512] {
+    pub fn to_bytes(&self) -> [u8; 512] {
         let mut buf = [0u8; 512];
+// fn fill_returning_hash(buf: &mut [u8; 512], f: impl FnOnce(&mut [u8]) -> anyhow::Result<()>) -> Sha256Hash {
 
-        self.sha256_hash = fill_returning_hash(&mut buf, |mut cursor| {
+//     // let cursor = buf.as_mut();
+//     f(buf.as_mut()).unwrap();
+//     // doesn't work - f gets a copy of the reference
+//     // assert_eq!(cursor.len(), 32);
+
+        let closure = |mut cursor: &mut [u8]| -> anyhow::Result<()> {
             cursor.write_all(&u32::from(self.boot_configuration).to_le_bytes())?;
             cursor.write_all(&[0u8; 4])?;
             cursor.write_all(&self.usb_id.vid.to_le_bytes())?;
             cursor.write_all(&self.usb_id.pid.to_le_bytes())?;
             cursor.write_all(&[0u8; 4])?;
 
-            let debug_settings: [u32; 2] = self.debug_settings.into();
+            // let debug_settings: [u32; 2] = self.debug_settings.into();
+            let debug_settings: [u32; 2] = [0; 2];
             cursor.write_all(&debug_settings[0].to_le_bytes())?;
             cursor.write_all(&debug_settings[1].to_le_bytes())?;
 
@@ -367,7 +383,8 @@ where
             cursor.write_all(self.customer_data.as_ref())?;
             assert_eq!(cursor.len(), 32);
             Ok(())
-        });
+        };
+        closure(buf.as_mut()).unwrap();
 
         buf
     }
@@ -545,7 +562,7 @@ impl From<BootConfiguration> for u32 {
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 /// The PID/VID pair of the bootloader can be set arbitrarily, the default
-/// is `1fc9:0021`.
+/// of `1fc9:0021` is used if the values zero are not changed.
 pub struct UsbId {
     pub vid: u16,
     pub pid: u16,
@@ -553,7 +570,8 @@ pub struct UsbId {
 
 impl Default for UsbId {
     fn default() -> Self {
-        Self { vid: 0x1fc9, pid: 0x0021 }
+        // Self { vid: 0x1fc9, pid: 0x0021 }
+        Self { vid: 0, pid: 0 }
     }
 }
 
@@ -772,11 +790,11 @@ bitflags::bitflags! {
 impl core::convert::TryFrom<&[u8]> for ProtectedFlash {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let field = FieldArea::try_from(&input[..3*512]).unwrap();
         let factory = FactoryArea::try_from(&input[3*512..4*512]).unwrap();
+        let infield = InfieldAreas::try_from(&input[..3*512]).unwrap();
         let keystore = Keystore::try_from(&input[4*512..7*512]).unwrap();
 
-        let pfr = ProtectedFlash { field, factory, keystore };
+        let pfr = ProtectedFlash { infield, factory, keystore };
 
         Ok(pfr)
     }
@@ -804,7 +822,7 @@ fn format_bytes(bytes: &[u8], f: &mut fmt::Formatter<'_>) -> fmt::Result {
     // ))
 }
 
-pub trait FieldAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
+pub trait InfieldAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
 pub trait FactoryAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -837,28 +855,36 @@ impl From<[u8; 14*4*4]> for RawCustomerData {
     }
 }
 
-impl FieldAreaCustomerData for RawCustomerData {}
+impl InfieldAreaCustomerData for RawCustomerData {}
 impl FactoryAreaCustomerData for RawCustomerData {}
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct FieldArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+/// This is a bit of an interesting construction.
+///
+/// The scratch page "remains outside the protected region", the intent is that the application
+/// updates this (in NXP's view, by calling bootloader API), and then resets the core.
+///
+/// During startup, bootloader selects one of ping or pong page, depending on which has higher
+/// "version" field. If scratch page has even higher "version", the bootloader erases the older
+/// of ping/pong and overwrites with scratch.
+pub struct InfieldAreas<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
-    CustomerData: FieldAreaCustomerData,
-    VendorUsage: FieldAreaVendorUsage,
+    CustomerData: InfieldAreaCustomerData,
+    VendorUsage: InfieldAreaVendorUsage,
 {
-    pub scratch: FieldAreaPage<CustomerData, VendorUsage>,
-    pub ping: FieldAreaPage<CustomerData, VendorUsage>,
-    pub pong: FieldAreaPage<CustomerData, VendorUsage>,
+    pub scratch: InfieldArea<CustomerData, VendorUsage>,
+    pub ping: InfieldArea<CustomerData, VendorUsage>,
+    pub pong: InfieldArea<CustomerData, VendorUsage>,
 }
 
-impl core::convert::TryFrom<&[u8]> for FieldArea {
+impl core::convert::TryFrom<&[u8]> for InfieldAreas {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let scratch = FieldAreaPage::try_from(&input[..512]).unwrap();
-        let ping = FieldAreaPage::try_from(&input[512..2*512]).unwrap();
-        let pong = FieldAreaPage::try_from(&input[2*512..3*512]).unwrap();
+        let scratch = InfieldArea::try_from(&input[..512]).unwrap();
+        let ping = InfieldArea::try_from(&input[512..2*512]).unwrap();
+        let pong = InfieldArea::try_from(&input[2*512..3*512]).unwrap();
 
-        let field = FieldArea { scratch, ping, pong };
+        let field = InfieldAreas { scratch, ping, pong };
 
         Ok(field)
     }
@@ -870,7 +896,7 @@ pub struct Header(u32);
 // #[derive(Debug)]
 // pub struct Version(u32);
 
-pub trait FieldAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
+pub trait InfieldAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
 pub trait FactoryAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RawVendorUsage(u32);
@@ -893,7 +919,7 @@ impl From<u32> for RawVendorUsage {
     }
 }
 
-impl FieldAreaVendorUsage for RawVendorUsage {}
+impl InfieldAreaVendorUsage for RawVendorUsage {}
 impl FactoryAreaVendorUsage for RawVendorUsage {}
 
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -1193,11 +1219,61 @@ fn fill_returning_hash(buf: &mut [u8; 512], f: impl FnOnce(&mut [u8]) -> anyhow:
     hash
 }
 
-impl<CustomerData, VendorUsage> FieldAreaPage<CustomerData, VendorUsage>
+impl<CustomerData, VendorUsage> InfieldArea<CustomerData, VendorUsage>
 where
-    CustomerData: FieldAreaCustomerData,
-    VendorUsage: FieldAreaVendorUsage,
+    CustomerData: InfieldAreaCustomerData,
+    VendorUsage: InfieldAreaVendorUsage,
 {
+    pub fn to_bytes_with_hash(&mut self) -> [u8; 512] {
+
+        let mut buf = [0u8; 512];
+
+        self.sha256_hash = fill_returning_hash(&mut buf, |mut cursor| {
+
+            cursor.write_all(&self.header.0.to_le_bytes())?;
+            cursor.write_all(&self.infield_version.0.to_le_bytes())?;
+            cursor.write_all(&self.secure_firmware_version.0.to_le_bytes())?;
+            cursor.write_all(&self.nonsecure_firmware_version.0.to_le_bytes())?;
+            cursor.write_all(&self.image_key_revocation_id.0.to_le_bytes())?;
+
+            // reserved
+            cursor.write_all(&[0u8; 4])?;
+
+            cursor.write_all(&u32::from(self.rot_keys_status).to_le_bytes())?;
+            cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
+
+            let debug_settings: [u32; 2] = self.debug_settings.into();
+            cursor.write_all(&debug_settings[0].to_le_bytes())?;
+            cursor.write_all(&debug_settings[1].to_le_bytes())?;
+
+            let enable_fa_mode: u32 = match self.enable_fault_analysis_mode {
+                true => 0xC33C_A55A,
+                false => 0,
+            };
+            cursor.write_all(&enable_fa_mode.to_le_bytes())?;
+
+            // factory_prog
+            // "CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active
+            // CFPA page each time CMPA page programming is going on. It shall always be set to
+            // 0x00000000 in the CFPA scratch area."
+            cursor.write_all(&[0u8; 4])?;
+
+            cursor.write_all(&self.prince_ivs[0].0)?;
+            cursor.write_all(&self.prince_ivs[1].0)?;
+            cursor.write_all(&self.prince_ivs[2].0)?;
+
+            // reserved
+            cursor.write_all(&[0u8; 40])?;
+
+            cursor.write_all(self.customer_data.as_ref())?;
+
+            assert_eq!(cursor.len(), 32);
+            Ok(())
+        });
+
+        buf
+    }
+
     pub fn to_bytes(&mut self) -> [u8; 512] {
 
         let mut buf = [0u8; 512];
@@ -1205,7 +1281,7 @@ where
         self.sha256_hash = fill_returning_hash(&mut buf, |mut cursor| {
 
             cursor.write_all(&self.header.0.to_le_bytes())?;
-            cursor.write_all(&self.version.0.to_le_bytes())?;
+            cursor.write_all(&self.infield_version.0.to_le_bytes())?;
             cursor.write_all(&self.secure_firmware_version.0.to_le_bytes())?;
             cursor.write_all(&self.nonsecure_firmware_version.0.to_le_bytes())?;
             cursor.write_all(&self.image_key_revocation_id.0.to_le_bytes())?;
@@ -1253,7 +1329,7 @@ where
         let mut cursor = buf.as_mut();
 
         cursor.write_all(&self.header.0.to_le_bytes()).ok();
-        cursor.write_all(&self.version.0.to_le_bytes()).ok();
+        cursor.write_all(&self.infield_version.0.to_le_bytes()).ok();
         cursor.write_all(&self.secure_firmware_version.0.to_le_bytes()).ok();
         cursor.write_all(&self.nonsecure_firmware_version.0.to_le_bytes()).ok();
         cursor.write_all(&self.image_key_revocation_id.0.to_le_bytes()).ok();
@@ -1294,11 +1370,11 @@ where
     }
 }
 
-fn parse_field_page<CustomerData: FieldAreaCustomerData, VendorUsage: FieldAreaVendorUsage>(input: &[u8])
-    -> IResult<&[u8], FieldAreaPage<CustomerData, VendorUsage>>
+fn parse_field_page<CustomerData: InfieldAreaCustomerData, VendorUsage: InfieldAreaVendorUsage>(input: &[u8])
+    -> IResult<&[u8], InfieldArea<CustomerData, VendorUsage>>
 {
     let (input, header) = le_u32(input)?;
-    let (input, version) = le_u32(input)?;
+    let (input, infield_version) = le_u32(input)?;
     let (input, secure_firmware_version) = le_u32(input)?;
     let (input, nonsecure_firmware_version) = le_u32(input)?;
     let (input, image_key_revocation_id) = le_u32(input)?;
@@ -1324,9 +1400,9 @@ fn parse_field_page<CustomerData: FieldAreaCustomerData, VendorUsage: FieldAreaV
 
     let (input, sha256_hash) = take!(input, 32)?;
 
-    let page = FieldAreaPage {
+    let page = InfieldArea {
         header: Header(header),
-        version: MonotonicCounter::from(version),
+        infield_version: MonotonicCounter::from(infield_version),
         secure_firmware_version: MonotonicCounter::from(secure_firmware_version),
         nonsecure_firmware_version: MonotonicCounter::from(nonsecure_firmware_version),
         image_key_revocation_id: MonotonicCounter::from(image_key_revocation_id),
@@ -1348,10 +1424,10 @@ fn parse_field_page<CustomerData: FieldAreaCustomerData, VendorUsage: FieldAreaV
 }
 
 
-impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]> for FieldAreaPage<CustomerData, VendorUsage>
+impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]> for InfieldArea<CustomerData, VendorUsage>
 where
-    CustomerData: FieldAreaCustomerData,
-    VendorUsage: FieldAreaVendorUsage,
+    CustomerData: InfieldAreaCustomerData,
+    VendorUsage: InfieldAreaVendorUsage,
 {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {

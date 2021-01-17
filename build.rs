@@ -3,7 +3,8 @@ use std::fs;
 use std::path;
 use std::process;
 
-#[cfg(feature = "cli")]
+// doesn't seem to work in CI
+#[cfg(feature = "cli-shell-completion")]
 #[path = "src/bin/lpc55/cli.rs"]
 mod cli;
 
@@ -33,7 +34,7 @@ fn main() {
     fs::create_dir_all(&outdir).unwrap();
     println!("{:?}", &outdir);
 
-    #[cfg(feature = "cli")] {
+    #[cfg(feature = "cli-shell-completion")] {
         use clap::Shell;
 
         // Use clap to build completion files.

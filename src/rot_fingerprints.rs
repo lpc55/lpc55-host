@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use crate::types::to_hex_string;
-use crate::protected_flash::{FieldAreaPage, Keystore, FactoryArea, Sha256Hash};
+use crate::protected_flash::{InfieldArea, Keystore, FactoryArea, Sha256Hash};
 
 use core::convert::TryInto;
 use std::fs;
@@ -28,7 +28,7 @@ use x509_parser::certificate::X509Certificate;
 pub struct Config {
     pub root_cert_filenames: [String; 4],
     pub factory: FactoryArea,
-    pub field: FieldAreaPage,
+    pub field: InfieldArea,
     pub keystore: Keystore,
 }
 

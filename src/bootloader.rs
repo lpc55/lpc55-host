@@ -55,6 +55,11 @@ impl Bootloader {
         }
     }
 
+    pub fn reboot(&self) {
+        info!("calling Command::Reset");
+        self.protocol.call(&Command::Reset).expect("success");
+    }
+
     pub fn enroll_puf(&self) {
         // first time i ran this:
         // 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000030 FF5F0030 00000020 FF5F0020 00000000 00000000
@@ -119,6 +124,10 @@ impl Bootloader {
         } else {
             todo!();
         }
+    }
+
+    pub fn write_memory(&self, address: usize, data: Vec<u8>) {
+        let _response = self.protocol.call(&Command::WriteMemory { address, data }).expect("success");
     }
 
     fn property(&self, property: Property) -> Result<Vec<u32>> {

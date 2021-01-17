@@ -8,6 +8,8 @@ exclude = ["pkg"]
 
 [[bin]]
 name = "lpc55"
+# not sure why this is needed in CI but not locally
+path = "./src/bin/lpc55/main.rs"
 required-features = ["cli"]
 
 [dependencies]
@@ -54,8 +56,9 @@ lazy_static = "1.4.0"
 [features]
 default = ["cli"]
 cli = ["clap", "http"]
+cli-iompletion = []
 http = ["tiny_http"]
 
 [patch.crates-io]
 # uriparse = { path = "../uriparse-rs" }
-# pkcs11-uri = { git = "https://github.com/nickray/pkcs11-uri", branch = "main" }
+pkcs11-uri = { git = "https://github.com/nickray/pkcs11-uri", branch = "main" }
