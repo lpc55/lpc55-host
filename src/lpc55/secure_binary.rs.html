@@ -1902,6 +1902,9 @@
 <span id="1899">1899</span>
 <span id="1900">1900</span>
 <span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Generator and parser for signed firmware and SB (secure binary) files</span>
 
@@ -1963,8 +1966,11 @@
     <span class="doccomment">/// Path to the input image (can be ELF, signed or unsigned BIN)</span>
     <span class="kw">pub</span> <span class="ident">image</span>: <span class="ident">String</span>,
 
-    <span class="doccomment">/// Path to place signed SB2.1 file</span>
+    <span class="doccomment">/// Path to place signed binary</span>
     <span class="kw">pub</span> <span class="ident">signed_image</span>: <span class="ident">String</span>,
+
+    <span class="doccomment">/// Path to place signed SB2.1 file</span>
+    <span class="kw">pub</span> <span class="ident">secure_boot_image</span>: <span class="ident">String</span>,
     <span class="comment">// pub factory: FactoryArea,</span>
     <span class="comment">// pub field: FieldAreaPage,</span>
     <span class="comment">// pub keystore: Keystore,</span>

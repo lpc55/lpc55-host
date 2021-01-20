@@ -142,7 +142,12 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! https://github.com/NXPmicro/spsdk/blob/020a983e53769fe16cb9b49395d56f0201eccca6/spsdk/mboot/error_codes.py</span>
+
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
 
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -229,7 +234,8 @@
     <span class="ident">UnknownProperty</span> <span class="op">=</span> <span class="number">6</span>,
     <span class="ident">EraseKeyError</span> <span class="op">=</span> <span class="number">7</span>,
     <span class="ident">ExecuteOnlyRegion</span> <span class="op">=</span> <span class="number">8</span>,
-    <span class="ident">UnsupportedApi</span> <span class="op">=</span> <span class="number">15</span>,
+    <span class="ident">CommandNotSupported</span> <span class="op">=</span> <span class="number">15</span>,
+    <span class="ident">InfieldScratchVersionBehindActualInfieldVersion</span> <span class="op">=</span> <span class="number">32</span>,
 }
 
 <span class="macro">generate</span><span class="macro">!</span> { <span class="ident">PropertyStoreError</span>:
