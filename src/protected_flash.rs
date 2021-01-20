@@ -21,6 +21,9 @@ big_array! {
     +1192,
 }
 
+pub const FACTORY_SETTINGS_ADDRESS: usize = 0x9_E400;
+pub const INFIELD_SETTINGS_SCRATCH_ADDRESS: usize = 0x9_DE00;
+
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 /// For a graphical overview: <https://whimsical.com/lpc55-flash-memory-map-4eU3ei4wsqiAD7D2cAiv5s>
 ///
@@ -49,6 +52,36 @@ where
     s.serialize_str(&to_hex_string(x.as_ref()))
 }
 
+// fn hex_deserialize<'a, 'de, D, T>(deserializer: D) -> Result<T, D::Error>
+// where
+//     D: serde::Deserializer<'de>,
+//     T: From<&'a [u8]>,
+// {
+//     let s: &str = serde::de::Deserialize::deserialize(deserializer)?;
+//     let mut s = String::from(s);
+//     s.retain(|c| !c.is_whitespace());
+//     // let v = hex::decode(&s).expect(format!("Hex decoding failed for {}", &s));
+//     let v = hex::decode(&s).expect("Hex decoding failed!");
+
+//     let t = T::from(&v);
+//     Ok(t)
+// }
+
+// NB: const-generics for this case coming soooon (Rust 1.51?)
+fn hex_deserialize_256<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: From<[u8; 32]>
+{
+    let s: &str = serde::de::Deserialize::deserialize(deserializer)?;
+    let mut s = String::from(s);
+    s.retain(|c| !c.is_whitespace());
+    // let v = hex::decode(&s).expect(format!("Hex decoding failed for {}", &s));
+    let v: [u8; 32] = hex::decode(&s).expect("Hex decoding failed!").try_into().unwrap();
+
+    let t = T::from(v);
+    Ok(t)
+}
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct FactoryArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
@@ -80,6 +113,7 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
+    #[serde(deserialize_with = "hex_deserialize_256")]
     /// Fingerprint of allowed root certificates for signed firmware update process.
     ///
     /// Called "ROTKH" for "root of trust key table hash" in vendor documentation.
@@ -165,6 +199,12 @@ where
     pub sha256_hash: Sha256Hash,
 }
 
+impl InfieldArea {
+    pub fn valid_activation_code(&self) -> bool {
+        self.header.0 == 0x95959595
+    }
+}
+
 // fn hex_serialize<S>(x: &Sha256Hash, s: S) -> Result<S::Ok, S::Error>
 // where
 //     S: serde::Serializer,
@@ -182,8 +222,16 @@ pub struct KeystoreHeader(pub u32);
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 /// Input to regenerate keys "stored" in the PUF.
 ///
+/// TODO: split into
+/// - key code valid (first four bytes)
+/// - key parameters (user/generated, length, ...?)
+/// - actual keycode = last 52 bytes
+///
 /// Empirically, these arrays start with either '59595959 01000002' for 16B keys,
 /// or '59595959 00000004' for 32B keys.
+///
+/// A generated UDS key example seens in the wild starts with `59595959 010F0004`
+/// however.
 ///
 /// Presumably (entire paragraph is speculative), this is followed by 32B of input to be XOR'd or
 /// whatnot with the 32B "fingerprint" derived from PUF "startup data" via error correction with
@@ -192,6 +240,22 @@ pub struct Keycode(
     #[serde(with = "BigArray")]
     [u8; 56]
 );
+
+impl Keycode {
+    /// Not sure if this is true (in analogy with "header")
+    pub fn valid(&self) -> bool {
+        self.0[..4] == [0x59, 0x59, 0x59, 0x59]
+    }
+
+    // UM 11126 (rev2.1, 7.3.1, table 175) seems a bit incorrect and confusing here...
+    pub fn generated_key(&self) -> bool {
+        self.0[4] == 1
+    }
+
+    pub fn user_key(&self) -> bool {
+        self.0[4] == 0
+    }
+}
 
 impl Default for Keycode {
     fn default() -> Self {
@@ -246,6 +310,8 @@ pub struct Keystore {
     ///
     /// Empirically, this value 2509608341 appears as header in the PFR
     /// as soon as PUF is enrolled, regardless of number of key codes stored.
+    ///
+    /// UM 11126 says: "Marker. A value of 0x95959595 means that Activation code is valid."
     pub header: KeystoreHeader,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -350,44 +416,50 @@ where
     CustomerData: FactoryAreaCustomerData,
     VendorUsage: FactoryAreaVendorUsage,
 {
-    pub fn to_bytes(&self) -> [u8; 512] {
+    pub fn to_bytes(&self) -> anyhow::Result<[u8; 512]> {
         let mut buf = [0u8; 512];
-// fn fill_returning_hash(buf: &mut [u8; 512], f: impl FnOnce(&mut [u8]) -> anyhow::Result<()>) -> Sha256Hash {
+        let mut cursor = buf.as_mut();
 
-//     // let cursor = buf.as_mut();
-//     f(buf.as_mut()).unwrap();
-//     // doesn't work - f gets a copy of the reference
-//     // assert_eq!(cursor.len(), 32);
+        cursor.write_all(&u32::from(self.boot_configuration).to_le_bytes())?;
+        cursor.write_all(&[0u8; 4])?;
+        cursor.write_all(&self.usb_id.vid.to_le_bytes())?;
+        cursor.write_all(&self.usb_id.pid.to_le_bytes())?;
+        cursor.write_all(&[0u8; 4])?;
 
-        let closure = |mut cursor: &mut [u8]| -> anyhow::Result<()> {
-            cursor.write_all(&u32::from(self.boot_configuration).to_le_bytes())?;
-            cursor.write_all(&[0u8; 4])?;
-            cursor.write_all(&self.usb_id.vid.to_le_bytes())?;
-            cursor.write_all(&self.usb_id.pid.to_le_bytes())?;
-            cursor.write_all(&[0u8; 4])?;
+        // TODO: check/fix
+        // let debug_settings: [u32; 2] = self.debug_settings.into();
+        let debug_settings: [u32; 2] = [0; 2];
+        cursor.write_all(&debug_settings[0].to_le_bytes())?;
+        cursor.write_all(&debug_settings[1].to_le_bytes())?;
 
-            // let debug_settings: [u32; 2] = self.debug_settings.into();
-            let debug_settings: [u32; 2] = [0; 2];
-            cursor.write_all(&debug_settings[0].to_le_bytes())?;
-            cursor.write_all(&debug_settings[1].to_le_bytes())?;
+        cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
+        cursor.write_all(&u32::from(self.secure_boot_configuration).to_le_bytes())?;
+        cursor.write_all(&u32::from(self.prince_configuration).to_le_bytes())?;
+        cursor.write_all(&self.prince_subregions[0].bits.to_le_bytes())?;
+        cursor.write_all(&self.prince_subregions[1].bits.to_le_bytes())?;
+        cursor.write_all(&self.prince_subregions[2].bits.to_le_bytes())?;
+        cursor.write_all(&[0u8; 32])?;
+        cursor.write_all(&self.rot_fingerprint.0)?;
+        cursor.write_all(&[0u8; 144])?;
+        cursor.write_all(self.customer_data.as_ref())?;
+        assert_eq!(cursor.len(), 32);
 
-            cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
-            cursor.write_all(&u32::from(self.secure_boot_configuration).to_le_bytes())?;
-            cursor.write_all(&u32::from(self.prince_configuration).to_le_bytes())?;
-            cursor.write_all(&self.prince_subregions[0].bits.to_le_bytes())?;
-            cursor.write_all(&self.prince_subregions[1].bits.to_le_bytes())?;
-            cursor.write_all(&self.prince_subregions[2].bits.to_le_bytes())?;
-            cursor.write_all(&[0u8; 32])?;
-            cursor.write_all(&self.rot_fingerprint.0)?;
-            cursor.write_all(&[0u8; 144])?;
-            cursor.write_all(self.customer_data.as_ref())?;
-            assert_eq!(cursor.len(), 32);
-            Ok(())
-        };
-        closure(buf.as_mut()).unwrap();
-
-        buf
+        Ok(buf)
     }
+
+    pub fn to_bytes_setting_hash(&mut self) -> anyhow::Result<[u8; 512]> {
+        let mut buf = self.to_bytes()?;
+
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(&buf[..480]);
+        self.sha256_hash = Sha256Hash(hasher.finalize().try_into().unwrap());
+
+        let mut cursor = buf[480..].as_mut();
+        cursor.write_all(&self.sha256_hash.0).ok();
+        assert!(cursor.is_empty());
+        Ok(buf)
+    }
+
 }
 
 fn parse_factory<CustomerData: FactoryAreaCustomerData, VendorUsage: FactoryAreaVendorUsage>(input: &[u8])
@@ -936,6 +1008,12 @@ impl AsRef<[u8]> for Sha256Hash {
     }
 }
 
+impl From<[u8; 32]> for Sha256Hash {
+    fn from(array: [u8; 32]) -> Self {
+        Sha256Hash(array)
+    }
+}
+
 /// CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active CFPA page each time CMPA page programming is going on. It shall always be set to 0x00000000 in the CFPA scratch area.
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct FactoryAreaProgInProgress(u32);
@@ -945,6 +1023,7 @@ impl fmt::Debug for FactoryAreaProgInProgress {
         match self.0 {
             // 0x00000000 => f.write_str("empty"),
             0x0000_0000 => f.write_fmt(format_args!("empty (0x{:x})", 0)),
+            // 1556437669
             0x5CC5_5AA5 => f.write_str("CMPA page programming ongoing"),
             value => f.write_fmt(format_args!("unknown value {:x}", value)),
         }
@@ -1201,178 +1280,79 @@ impl From<DebugSecurityPolicies> for [u32; 2] {
     }
 }
 
-fn fill_returning_hash(buf: &mut [u8; 512], f: impl FnOnce(&mut [u8]) -> anyhow::Result<()>) -> Sha256Hash {
-
-    // let cursor = buf.as_mut();
-    f(buf.as_mut()).unwrap();
-    // doesn't work - f gets a copy of the reference
-    // assert_eq!(cursor.len(), 32);
-
-    let mut hasher = sha2::Sha256::new();
-    hasher.update(&buf[..480]);
-    let hash = Sha256Hash(hasher.finalize().try_into().unwrap());
-
-    let mut cursor = buf[480..].as_mut();
-    cursor.write_all(&hash.0).ok();
-    assert!(cursor.is_empty());
-
-    hash
-}
-
 impl<CustomerData, VendorUsage> InfieldArea<CustomerData, VendorUsage>
 where
     CustomerData: InfieldAreaCustomerData,
     VendorUsage: InfieldAreaVendorUsage,
 {
-    pub fn to_bytes_with_hash(&mut self) -> [u8; 512] {
+    pub fn to_bytes(&self) -> anyhow::Result<[u8; 512]> {
 
-        let mut buf = [0u8; 512];
-
-        self.sha256_hash = fill_returning_hash(&mut buf, |mut cursor| {
-
-            cursor.write_all(&self.header.0.to_le_bytes())?;
-            cursor.write_all(&self.infield_version.0.to_le_bytes())?;
-            cursor.write_all(&self.secure_firmware_version.0.to_le_bytes())?;
-            cursor.write_all(&self.nonsecure_firmware_version.0.to_le_bytes())?;
-            cursor.write_all(&self.image_key_revocation_id.0.to_le_bytes())?;
-
-            // reserved
-            cursor.write_all(&[0u8; 4])?;
-
-            cursor.write_all(&u32::from(self.rot_keys_status).to_le_bytes())?;
-            cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
-
-            let debug_settings: [u32; 2] = self.debug_settings.into();
-            cursor.write_all(&debug_settings[0].to_le_bytes())?;
-            cursor.write_all(&debug_settings[1].to_le_bytes())?;
-
-            let enable_fa_mode: u32 = match self.enable_fault_analysis_mode {
-                true => 0xC33C_A55A,
-                false => 0,
-            };
-            cursor.write_all(&enable_fa_mode.to_le_bytes())?;
-
-            // factory_prog
-            // "CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active
-            // CFPA page each time CMPA page programming is going on. It shall always be set to
-            // 0x00000000 in the CFPA scratch area."
-            cursor.write_all(&[0u8; 4])?;
-
-            cursor.write_all(&self.prince_ivs[0].0)?;
-            cursor.write_all(&self.prince_ivs[1].0)?;
-            cursor.write_all(&self.prince_ivs[2].0)?;
-
-            // reserved
-            cursor.write_all(&[0u8; 40])?;
-
-            cursor.write_all(self.customer_data.as_ref())?;
-
-            assert_eq!(cursor.len(), 32);
-            Ok(())
-        });
-
-        buf
-    }
-
-    pub fn to_bytes(&mut self) -> [u8; 512] {
-
-        let mut buf = [0u8; 512];
-
-        self.sha256_hash = fill_returning_hash(&mut buf, |mut cursor| {
-
-            cursor.write_all(&self.header.0.to_le_bytes())?;
-            cursor.write_all(&self.infield_version.0.to_le_bytes())?;
-            cursor.write_all(&self.secure_firmware_version.0.to_le_bytes())?;
-            cursor.write_all(&self.nonsecure_firmware_version.0.to_le_bytes())?;
-            cursor.write_all(&self.image_key_revocation_id.0.to_le_bytes())?;
-
-            // reserved
-            cursor.write_all(&[0u8; 4])?;
-
-            cursor.write_all(&u32::from(self.rot_keys_status).to_le_bytes())?;
-            cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
-
-            let debug_settings: [u32; 2] = self.debug_settings.into();
-            cursor.write_all(&debug_settings[0].to_le_bytes())?;
-            cursor.write_all(&debug_settings[1].to_le_bytes())?;
-
-            let enable_fa_mode: u32 = match self.enable_fault_analysis_mode {
-                true => 0xC33C_A55A,
-                false => 0,
-            };
-            cursor.write_all(&enable_fa_mode.to_le_bytes())?;
-
-            // factory_prog
-            // "CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active
-            // CFPA page each time CMPA page programming is going on. It shall always be set to
-            // 0x00000000 in the CFPA scratch area."
-            cursor.write_all(&[0u8; 4])?;
-
-            cursor.write_all(&self.prince_ivs[0].0)?;
-            cursor.write_all(&self.prince_ivs[1].0)?;
-            cursor.write_all(&self.prince_ivs[2].0)?;
-
-            // reserved
-            cursor.write_all(&[0u8; 40])?;
-
-            cursor.write_all(self.customer_data.as_ref())?;
-
-            assert_eq!(cursor.len(), 32);
-            Ok(())
-        });
-
-        buf
-    }
-
-    pub fn to_bytes_old(&mut self) -> [u8; 512] {
         let mut buf = [0u8; 512];
         let mut cursor = buf.as_mut();
 
-        cursor.write_all(&self.header.0.to_le_bytes()).ok();
-        cursor.write_all(&self.infield_version.0.to_le_bytes()).ok();
-        cursor.write_all(&self.secure_firmware_version.0.to_le_bytes()).ok();
-        cursor.write_all(&self.nonsecure_firmware_version.0.to_le_bytes()).ok();
-        cursor.write_all(&self.image_key_revocation_id.0.to_le_bytes()).ok();
+        cursor.write_all(&self.header.0.to_le_bytes())?;
+        cursor.write_all(&self.infield_version.0.to_le_bytes())?;
+        cursor.write_all(&self.secure_firmware_version.0.to_le_bytes())?;
+        cursor.write_all(&self.nonsecure_firmware_version.0.to_le_bytes())?;
+        cursor.write_all(&self.image_key_revocation_id.0.to_le_bytes())?;
 
-        cursor.write_all(&[0u8; 4]).ok();
+        // reserved
+        cursor.write_all(&[0u8; 4])?;
 
-        cursor.write_all(&u32::from(self.rot_keys_status).to_le_bytes()).ok();
-        cursor.write_all(&self.vendor_usage.into().to_le_bytes()).ok();
+        cursor.write_all(&u32::from(self.rot_keys_status).to_le_bytes())?;
+        cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
 
-        let debug_settings: [u32; 2] = self.debug_settings.into();
-        cursor.write_all(&debug_settings[0].to_le_bytes()).ok();
-        cursor.write_all(&debug_settings[1].to_le_bytes()).ok();
+        // TODO: check/fix
+        // let debug_settings: [u32; 2] = self.debug_settings.into();
+        let debug_settings: [u32; 2] = [0; 2];
+        cursor.write_all(&debug_settings[0].to_le_bytes())?;
+        cursor.write_all(&debug_settings[1].to_le_bytes())?;
 
-        // double check format
-        cursor.write_all(&(self.enable_fault_analysis_mode as u32).to_le_bytes()).ok();
+        let enable_fa_mode: u32 = match self.enable_fault_analysis_mode {
+            true => 0xC33C_A55A,
+            false => 0,
+        };
+        cursor.write_all(&enable_fa_mode.to_le_bytes())?;
+
         // factory_prog
-        cursor.write_all(&[0u8; 4]).ok();
+        // "CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active
+        // CFPA page each time CMPA page programming is going on. It shall always be set to
+        // 0x00000000 in the CFPA scratch area."
+        cursor.write_all(&[0u8; 4])?;
 
-        cursor.write_all(&self.prince_ivs[0].0).ok();
-        cursor.write_all(&self.prince_ivs[1].0).ok();
-        cursor.write_all(&self.prince_ivs[2].0).ok();
+        cursor.write_all(&self.prince_ivs[0].0)?;
+        cursor.write_all(&self.prince_ivs[1].0)?;
+        cursor.write_all(&self.prince_ivs[2].0)?;
 
-        cursor.write_all(&[0u8; 40]).ok();
-        cursor.write_all(self.customer_data.as_ref()).ok();
+        // reserved
+        cursor.write_all(&[0u8; 40])?;
 
-        // find a nicer way of doing this
+        cursor.write_all(self.customer_data.as_ref())?;
+
         assert_eq!(cursor.len(), 32);
-        drop(cursor);
+
+        Ok(buf)
+    }
+
+    pub fn to_bytes_setting_hash(&mut self) -> anyhow::Result<[u8; 512]> {
+        let mut buf = self.to_bytes()?;
+
         let mut hasher = sha2::Sha256::new();
         hasher.update(&buf[..480]);
-        self.sha256_hash.0 = hasher.finalize().try_into().unwrap();
+        self.sha256_hash = Sha256Hash(hasher.finalize().try_into().unwrap());
 
         let mut cursor = buf[480..].as_mut();
         cursor.write_all(&self.sha256_hash.0).ok();
         assert!(cursor.is_empty());
-
-        buf
+        Ok(buf)
     }
+
 }
 
-fn parse_field_page<CustomerData: InfieldAreaCustomerData, VendorUsage: InfieldAreaVendorUsage>(input: &[u8])
+fn parse_infield_page<CustomerData: InfieldAreaCustomerData, VendorUsage: InfieldAreaVendorUsage>(input: &[u8])
     -> IResult<&[u8], InfieldArea<CustomerData, VendorUsage>>
 {
+    assert!(input.len() == 512);
     let (input, header) = le_u32(input)?;
     let (input, infield_version) = le_u32(input)?;
     let (input, secure_firmware_version) = le_u32(input)?;
@@ -1390,16 +1370,21 @@ fn parse_field_page<CustomerData: InfieldAreaCustomerData, VendorUsage: InfieldA
     let (input, factory_prog_in_progress) = le_u32(input)?;
 
     let (input, prince_iv_code0) = take!(input, 14*4)?;
+    debug!("prince IV code 0 = {}", hex_str!(prince_iv_code0));
     let (input, prince_iv_code1) = take!(input, 14*4)?;
     let (input, prince_iv_code2) = take!(input, 14*4)?;
 
     // reserved
-    let (input, _) = take!(input, 10 * 4)?;
+    let (input, _reserved) = take!(input, 10 * 4)?;
+    debug!("reserved raw = {}", hex_str!(_reserved));
 
     let (input, customer_data) = take!(input, 56 * 4)?;
+    debug!("customer_data all zero = {}", customer_data.iter().all(|x| *x == 0));
+    debug!("customer_data raw = {}", hex_str!(customer_data));
 
     let (input, sha256_hash) = take!(input, 32)?;
 
+    assert!(input.is_empty());
     let page = InfieldArea {
         header: Header(header),
         infield_version: MonotonicCounter::from(infield_version),
@@ -1431,7 +1416,7 @@ where
 {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let (_input, page) = parse_field_page(input).unwrap();
+        let (_input, page) = parse_infield_page(input).unwrap();
         Ok(page)
     }
 }

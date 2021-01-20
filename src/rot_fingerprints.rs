@@ -28,7 +28,7 @@ use x509_parser::certificate::X509Certificate;
 pub struct Config {
     pub root_cert_filenames: [String; 4],
     pub factory: FactoryArea,
-    pub field: InfieldArea,
+    pub infield: InfieldArea,
     pub keystore: Keystore,
 }
 
@@ -97,12 +97,12 @@ pub fn calculate(config_filename: &str) -> Result<()> {
     info!("RoT fingerprint: {}", to_hex_string(&rot_fingerprint));
 
     debug!("loaded config: {}", serde_yaml::to_string(&config)?);
-    debug!("rot_keys_status as u32: 0x{:x}", u32::from(config.field.rot_keys_status));
+    debug!("rot_keys_status as u32: 0x{:x}", u32::from(config.infield.rot_keys_status));
     debug!("boot_configuration as u32: 0x{:x}", u32::from(config.factory.boot_configuration));
     debug!("secure_boot_configuration as u32: 0x{:x}", u32::from(config.factory.secure_boot_configuration));
 
-    debug!("factory: {}", to_hex_string(config.factory.to_bytes().as_ref()));
-    debug!("field: {}", to_hex_string(config.field.to_bytes().as_ref()));
+    debug!("factory: {}", to_hex_string(config.factory.to_bytes()?.as_ref()));
+    debug!("field: {}", to_hex_string(config.infield.to_bytes()?.as_ref()));
     debug!("keystore: {}", to_hex_string(config.keystore.to_bytes().as_ref()));
 
     Ok(())

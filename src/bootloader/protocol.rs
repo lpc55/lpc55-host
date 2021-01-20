@@ -254,6 +254,26 @@ impl Protocol {
 
                         Ok(types::Response::Generic)
                     }
+                    types::Command::ReceiveSbFile { data } => {
+                        for chunk in data.chunks(32) {
+                            let mut data_packet = vec![types::ReportId::CommandData as u8, 0, chunk.len() as u8, 0];
+                            data_packet.extend_from_slice(chunk);
+                            data_packet.resize(4 + 32, 0);
+                            trace!("--> {}", types::to_hex_string(&data_packet));
+                            self.write(data_packet.as_slice())?;
+                        }
+
+                        let packet = ResponsePacket::try_from(self.read_packet()?)?;
+                        assert_eq!(packet.has_data, false);
+                        if let Some(status) = packet.status {
+                            panic!("unexpected status {:?}", &status);
+                        }
+                        assert_eq!(packet.tag, types::ResponseTag::Generic);
+                        assert_eq!(packet.parameters.len(), 1);
+                        assert_eq!(packet.parameters[0].to_le_bytes()[0], command.header()[0]);
+
+                        Ok(types::Response::Generic)
+                    }
                     _ => todo!()
                 }
             }

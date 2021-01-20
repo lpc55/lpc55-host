@@ -126,6 +126,10 @@ impl Bootloader {
         }
     }
 
+    pub fn receive_sb_file(&self, data: Vec<u8>) {
+        let _response = self.protocol.call(&Command::ReceiveSbFile { data }).expect("success");
+    }
+
     pub fn write_memory(&self, address: usize, data: Vec<u8>) {
         let _response = self.protocol.call(&Command::WriteMemory { address, data }).expect("success");
     }

@@ -394,7 +394,7 @@ pub enum Command {
     // 0 = internal flash
     // 1 = QSPI0 memory (unused for LPC55)
     GetProperty ( Property ),
-    ReceiveSbFile,
+    ReceiveSbFile { data: Vec<u8> },
     Call,
     Reset,
     FlashReadResource,
@@ -429,6 +429,7 @@ impl Command {
             (_, Tag::Reset) => DataPhase::None,
 
             (Command::WriteMemory { address: _, data }, _) => DataPhase::CommandData(data.clone()),
+            (Command::ReceiveSbFile { data }, _) => DataPhase::CommandData(data.clone()),
 
             (Command::Keystore(KeystoreOperation::Enroll), _) => DataPhase::None,
             (Command::Keystore(KeystoreOperation::ReadKeystore), _) => DataPhase::ResponseData,
@@ -454,6 +455,9 @@ impl Command {
             }
             WriteMemory { address, data } => {
                 vec![address as u32, data.len() as u32, 0]
+            }
+            ReceiveSbFile { data } => {
+                vec![data.len() as _]
             }
             Reset => {
                 vec![]
@@ -498,7 +502,7 @@ impl Command {
             FillMemory => Tag::FillMemory,
             FlashSecurityDisable => Tag::FlashSecurityDisable,
             GetProperty(_) => Tag::GetProperty,
-            ReceiveSbFile => Tag::ReceiveSbFile,
+            ReceiveSbFile { data: _ } => Tag::ReceiveSbFile,
             Call => Tag::Call,
             Reset => Tag::Reset,
             FlashReadResource => Tag::FlashReadResource,

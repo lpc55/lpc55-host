@@ -1,3 +1,5 @@
+//! https://github.com/NXPmicro/spsdk/blob/020a983e53769fe16cb9b49395d56f0201eccca6/spsdk/mboot/error_codes.py
+
 use core::convert::TryFrom;
 
 use serde::{Deserialize, Serialize};
@@ -84,7 +86,8 @@ generate! { FlashDriverError:
     UnknownProperty = 6,
     EraseKeyError = 7,
     ExecuteOnlyRegion = 8,
-    UnsupportedApi = 15,
+    CommandNotSupported = 15,
+    InfieldScratchVersionBehindActualInfieldVersion = 32,
 }
 
 generate! { PropertyStoreError:

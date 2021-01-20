@@ -8,8 +8,6 @@ exclude = ["pkg"]
 
 [[bin]]
 name = "lpc55"
-# not sure why this is needed in CI but not locally
-path = "./src/bin/lpc55/main.rs"
 required-features = ["cli"]
 
 [dependencies]
@@ -22,6 +20,7 @@ clap = { version = "2.33.3", default-features = false, optional = true }
 ctr = "0.6.0"
 delog = "0.1.0-alpha.2"
 enum-iterator = "0.6.0"
+hex = "0.4.2"
 hmac = "0.10.1"
 hidapi = { version = "1.2.3", default-features = false, features = ["linux-static-hidraw"] }
 nom = { version = "6" }
@@ -56,9 +55,9 @@ lazy_static = "1.4.0"
 [features]
 default = ["cli"]
 cli = ["clap", "http"]
-cli-iompletion = []
 http = ["tiny_http"]
 
 [patch.crates-io]
 # uriparse = { path = "../uriparse-rs" }
+# pkcs11-uri = { path = "../pkcs11-uri" }
 pkcs11-uri = { git = "https://github.com/nickray/pkcs11-uri", branch = "main" }

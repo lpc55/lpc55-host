@@ -58,8 +58,11 @@ pub struct Config {
     /// Path to the input image (can be ELF, signed or unsigned BIN)
     pub image: String,
 
-    /// Path to place signed SB2.1 file
+    /// Path to place signed binary
     pub signed_image: String,
+
+    /// Path to place signed SB2.1 file
+    pub secure_boot_image: String,
     // pub factory: FactoryArea,
     // pub field: FieldAreaPage,
     // pub keystore: Keystore,
