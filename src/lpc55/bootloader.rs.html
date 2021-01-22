@@ -276,6 +276,8 @@
 <span id="273">273</span>
 <span id="274">274</span>
 <span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The bootloader interface</span>
 
@@ -310,6 +312,7 @@
     <span class="ident">FlashDriver</span>(<span class="ident">error</span>::<span class="ident">FlashDriverError</span>),
     <span class="ident">PropertyStore</span>(<span class="ident">error</span>::<span class="ident">PropertyStoreError</span>),
     <span class="ident">CrcChecker</span>(<span class="ident">error</span>::<span class="ident">CrcCheckerError</span>),
+    <span class="ident">SbLoader</span>(<span class="ident">error</span>::<span class="ident">SbLoaderError</span>),
     <span class="ident">Unknown</span>(<span class="ident">u32</span>),
 }
 
@@ -548,7 +551,8 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_all_properties</span>() {
-    <span class="kw">let</span> (<span class="ident">vid</span>, <span class="ident">pid</span>) <span class="op">=</span> (<span class="number">0x1fc9</span>, <span class="number">0x0021</span>);
+    <span class="comment">// let (vid, pid) = (0x1fc9, 0x0021);</span>
+    <span class="kw">let</span> (<span class="ident">vid</span>, <span class="ident">pid</span>) <span class="op">=</span> (<span class="number">0x1209</span>, <span class="number">0xb000</span>);
     <span class="kw">let</span> <span class="ident">bootloader</span> <span class="op">=</span> <span class="ident">Bootloader</span>::<span class="ident">try_new</span>(<span class="ident">vid</span>, <span class="ident">pid</span>).<span class="ident">unwrap</span>();
     <span class="ident">insta</span>::<span class="macro">assert_debug_snapshot</span><span class="macro">!</span>(<span class="ident">bootloader</span>.<span class="ident">all_properties</span>());
 }

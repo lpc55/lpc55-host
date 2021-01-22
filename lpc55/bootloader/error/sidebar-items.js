@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["CrcCheckerError",""],["ErrorGroup",""],["FlashDriverError",""],["GenericError",""],["PropertyStoreError",""]]});
+initSidebarItems({"enum":[["CrcCheckerError",""],["ErrorGroup",""],["FlashDriverError",""],["GenericError",""],["PropertyStoreError",""],["SbLoaderError",""]]});

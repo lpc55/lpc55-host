@@ -19,7 +19,7 @@
 a corrupt / missing firmware makes the MCU enter the bootloader, one way
 to do so is the following specification, which erases the first flash page.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
 [[<span class="ident">commands</span>]]
 <span class="ident">cmd</span> <span class="op">=</span> <span class="string">&quot;Erase&quot;</span>
 <span class="ident">start</span> <span class="op">=</span> <span class="number">0</span>
@@ -28,7 +28,7 @@ to do so is the following specification, which erases the first flash page.</p>
 <p>To securely flash firmware, it is advised to write the first page last, so that
 if flashing goes wrong or is interrupted, the MCU stays in the bootloader on next boot.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
 [[<span class="ident">commands</span>]]
 <span class="ident">cmd</span> <span class="op">=</span> <span class="string">&quot;Erase&quot;</span>
 <span class="ident">start</span> <span class="op">=</span> <span class="number">0</span>
@@ -53,7 +53,7 @@ if flashing goes wrong or is interrupted, the MCU stays in the bootloader on nex
 <p>The syntax is such that if source data and destination flash were slices
 <code>src: &amp;[u8]</code> and <code>dst: &amp;mut [u8]</code>, this command would do:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
 <span class="kw">let</span> <span class="ident">src_len</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">cmd</span>.<span class="ident">src</span>;
 <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">len</span>.<span class="ident">unwrap_or</span>(<span class="ident">src_len</span>);
 <span class="ident">dst</span>[<span class="ident">cmd</span>.<span class="ident">dst</span>..][..<span class="ident">len</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[<span class="ident">cmd</span>.<span class="ident">src</span>..][..<span class="ident">len</span>]);</pre></div>
