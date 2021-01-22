@@ -1513,6 +1513,34 @@ mod test_aes_keywrap {
         ];
         assert_eq!(&msg, aes_unwrap(key, &aes_wrap(key, &msg)).as_slice());
     }
+
+    #[test]
+    fn test_vectors_rfc_3394() {
+        // 256 bit key with...
+        let kek = hex::decode("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F")
+            .unwrap();
+
+        // ..128 bit data
+        let msg = hex::decode("00112233445566778899AABBCCDDEEFF").unwrap();
+        let mut expected = String::from("64E8C3F9CE0F5BA2 63E9777905818A2A 93C8191E7D6E8AE7");
+        expected.retain(|c| !c.is_whitespace());
+        assert_eq!(
+            hex::decode(expected).unwrap(),
+            aes_wrap(kek.clone().try_into().unwrap(), &msg),
+        );
+
+        // ...256 bit data
+        let kek = hex::decode("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F")
+            .unwrap();
+        let msg = hex::decode("00112233445566778899AABBCCDDEEFF000102030405060708090A0B0C0D0E0F").unwrap();
+        let mut expected = String::from(
+            "28C9F404C4B810F4 CBCCB35CFB87F826 3F5786E2D80ED326 CBC7F0E71A99F43B FB988B9B7A02DD21");
+        expected.retain(|c| !c.is_whitespace());
+        assert_eq!(
+            hex::decode(expected).unwrap(),
+            aes_wrap(kek.clone().try_into().unwrap(), &msg),
+        );
+    }
 }
 
 #[derive(Clone, Debug, Default)]
