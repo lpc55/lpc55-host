@@ -48,6 +48,8 @@
 <span id="45">45</span>
 <span id="46">46</span>
 <span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Host-side library to interact with and provision NXP LPC55 devices.</span>
 <span class="doccomment">//!</span>
@@ -78,14 +80,16 @@
 <span class="attribute">#[<span class="ident">macro_use</span>(<span class="ident">hex_str</span>, <span class="ident">hexstr</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">delog</span>;
 
-
 <span class="comment">// modules</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bootloader</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">crypto</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">protected_flash</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">rot_fingerprints</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">secure_binary</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">signing</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">signed_binary</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">signature</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">util</span>;
 
 <span class="comment">// optional modules</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http&quot;</span>)]</span>

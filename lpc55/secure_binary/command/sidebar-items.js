@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["BootCommand",""],["BootCommandDescriptor","Commands used to define SB2.1 files"],["BootTag",""]],"struct":[["RawBootCommand",""]]});
