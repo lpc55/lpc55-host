@@ -1,0 +1,12 @@
+# smartcardhsm-based keys
+# rot_fingerprint = "6A528D30 4FD8F9B7 D06FF7C4 32DFD512 09668660 6E48193B 2EB21102 0B7FD7C0"
+# file-based keys
+rot_fingerprint = "D826E2FD 44F5C254 BC58C62E BF96A938 95C19DC2 25810C95 C8B9E6FD 9F7CC9CB"
+
+[usb_id]
+vid = 0x1209
+pid = 0xb000
+
+[secure_boot_configuration]
+# puf_enrollment_disabled = true
+dice_computation_disabled = false

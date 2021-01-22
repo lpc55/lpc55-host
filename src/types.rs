@@ -4,24 +4,6 @@ use serde::{Deserialize, Serialize};
 
 // pub use crate::bootloader::error::*};
 
-pub fn to_hex_string(bytes: &[u8]) -> String {
-    // delog::render::render_arguments(format!("{}", hex_str!(bytes, 4)))
-    const HEX_CHARS_UPPER: &[u8; 16] = b"0123456789ABCDEF";
-    let mut string = String::new();
-    let mut first = true;
-    for chunk in bytes.chunks(4) {
-        if !first {
-            string.push(' ');
-        }
-        first = false;
-        chunk.iter().for_each(|byte| {
-            string.push(HEX_CHARS_UPPER[(byte >> 4) as usize] as char);
-            string.push(HEX_CHARS_UPPER[(byte & 0xF) as usize] as char);
-        });
-    };
-    string
-}
-
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
 pub enum Property {

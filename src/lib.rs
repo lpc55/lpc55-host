@@ -27,14 +27,16 @@ extern crate log;
 #[macro_use(hex_str, hexstr)]
 extern crate delog;
 
-
 // modules
 pub mod bootloader;
+pub mod crypto;
 pub mod protected_flash;
 pub mod rot_fingerprints;
 pub mod secure_binary;
-pub mod signing;
+pub mod signed_binary;
+pub mod signature;
 pub mod types;
+pub mod util;
 
 // optional modules
 #[cfg(feature = "http")]

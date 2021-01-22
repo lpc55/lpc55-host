@@ -1,4 +1,29 @@
 //! Generator and parser for signed firmware and SB (secure binary) files
+//!
+//! The format is as follows:
+//!
+//! Sb21HeaderPart:
+//! - Sb2Header (6 blocks, 96B)
+//! - DigestHMAC (2 blocks, 32B = HMAC(boot tag HMAC | section HMAC))
+//! - Keyblob (5 blocks, 80B)
+//! - CertificateBlockHeader (2 blocks, 32B)
+//! - Certificate length (4B)
+//! - Certificate DER data (word-padded)
+//! - ROT fingerprints (8 blocks, 4x32B = 128B)
+//! - Signature (16 blocks, 256B = 2048 bits)
+//!
+//! Sb21CommandPart:
+//! - encrypted boot tag (16B)
+//! - boot tag HMAC (32B = HMAC(encrypted boot tag))
+//! - section HMAC (32B = HMAC(encrypted command section))
+//! - encrypted command section (variable, block padded)
+//!
+//! Key blob is the AES-keywrap (with SBKEK) of a 32B "data encryption key" (DEK)
+//! and a 32B "message authentication key" (MAC). Keywrap adds an 8B tag, which is
+//! further block padded with 8 zeros to 80B.
+//!
+//! The RSA2k signature is over all that precedes it, in particular the HMAC of the
+//! HMACs of the command part.
 
 #![allow(unused_imports)]
 
@@ -11,28 +36,21 @@ use x509_parser::certificate::X509Certificate;
 
 use nom::{
     branch::alt,
-    bytes::complete::{
-        tag, take, take_while_m_n,
-    },
-    combinator::{
-        map, value, verify,
-    },
-    multi::{
-        fill,
-    },
-    number::complete::{
-        u8, be_u16, le_u16, be_u32, le_u32, le_u64, le_u128,
-    },
+    bytes::complete::{tag, take, take_while_m_n},
+    combinator::{map, value, verify},
+    multi::fill,
+    number::complete::{u8, be_u16, le_u16, be_u32, le_u32, le_u64, le_u128},
     sequence::tuple,
 };
 
-use crate::protected_flash::{is_default, hex_serialize, hex_deserialize_256, hex_deserialize_32};
-use crate::signing::{SigningKey, SigningKeySource};
+use crate::crypto::{crc32, hmac, nxp_aes_ctr_cipher, sha256};
+use crate::util::{is_default, hex_serialize, hex_deserialize_256, hex_deserialize_32, word_padded};
+use crate::signature::{SigningKey, SigningKeySource};
 use signature::Signature as _;
 
-pub mod crc;
+pub mod command;
 
-const IMAGE_ALIGNMENT: usize = 4;
+use command::{BootCommand, BootCommandDescriptor};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
@@ -54,22 +72,39 @@ pub struct Config {
     #[serde(serialize_with = "hex_serialize")]
     #[serde(deserialize_with = "hex_deserialize_256")]
     #[serde(default)]
+    /// Encryption key for SB2.1 command sections.
+    ///
+    /// If left out, `[0u8; 32]` is used.
     pub dek: [u8; 32],
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
     #[serde(deserialize_with = "hex_deserialize_256")]
     #[serde(default)]
+    /// MAC key for SB2.1 command sections.
+    ///
+    /// If left out, `[0u8; 32]` is used.
     pub mac: [u8; 32],
     #[serde(skip_serializing_if = "is_default")]
     #[serde(default)]
+    /// Nonce for the "AES-CTR-in-NXP-variant" encryption of the firmware.
+    ///
+    /// If left out, random values are chosen.
     pub nonce: [u32; 4],
     #[serde(skip_serializing_if = "is_default")]
     #[serde(default)]
+    /// Timestamp in microseconds since 2000-01-01
+    ///
+    /// If left out of configuration, the current timestamp is used.
     pub timestamp: u64,
     #[serde(skip_serializing_if = "is_default")]
     #[serde(default)]
     #[serde(serialize_with = "hex_serialize")]
     #[serde(deserialize_with = "hex_deserialize_32")]
+    /// NXP fills the last 4 bytes of `Sb2Header` with random values.
+    ///
+    /// For the non-private firmware case (where encryption is a farce, since SBKEK is well-known),
+    /// if this is left out, we use `[0u8; 4]`. The configuration option exists to match `elftosb`
+    /// generated SB2.1 containers with ours (by copying their choice).
     pub random_junk: [u8; 4],
 
     /// Paths to the four root certificates.
@@ -77,7 +112,7 @@ pub struct Config {
     /// Encoded as X.509 DER files.
     pub root_cert_filenames: [String; 4],
 
-    /// Path to the input image (can be ELF, signed or unsigned BIN)
+    /// Path to the input image (can be ~~ELF,~~ signed or unsigned BIN)
     pub image: String,
 
     /// Path to place signed binary
@@ -85,7 +120,7 @@ pub struct Config {
 
     /// Path to place signed SB2.1 file
     pub secure_boot_image: String,
-    // pub factory: FactoryArea,
+    // pub factory: FactorySettings,
     // pub field: FieldAreaPage,
     // pub keystore: Keystore,
 
@@ -148,357 +183,6 @@ pub fn sniff(file: &[u8]) -> Result<Filetype> {
     })
 }
 
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum BootTag {
-    Nop = 0,
-    Tag = 1,
-    Load = 2,
-    Fill = 3,
-    Jump = 4,
-    Call = 5,
-    ChangeBootMode = 6,
-    Erase = 7,
-    Reset = 8,
-    MemoryEnable = 9,
-    ProgramPersistentBits = 0xA,
-    CheckFirmwareVersion = 0xB,
-    KeystoreToNonvolatile = 0xC,
-    KeystoreFromNonvolatile = 0xD,
-}
-
-// struct boot_command_t
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct RawBootCommand {
-    pub checksum: u8,
-    pub tag: u8,
-    pub flags: u16,
-    pub address: u32,
-    pub count: u32,
-    pub data: u32,
-}
-
-impl RawBootCommand {
-    pub fn to_bytes(&self) -> [u8; 16] {
-        let mut buffer = Vec::new();
-        buffer.push(0);
-        buffer.push(self.tag);
-        buffer.extend_from_slice(self.flags.to_le_bytes().as_ref());
-        buffer.extend_from_slice(self.address.to_le_bytes().as_ref());
-        buffer.extend_from_slice(self.count.to_le_bytes().as_ref());
-        buffer.extend_from_slice(self.data.to_le_bytes().as_ref());
-        let checksum = buffer[1..].iter().fold(0x5au8, |acc, x| acc.wrapping_add(*x));
-        buffer[0] = checksum;
-        buffer.try_into().unwrap()
-    }
-
-    pub fn from_bytes(bytes: &[u8]) -> nom::IResult<&[u8], Self, ()> {
-        let (i, (
-            checksum,
-            tag,
-            flags,
-            address,
-            count,
-            data,
-        )) = tuple((
-            u8,
-            u8,
-            le_u16,
-            le_u32,
-            le_u32,
-            le_u32,
-        ))(bytes)?;
-
-        // by previous, bytes.len() >= 16
-        info!("raw boot command: {}", hex_str!(&bytes[..16]));
-        let calculated_checksum = bytes[1..16].iter().fold(0x5au8, |acc, x| acc.wrapping_add(*x));
-        assert_eq!(calculated_checksum, checksum);
-
-        Ok((i, Self { checksum, tag, flags, address, count, data }))
-    }
-}
-
-/// Commands used to define SB2.1 files
-///
-/// Currently, we only need to erase and load (partial) files.
-///
-/// ### Example
-/// Since there does not seem to exit a command to enter the bootloader, but
-/// a corrupt / missing firmware makes the MCU enter the bootloader, one way
-/// to do so is the following specification, which erases the first flash page.
-/// ```ignore
-/// [[commands]]
-/// cmd = "Erase"
-/// start = 0
-/// end = 512
-/// ```
-///
-/// ### Example
-/// To securely flash firmware, it is advised to write the first page last, so that
-/// if flashing goes wrong or is interrupted, the MCU stays in the bootloader on next boot.
-/// ```ignore
-/// [[commands]]
-/// cmd = "Erase"
-/// start = 0
-/// end = 0x8_9800
-///
-/// [[commands]]
-/// ## write firmware, skipping first flash page
-/// cmd = "Load"
-/// file = "example.sb2"
-/// src = 512
-/// dst = 512
-///
-/// [[commands]]
-/// ## write first flash page of firmware
-/// cmd = "Load"
-/// file = "example.sb2"
-/// len = 512
-/// ```
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-#[serde(tag = "cmd")]
-pub enum BootCommandDescriptor {
-    /// Maps to `BootCommand::EraseRegion`, but `start` and `end` are given in bytes.
-    Erase { start: u32, end: u32 },
-    /// Load (part) of the data reference in `source` to flash.
-    ///
-    /// The syntax is such that if source data and destination flash were slices
-    /// `src: &[u8]` and `dst: &mut [u8]`, this command would do:
-    /// ```ignore
-    /// let src_len = src.len() - cmd.src;
-    /// let len = cmd.len.unwrap_or(src_len);
-    /// dst[cmd.dst..][..len].copy_from_slice(&src[cmd.src..][..len]);
-    /// ```
-    Load {
-        file: String,
-
-        /// source offset in bytes (default 0)
-        #[serde(default)]
-        #[serde(skip_serializing_if = "is_default")]
-        src: u32,
-
-        /// destination offset in bytes (default 0)
-        #[serde(default)]
-        #[serde(skip_serializing_if = "is_default")]
-        dst: u32,
-
-        /// number of bytes to copy
-        // #[serde(default)]
-        #[serde(skip_serializing_if = "Option::is_none")]
-        len: Option<u32>,
-    },
-}
-
-impl<'a> TryFrom<&'a BootCommandDescriptor> for BootCommand {
-    type Error = anyhow::Error;
-
-    fn try_from(cmd: &'a BootCommandDescriptor) -> anyhow::Result<BootCommand> {
-
-        use BootCommandDescriptor::*;
-        Ok(match cmd {
-            Erase { start, end } => BootCommand::EraseRegion { address: *start, bytes: core::cmp::max(0, *end - *start) },
-            Load { file, src, dst, len } => {
-                let image = fs::read(file)?;
-
-                if let Some(len) = len {
-                    if (image.len() as u32) < len + src {
-                        return Err(anyhow::anyhow!("image too small!"));
-                    }
-
-                }
-                let src_len = image.len() - *src as usize;
-                let len = len.unwrap_or(src_len as u32) as usize;
-                let data = Vec::from(&image[*src as usize..][..len]);
-                BootCommand::Load { address: *dst, data }
-
-            }
-        })
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-// The LPC55xx ROM loader provides the support for the following bootloader commands:
-// * WriteMemory, FillMemory, ConfigureMemory, FlashEraseAll, FlashEraseRegion,
-// SB 2.1 introduces two new commands that can be used to prevent firmware roll-back:
-// * SecureFirmwareVersion, NonsecureFirmwareVersion
-pub enum BootCommand {
-    // example: 5A|00|0000|00000000|00000000|00000000
-    Nop,
-    // example: F3|01|0180|00000000|B2640000|01000000
-    Tag { last: bool, tag: u32, flags: u32, cipher_blocks: u32 },
-    // example: 8F|02|0000|00000000|00020000|A6D9585A
-    Load { address: u32, data: Vec<u8> },
-    // example?
-    /// See ELFTOSB document for explanations of what is supposed to happen when
-    /// address is not on a word boundary.
-    ///
-    /// In any case, if a byte is supposed to be repeated, it must be replicated
-    /// four times in the `pattern`, e.g. "fill with 0xF1" => pattern = `0xf1f1_f1f1`.
-    Fill { address: u32, bytes: u32, pattern: u32 },
-    // example?
-    EraseAll,
-    // example: 01|07|0000|00000000|00980800|00000000
-    // NB: this command is interpreted as "erase all flash sectors that intersect with the
-    // specified region"
-    EraseRegion { address: u32, bytes: u32 },
-    CheckSecureFirmwareVersion { version: u32 },
-    CheckNonsecureFirmwareVersion { version: u32 },
-}
-
-impl BootCommand {
-    pub fn to_bytes(&self) -> Vec<u8> {
-        use BootCommand::*;
-        let mut cmd: RawBootCommand = Default::default();
-        match self {
-            Nop => {
-                cmd.tag = BootTag::Nop as u8;
-                Vec::from(cmd.to_bytes().as_ref())
-            }
-            Tag { last, tag, flags, cipher_blocks } => {
-                cmd.tag = BootTag::Tag as u8;
-                if *last {
-                    cmd.flags = 1;
-                } else {
-                    cmd.flags = 0x8001;
-                }
-                cmd.address = *tag;
-                cmd.data = *flags;
-                cmd.count = *cipher_blocks;
-                Vec::from(cmd.to_bytes().as_ref())
-            }
-            Load { address, data } => {
-                cmd.tag = BootTag::Load as u8;
-                cmd.address = *address;
-                cmd.count = data.len() as u32;
-                // this takes advantage of the fact that our crc32
-                // adds "padding till multiple of 16 bytes with zeros"
-                // to the CRC calculation.
-                cmd.data = crc::crc32(data);
-                let blocks = (data.len() + 15) / 16;
-                // let padding = blocks*16 - data.len();
-                let mut vec = Vec::from(cmd.to_bytes().as_ref());
-                vec.extend_from_slice(data.as_ref());
-                // add padding
-                // NB: NXP says to fill with random bytes, I don't see the point.
-                // We're not actually encrypting anyway, and AES is supposed to be a... cipher ;)
-                vec.resize(32 + 16*blocks, 0);
-                vec
-            }
-            EraseAll => {
-                cmd.tag = BootTag::Erase as u8;
-                cmd.flags = 1;
-                Vec::from(cmd.to_bytes().as_ref())
-            }
-            EraseRegion { address, bytes } => {
-                cmd.tag = BootTag::Erase as u8;
-                cmd.address = *address;
-                cmd.count = *bytes;
-                Vec::from(cmd.to_bytes().as_ref())
-            }
-            CheckSecureFirmwareVersion { version } => {
-                cmd.tag = BootTag::CheckFirmwareVersion as u8;
-                cmd.count = *version;
-                Vec::from(cmd.to_bytes().as_ref())
-            }
-            CheckNonsecureFirmwareVersion { version } => {
-                cmd.tag = BootTag::CheckFirmwareVersion as u8;
-                cmd.address = 1;
-                cmd.count = *version;
-                Vec::from(cmd.to_bytes().as_ref())
-            }
-            _ => todo!(),
-        }
-    }
-    pub fn from_bytes(bytes: &[u8]) -> nom::IResult<&[u8], Self, ()> {
-        let (i, raw) = RawBootCommand::from_bytes(bytes)?;
-        Ok(match raw.tag {
-            // BootTag::Nop => {
-            0 => {
-                // todo? check everything zero except checksum
-                (i, Self::Nop)
-            }
-            // BootTag::Tag => {
-            1 => {
-                (i, Self::Tag {
-                    last: (raw.flags & 1) != 0,
-                    tag: raw.address,
-                    flags: raw.data,
-                    cipher_blocks: raw.count,
-                })
-            }
-            // BootTag::Load => {
-            2 => {
-                let blocks = (raw.count as usize + 15) / 16;
-                let (i, data_ref) = take(blocks * 16)(i)?;
-                let data = Vec::from(&data_ref[..raw.count as usize]);
-                if raw.count as usize != data_ref.len() {
-                    info!("surplus random bytes skipped when reading: {}", hex_str!(&data_ref[raw.count as usize..]));
-                }
-                // verify "CRC-32" calculation:
-                // raw.data == CRC over entire contents of `data_ref`, including padding
-                let calculated_crc = crc::crc32(data_ref);
-                assert_eq!(calculated_crc, raw.data);
-                (i, Self::Load {
-                    address: raw.address,
-                    // bytes: data.len(),
-                    data,
-                })
-            }
-            // BootTag::Fill => {
-            3 => {
-                (i, Self::Fill {
-                    address: raw.address,
-                    bytes: raw.count,
-                    pattern: raw.data,
-                })
-            }
-            // BootTag::Erase => {
-            7 => {
-                let erase_all = (raw.flags & 1) != 0;
-                let disable_flash_security_state = (raw.flags & 2) != 0;
-                // not supported yet
-                assert!(!disable_flash_security_state);
-                let memory_controller_id = (raw.flags >> 8) & 0b1111;
-                // expect "internal" flash"
-                assert_eq!(memory_controller_id, 0x0);
-
-                if erase_all {
-                    // raw.address and raw.count are ignored
-                    (i, Self::EraseAll)
-                } else {
-                    (i, Self::EraseRegion {
-                        address: raw.address,
-                        bytes: raw.count,
-                    })
-                }
-            }
-            // BootTag::CheckFirmwareVersion => {
-            0xB => {
-                // header.m_address = ENDIAN_HOST_TO_LITTLE_U32((uint32_t)m_versionType);
-                // header.m_count = ENDIAN_HOST_TO_LITTLE_U32(m_version);
-                // SecureVersion = 0x0,
-                // NonSecureVersion = 0x1,
-                let nonsecure_version = (raw.address & 1) != 0;
-                // header.m_address = ENDIAN_HOST_TO_LITTLE_U32((uint32_t)m_versionType);
-                // header.m_count = ENDIAN_HOST_TO_LITTLE_U32(m_version);
-                if nonsecure_version {
-                    (i, Self::CheckNonsecureFirmwareVersion { version: raw.count })
-                } else {
-                    (i, Self::CheckSecureFirmwareVersion { version: raw.count })
-                }
-            }
-            _ => todo!("implement other boot commands"),
-        })
-    }
-}
-
-pub enum CertificateIndex {
-    A = 0,
-    B = 1,
-    C = 2,
-    D = 3,
-}
-
 #[derive(Clone, Debug)]
 pub struct Certificates {
     certificate_ders: [Vec<u8>; 4],
@@ -522,43 +206,6 @@ impl Certificates {
         // no panic, DER is verified in constructor
         X509Certificate::from_der(&self.certificate_ders[i]).unwrap().1
     }
-}
-
-fn hmac(mac_key: [u8; 32], data: &[u8]) -> [u8; 32] {
-    use sha2::Sha256;
-    use hmac::{Hmac, Mac, NewMac};
-
-    type HmacSha256 = Hmac<Sha256>;
-
-    let mut mac = HmacSha256::new_varkey(&mac_key).unwrap();
-    mac.update(data);
-    let result = mac.finalize();
-
-    let mut digest = [0u8; 32];
-    digest.copy_from_slice(&result.into_bytes());
-    digest
-}
-
-fn nxp_aes_ctr_cipher(ciphertext: &[u8], dek: [u8; 32], nonce: [u32; 4], offset_blocks: u32) -> Vec<u8> {
-    type Aes256Ctr = ctr::Ctr32BE<aes::Aes256>;
-    use ctr::cipher::SyncStreamCipher;
-    use ctr::cipher::stream::NewStreamCipher;
-
-    let mut plaintext = Vec::from(ciphertext);
-
-    for (i, chunk) in plaintext.chunks_mut(16).enumerate() {
-        // see SB2Image.cpp:229
-        let nonce3_offset = offset_blocks + (i as u32);
-        let mut nonce2 = [0u8; 16];
-        nonce2[..4].copy_from_slice(nonce[0].to_le_bytes().as_ref());
-        nonce2[4..8].copy_from_slice(&nonce[1].to_le_bytes().as_ref());
-        nonce2[8..12].copy_from_slice(&nonce[2].to_le_bytes().as_ref());
-        nonce2[12..16].copy_from_slice(&(nonce[3] + nonce3_offset).to_le_bytes().as_ref());
-        let mut cipher = Aes256Ctr::new(dek.as_ref().into(), nonce2.as_ref().into());
-        cipher.apply_keystream(chunk);
-    }
-
-    plaintext
 }
 
 #[derive(Clone, Debug)]
@@ -700,7 +347,6 @@ impl UnsignedSb21File {
             product: config.product,
             random_junk: config.random_junk,
         };
-        dbg!("aaa");
 
         let mut certificates = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
         for (certificate, filename) in certificates.iter_mut().zip(config.root_cert_filenames.iter()) {
@@ -710,16 +356,13 @@ impl UnsignedSb21File {
             assert!(certificate.len() > 100);
         }
         let certificates = Certificates::try_from_ders(certificates)?;
-        dbg!("bbb");
 
         let keyblob = Keyblob { dek: config.dek, mac: config.mac };
-        dbg!("ccc");
 
         let mut commands: Vec<BootCommand> = Vec::new();
         for command_descriptor in config.commands.iter() {
             commands.push(command_descriptor.try_into()?);
         }
-        dbg!("ddd");
 
         let return_value = Self {
             parameters,
@@ -830,7 +473,8 @@ impl UnsignedSb21File {
 
     pub fn signed_data_length(&self) -> usize {
         // need "padded" length here
-        let certificate_length = 16*((self.certificates.certificate_ders[0].len() + 15)/16);
+        // let certificate_length = 16*((self.certificates.certificate_ders[0].len() + 15)/16);
+        let certificate_length = 4*((self.certificates.certificate_ders[0].len() + 3)/4);
 
         // let header_blocks = 16;
         // let keyblob_blocks = 5;
@@ -874,15 +518,39 @@ impl UnsignedSb21File {
             self.boot_tag_offset_blocks() as u32 + 5,
         );
 
-        let expected_encrypted = hex::decode("F24D0184C7177577157ECFACD1F7C24B").unwrap();
-        let expected_decrypted = nxp_aes_ctr_cipher(
-            &expected_encrypted,
-            self.keyblob.dek,
-            self.parameters.nonce,
-            self.boot_tag_offset_blocks() as u32,
-        );
+        // let expected_load_command = nxp_aes_ctr_cipher(
+        //     &hex::decode("482942772afd7a89c880de80c2553ce8").unwrap(),
+        //     self.keyblob.dek,
+        //     self.parameters.nonce,
+        //     self.boot_tag_offset_blocks() as u32 + 6,
+        // );
+        // 54020000 00000000 78090000 7E976AF8
+        // println!("expected load command: {}", hex_str!(&expected_load_command, 4));
+        // 03020000 00000000 78090000 FD96E7AC (...)
+        // println!("actual load command: {}", hex_str!(&self.commands[1].to_bytes(), 4));
+        // panic!();
+
+        // let expected_encrypted = hex::decode("F24D0184C7177577157ECFACD1F7C24B").unwrap();
+        // let expected_decrypted = nxp_aes_ctr_cipher(
+        //     &expected_encrypted,
+        //     self.keyblob.dek,
+        //     self.parameters.nonce,
+        //     self.boot_tag_offset_blocks() as u32,
+        // );
         // expected: DE010180 00000000 01000000 01000000
-        println!("expected: {}", hex_str!(&expected_decrypted, 4));
+        // println!("expected: {}", hex_str!(&expected_decrypted, 4));
+
+
+        // // let expected_encrypted = hex::decode("F24D0184C7177577157ECFACD1F7C24B").unwrap();
+        // let expected_encrypted = hex::decode("F05E23DC886A4418F41996FD7E20F1E1").unwrap();
+        // let expected_decrypted = nxp_aes_ctr_cipher(
+        //     &expected_encrypted,
+        //     self.keyblob.dek,
+        //     self.parameters.nonce,
+        //     self.boot_tag_offset_blocks() as u32,
+        // );
+        // // expected: DE010180 00000000 01000000 01000000
+        // println!("expected: {}", hex_str!(&expected_decrypted, 4));
 
         let last = self.commands.is_empty();
         // TODO: figure out tag and flags here
@@ -894,14 +562,14 @@ impl UnsignedSb21File {
         let flags = 0x1;
         let cipher_blocks = encrypted_section.len() as u32 / 16;
         let boot_tag = BootCommand::Tag { last, tag, flags, cipher_blocks };
-        println!("boot tag: {}", hex_str!(&boot_tag.to_bytes(), 4));
+        // println!("boot tag: {}", hex_str!(&boot_tag.to_bytes(), 4));
         let encrypted_boot_tag = nxp_aes_ctr_cipher(
             &boot_tag.to_bytes(),
             self.keyblob.dek,
             self.parameters.nonce,
             self.boot_tag_offset_blocks() as u32,
         );
-        println!("encr tag: {}", hex_str!(&encrypted_boot_tag, 4));
+        // println!("encr tag: {}", hex_str!(&encrypted_boot_tag, 4));
         // boot tag: 5D010000 00000000 01000000 01000000
         // encr tag: 714D0004 C7177577 157ECFAC D1F7C24B
         // expected: F24D0184 C7177577 157ECFAC D1F7C24B
@@ -979,7 +647,7 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
             info!("  junk: {}", hexstr!(&header.random_junk));
             info!("HMAC:       \n{:?}", &digest_hmac);
             info!("keyblob:    \n{:?}", &keyblob);
-            info!("  KEK: {}", hexstr!(&keyblob.dek));
+            info!("  DEK: {}", hexstr!(&keyblob.dek));
             info!("  MAC: {}", hexstr!(&keyblob.mac));
             info!("CTH:        \n{:?}", &certificate_block_header);
 
@@ -999,15 +667,6 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
             // let signed_data_length = 0x5f0;
             println!("end of cert data: {:>16x}", hex_str!(&certificate_data));
             println!("signed_data_length: 0x{:x}", signed_data_length);
-
-            fn sha256(data: &[u8]) -> [u8; 32] {
-                use sha2::Digest;
-                let mut hasher = sha2::Sha256::new();
-                hasher.update(&data);
-                let mut digest = [0u8; 32];
-                digest.copy_from_slice(&hasher.finalize());
-                digest
-            }
 
             let signed_data_hash = sha256(&data[..signed_data_length as usize]);
             println!("data hash: {}", hex_str!(&signed_data_hash, 4));
@@ -1090,89 +749,11 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
                     break;
                 }
             }
-
-//             let
-//             let mut nonce = header.nonce.clone();
-//             // see SB2Image.cpp:229
-//             println!("nonce3 = {:x}", &nonce[3]);
-//             nonce[3] += 111;
-//             let mut nonce2 = [0u8; 16];
-//             nonce2[..4].copy_from_slice(nonce[0].to_le_bytes().as_ref());
-//             nonce2[4..8].copy_from_slice(&nonce[1].to_le_bytes().as_ref());
-//             nonce2[8..12].copy_from_slice(&nonce[2].to_le_bytes().as_ref());
-//             nonce2[12..16].copy_from_slice(&nonce[3].to_le_bytes().as_ref());
-//             println!("nonce2 = {}", hex_str!(&nonce2));
-//             println!("dek = {}", hex_str!(&keyblob.dek));
-//             println!("mac = {}", hex_str!(&keyblob.mac));
-
-
-//             println!("encrypted boot tag: {}", hexstr!(&i[..16]));
-//             println!("start of hmac: {}", hexstr!(&i[16..48]));
-//             println!("part 2 ofhmac: {}", hexstr!(&i[48..80]));
-//             let mut section = Vec::from(i);
-
-//             for (i, chunk) in section.chunks_mut(16).enumerate() {
-//                 let mut nonce = header.nonce.clone();
-//                 // see SB2Image.cpp:229
-//                 // println!("nonce3 = {:x}", &nonce[3]);
-//                 nonce[3] += 111 + (i as u32);
-//                 let mut nonce2 = [0u8; 16];
-//                 nonce2[..4].copy_from_slice(nonce[0].to_le_bytes().as_ref());
-//                 nonce2[4..8].copy_from_slice(&nonce[1].to_le_bytes().as_ref());
-//                 nonce2[8..12].copy_from_slice(&nonce[2].to_le_bytes().as_ref());
-//                 nonce2[12..16].copy_from_slice(&nonce[3].to_le_bytes().as_ref());
-//                 use ctr::cipher::SyncStreamCipher;
-//                 let mut cipher = Aes256Ctr::new(keyblob.dek.as_ref().into(), nonce2.as_ref().into());
-//                 cipher.apply_keystream(chunk);
-//             }
-
-//             println!("section length: {}", section.len());
-
-//             println!("start of section data: \n{:<320}", hex_str!(&section, 16, sep: "\n"));
-//             println!("end of section data: \n{:>544}", hex_str!(&section, 16, sep: "\n"));
-
-//             let i: &[u8] = &section;//.as_ref();
-
-//             let (i, boot_tag) = take::<_, _, ()>(16u8)(i)?;
-//             // let mut boot_tag = [0u8; 16];
-//             // boot_tag.copy_from_slice(boot_tag_ref);
-//             // println!("encrypted boot tag: {}", hex_str!(&boot_tag));
-//             // cipher.apply_keystream(&mut boot_tag);
-
-//             // expect: boot_tag[1] = tag = 0x01 (ROM_TAG_CMD)
-//             println!("boot tag: {}", hex_str!(boot_tag));
-//             // get:
-//             // checksum: 0xf3 (= hex((1+1+0x80+0xb2+0x64+1+0x5a) % 256) )
-//             // tag: 0x01
-//             // flags: 0x8001
-//             // address: 0x0000_0000
-//             // count: 0x0000_64B2
-//             // data: 0x0000_0001
-
-//             // looks like section HMAC table is 64 bytes.
-//             // however, a SHA256 hash is only 32 bytes.
-//             let (i, section_hmac) = take::<_, _, ()>(64u8)(i)?;
-//             println!("section HMAC: {}", hex_str!(section_hmac));
-
-//             let mut hasher = sha2::Sha256::new();
-//             hasher.update(section_hmac);
-//             let hashed_hmac = hasher.finalize();
-//             println!("hashed hmac: {}", hex_str!(&hashed_hmac));
-//             println!("HMAC: {}", hex_str!(digest_hmac));
-
-//             let (i, first_tag) = take::<_, _, ()>(16u8)(i)?;
-//             println!("first tag: {}", hex_str!(first_tag));
-//             let (i, first_tag) = take::<_, _, ()>(16u8)(i)?;
-//             println!("first tag: {}", hex_str!(first_tag));
-//             let (i, first_tag) = take::<_, _, ()>(16u8)(i)?;
-//             println!("first tag: {}", hex_str!(first_tag));
-//             let (i, first_tag) = take::<_, _, ()>(16u8)(i)?;
-//             println!("first tag: {}", hex_str!(first_tag));
         }
         _ => {}
     }
 
-    println!("crc(123456789) = 0x{:x}", crc::crc32(b"123456789"));
+    println!("crc32(123456789) = 0x{:x}", crc32(b"123456789"));
     todo!();
 }
 
@@ -1196,28 +777,6 @@ pub fn sign(config: &Config) -> Result<Vec<u8>> {
     Ok(signed_image)
 }
 
-
-fn pad_alignment(data: &mut Vec<u8>) {
-    let size = data.len();
-
-    // let padding = if (size % IMAGE_ALIGNMENT) > 0 {
-    //     IMAGE_ALIGNMENT - (size % IMAGE_ALIGNMENT)
-    // } else {
-    //     0
-    // };
-    // let aligned_size = size + padding;
-
-    // dumb C tricks for above
-    // let aligned_size = (size + (IMAGE_ALIGNMENT - 1)) & (-(IMAGE_ALIGNMENT as isize) as usize);
-    let aligned_size = (size + (IMAGE_ALIGNMENT - 1)) & (!(IMAGE_ALIGNMENT - 1));
-    data.resize(aligned_size, 0);
-}
-
-fn padded_alignment(data: &[u8]) -> Vec<u8> {
-    let mut data = Vec::from(data);
-    pad_alignment(&mut data);
-    data
-}
 
 // UM11126, Chap. 6, Table 172, "Image header"
 fn modify_header(padded_image: &mut Vec<u8>, padded_certificate_length: usize) -> usize {
@@ -1306,8 +865,8 @@ fn certificate_block_header_bytes(total_image_length: usize, aligned_cert_length
 
 fn assemble_signed_image(plain_image: &[u8], certificate_der: &[u8], rot_key_hashes: [[u8; 32]; 4], signing_key: &SigningKey) -> Vec<u8> {
 
-    let mut image = padded_alignment(plain_image);
-    let certificate = padded_alignment(certificate_der);
+    let mut image = word_padded(plain_image);
+    let certificate = word_padded(certificate_der);
 
     let total_image_size = modify_header(&mut image, certificate.len());
     println!("{:x}", total_image_size);
@@ -1780,6 +1339,8 @@ impl FullCertificateBlockHeader {
 }
 
 impl Sb2Header {
+    /// 96 bytes
+    pub const LEN: usize = 96;
     pub fn from_bytes(i: &[u8]) -> Result<Self> {
         let (remainder_len, header) = Self::inner_from_bytes(i)
             .map(|(remainder, header)| (remainder.len(), header))?;
@@ -1789,7 +1350,12 @@ impl Sb2Header {
         }
     }
 
-    fn to_bytes(&self) -> [u8; 6*16] {
+    /// 96 bytes
+    pub fn len(&self) -> usize {
+        Self::LEN
+    }
+
+    fn to_bytes(&self) -> [u8; Self::LEN] {
         let mut bytes = Vec::new();
         for entry in self.nonce.iter() {
             bytes.extend_from_slice(&entry.to_le_bytes());
@@ -1880,194 +1446,3 @@ impl Sb2Header {
         }))
     }
 }
-
-//     struct sb2_header_t
-//     {
-//         uint32_t nonce[4];            //!< Nonce for AES-CTR
-//         uint32_t reserved;            //!< Reserved, un-used
-//         uint8_t m_signature[4];       //!< 'STMP', see #ROM_IMAGE_HEADER_SIGNATURE.
-//         uint8_t m_majorVersion;       //!< Major version for the image format, see #ROM_BOOT_IMAGE_MAJOR_VERSION.
-//         uint8_t m_minorVersion;       //!< Minor version of the boot image format, see #ROM_BOOT_IMAGE_MINOR_VERSION.
-//         uint16_t m_flags;             //!< Flags or options associated with the entire image.
-//         uint32_t m_imageBlocks;       //!< Size of entire image in blocks.
-//         uint32_t m_firstBootTagBlock; //!< Offset from start of file to the first boot tag, in blocks.
-//         section_id_t m_firstBootableSectionID; //!< ID of section to start booting from.
-//         uint32_t m_offsetToCertificateBlockInBytes;     //! Offset in bytes to the certificate block header for a signed SB file.
-//         uint16_t m_headerBlocks;               //!< Size of this header, including this size word, in blocks.
-//         uint16_t m_keyBlobBlock;      //!< Block number where the key blob starts
-//         uint16_t m_keyBlobBlockCount; //!< Number of cipher blocks occupied by the key blob.
-//         uint16_t m_maxSectionMacCount; //!< Maximum number of HMAC table entries used in all sections of the SB file.
-//         uint8_t m_signature2[4];      //!< Always set to 'sgtl'
-//         uint64_t m_timestamp;         //!< Timestamp when image was generated in microseconds since 1-1-2000.
-//         version_t m_productVersion;   //!< User controlled product version.
-//         version_t m_componentVersion; //!< User controlled component version.
-//         uint32_t m_buildNumber;          //!< User controlled build number.
-//         uint8_t m_padding1[4];        //!< Padding to round up to next cipher block.
-//     };
-
-//fn assemble_sb_file(signed_image: &[u8], certificate_der: &[u8], rot_key_hashes: [[u8; 32]; 4], secret_key: &rsa::RSAPrivateKey) -> Vec<u8> {
-
-//    let mut sb = Vec::new();
-
-//    // ┌────────┬─────────────────────────┬─────────────────────────┬────────┬────────┐
-//    // │00000000│ 6d d2 d1 ac 6b 14 82 cd ┊ 2f 03 95 2a cb 48 5b 06 │m×××k•××┊/•×*×H[•│
-//    // │00000010│ 00 00 00 00 53 54 4d 50 ┊ 02 01 08 00 24 65 00 00 │0000STMP┊•••0$e00│
-//    // │00000020│ 6e 00 00 00 00 00 00 00 ┊ d0 00 00 00 06 00 08 00 │n0000000┊×000•0•0│
-//    // │00000030│ 05 00 01 00 73 67 74 6c ┊ 80 00 7e fe 4b 55 02 00 │•0•0sgtl┊×0~×KU•0│
-//    // │00000040│ 00 00 00 00 00 00 00 00 ┊ 00 00 00 00 00 00 00 00 │00000000┊00000000│
-//    // │00000050│ 00 00 00 00 00 00 00 00 ┊ 01 00 00 00 9f ab 65 6b │00000000┊•000××ek│
-
-//    // ┌────────┬─────────────────────────┬─────────────────────────┬────────┬────────┐
-//    // │00000000│ 9d ca ee 81 fe 74 84 bb ┊ 3d ec 71 03 94 5a 48 02 │×××××t××┊=×q•×ZH•│
-//    // │00000010│ 00 00 00 00 53 54 4d 50 ┊ 02 01 08 00 26 65 00 00 │0000STMP┊•••0&e00│
-//    // │00000020│ 6f 00 00 00 00 00 00 00 ┊ d0 00 00 00 06 00 08 00 │o0000000┊×000•0•0│
-//    // │00000030│ 05 00 01 00 73 67 74 6c ┊ 80 2c a7 a9 98 58 02 00 │•0•0sgtl┊×,×××X•0│
-//    // │00000040│ 00 00 00 00 00 00 00 00 ┊ 00 00 00 00 00 00 00 00 │00000000┊00000000│
-//    // │00000050│ 00 00 00 00 00 00 00 00 ┊ 01 00 00 00 3b 91 93 65 │00000000┊•000;××e│
-
-//    /////////////////////////////////
-//    // First the header
-//    // cf. SB2Image.h::sb2_header_t
-//    /////////////////////////////////
-
-//    // SB2Image.cpp:799 sets this to random, but clears bits 31 and 63 (whyy?)
-//    sb.extend32(0x81eeca9d);
-//    sb.extend32(0xbb8474fe);
-//    sb.extend32(0x0371ec3d);
-//    sb.extend32(0x02485a94);
-
-//    // padding
-//    sb.extend32(0)
-
-//    // 'STMP' magic bytes aka "signature", comes from Freescale SigmaTel portable media player
-//    // something something
-//    sb.extend_from_slice(b"STMP");
-
-//    // SB2.1 major = 2
-//    sb.push(2)
-//    // SB2.1 minor = 1
-//    sb.push(1)
-//    // m_flags: associated with entire image
-//    todo!("figure out details");
-//    sb.extend_from_slice(&[0x08, 0x00]);
-
-//    // size of entire image in blocks
-//    // NB: a block is an AES block = 16 bytes = 1 line in hexyl
-//    // example we're reverse engineering (entire sb2 file!) is 414272B = 0x6524 * 16
-//    sb.extend32(0x6526)
-
-//    // first boot tag offset in blocks  (0x6e*16 would be 1776B)
-//    sb.extend32(0x6f)
-//    // ID of bootable section (there is only one, counting starts at zero (?confirm?))
-//    sb.extend32(0)
-//    // offset to certificate block in bytes
-//    todo!("certificate block in bytes");
-//    sb.extend32(0xd0)
-//    // size of header in blocks
-//    sb.extend16(0x0006);
-//    // block number where keyblob starts: 8 --> 8*16 = 128 = 0x80
-//    sb.extend16(0x0008);
-//    // key blob block count
-//    sb.extend16(0x0005);
-//    // Maximum number of HMAC table entries used in all sections of the SB file.
-//    sb.extend16(0x0001);
-//    // 'sgtl' magic bytes aka "signature2" (this is only for SB2.1, so can "sniff" files to
-//    // determine if they're SB2.1 via signature + signature2 (STMP/sgtl)
-//    sb.extend_from_slice(b"sgtl");
-//    // 64bit timestamp since jan 1, 2000
-//    sb.extend64(0x00025898a9a72c08);
-
-//    // version_t comes from Version.h, and is supposed to be big-endian BCD (u16 each for
-//    // major/minor/patch, with one u16 padding each)
-//    // product.major
-//    sb.extend16(0);
-//    sb.extend16(0);
-//    // product.minor
-//    sb.extend16(0);
-//    sb.extend16(0);
-//    // product.patch
-//    sb.extend16(0);
-//    sb.extend16(0);
-//    // component.major
-//    sb.extend16(0);
-//    sb.extend16(0);
-//    // component.minor
-//    sb.extend16(0);
-//    sb.extend16(0);
-//    // component.patch
-//    sb.extend16(0);
-//    sb.extend16(0);
-
-//    // build number
-//    sb.extend32(1);
-//    // padding to block size 16B
-//    // they seem to want to use random numbers here (but why? the IV is already set randomly)
-//    sb.extend32(0x6593913b);
-
-
-//    // 0x50 - 0x80 = `digestHmac`
-//    //
-//    // │00000060│ 3b 0d 9f 42 3b ce 44 a7 ┊ c3 3f bc f2 fb f8 ac a5 │;_×B;×D×┊×?××××××│
-//    // │00000070│ 95 0a 6d 3d db 84 0b 59 ┊ 0d 27 9c 84 d3 04 b0 75 │×_m=××•Y┊_'×××•×u│
-//    todo!("figure out what this is an HMAC of");
-
-//    // at 0x80, key blob starts, it is 5 blocks long (=5 lines)
-//    // plaintext = DEK || MAC-key = 32B + 32B
-//    // output of AES keywrap is: 64bit block + len(plaintext) = 8 + 64 = 72 = 4.5 blocks
-//    // --> padded with zeros, this gives 5 blocks
-//    //
-//    // in this case (using the horribly python2 aes-keywrap (+pycrypto)
-//    // DEK =     '1517ba1c12e23a210debf17037c33d1706653a53d2b7f4502d11012d6d0f8d8e'
-//    // MAC key = '7917d9c678c7b018d9f817b4667773225fb210d39f10a2b54b18d91d1cd62285'
-//    // │00000080│ 62 c3 83 2a 82 a7 7f 76 ┊ 1e cd 81 54 fc f7 60 84 │b××*××•v┊•××T××`×│
-//    // │00000090│ ca 53 37 99 fb 27 b0 80 ┊ 6a 22 66 aa bc 5f 47 19 │×S7××'××┊j"f××_G•│
-//    // │000000a0│ ed a9 c1 5a ec 8d 64 b6 ┊ b8 fd fc 61 f2 5e 04 d0 │×××Z××d×┊×××a×^•×│
-//    // │000000b0│ 66 91 dc 00 3b 72 2f cb ┊ 3c 15 05 ff 7b d2 57 94 │f××0;r/×┊<••×{×W×│
-//    // │000000c0│ 07 83 51 c5 79 91 7a a6 ┊ 00 00 00 00 00 00 00 00 │•×Q×y×z×┊00000000│
-
-//    todo!("apply AES keywrap with 0xAAA..AAA to keys we like");
-
-//    // at 0xd0, 'cert' signals beginning of certificate block header
-
-
-
-
-
-//    todo!();
-//}
-//    // AN12283, section 2.3 "Signed image"
-//    // First comes a header: elftosb/common/AuthImageGenerator.h:200-210 (es_header_t)
-//    // - 0x0 ??
-//    // - 0x20 image length                <-- this and following set in elftosb/common/AuthImageGenerator.cpp:1204
-//    // - 0x24 image type: "SPT"
-//    // - 0x28 header offset
-//    // - ??
-//    // - 0x34 load address
-//    // - plain image (assume this means .bin?)
-//    // - certificate block header
-//    // - X.509 certificate
-//    // - RoT key 0 hash
-//    // - RoT key 1 hash
-//    // - RoT key 2 hash
-//    // - RoT key 3 hash
-//    // - data (TrustZone config)
-//    // - RSASSA-PKCS1-v1_5 signature
-//    //
-
-//    // Instructions:
-//    // - load .bin file, pad to 4 bytes with zeros (-> image_size)
-//    // - patch in 0x20 (image_size, u32-le), 0x24 ('04 40 00 00' = '<signed> <no-TZ> 00 00'), 0x28
-//    // = uhhh.. double check the two numbers at 0x20 and 0x28
-//    // - save padded+modified .bin file
-//    // - add certificate header block:
-//    //   'cert'    01      02     00
-//    //   build  imglen certs=1  certslen = 4 + padded DER cert len
-//    // - add cert, prefixed by its length (u32-le), padded with zeros to 4-byte alignment
-//    // - add 4x ROT SHA2 (32B each)
-//    // - add 256B RSASSA PKCS v1.5 signature
-
-//    let length = bin.len();
-//    assert!(length % 8 == 0);
-//    modify_header(&mut bin);
-//}
-//

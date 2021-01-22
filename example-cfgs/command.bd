@@ -1,0 +1,16 @@
+options {
+	flags = 0x8;
+	buildNumber = 0x1;
+	productVersion = "0.00.00";
+	componentVersion = "0.00.00";
+	secureBinaryVersion = "2.1";
+}
+
+sources {
+	signed_image = extern(0);
+}
+
+section (0) {
+	erase 0x0000..0xC00;
+    load signed_image > 0;
+}

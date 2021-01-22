@@ -1,0 +1,16 @@
+{
+    "family": "lpc55xx",
+    "inputImageFile": "./blinky-red.bin",
+    "imageLinkAddress": "0x0",
+    "outputImageExecutionTarget": "Internal flash (XIP)",
+    "outputImageAuthenticationType": "Signed",
+    "enableTrustZone": false,
+    "trustZonePresetFile": "",
+    "rootCertificate0File": "example-root-certs/ca_certificate_0.der",
+    "rootCertificate1File": "example-root-certs/ca_certificate_1.der",
+    "rootCertificate2File": "example-root-certs/ca_certificate_2.der",
+    "rootCertificate3File": "example-root-certs/ca_certificate_3.der",
+    "mainCertChainId": 0,
+    "mainCertPrivateKeyFile": "example-root-certs/ca_private_key_0.pem",
+    "masterBootOutputFile": "elftosb-blinky-red-signed.bin",
+}

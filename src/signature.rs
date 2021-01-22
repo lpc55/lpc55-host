@@ -1,7 +1,5 @@
-//! Abstraction allowing use of either keys in files or PKCS11 keys
+//! Abstraction allowing use of either PKCS1 PEM file or PKCS11 keys
 //! for signing data.
-//!
-//! TODO: compare/contrast https://github.com/iqlusioninc/signatory
 
 use std::convert::{TryFrom, TryInto};
 

@@ -1,8 +1,18 @@
 //! NXP's approach to public key fingerprints (aka ROTKH)
+//!
+//! For each RSA public key PK with modulus `n` and exponent `e`,
+//! the fingerprint is defined as
+//! ```ignore
+//! fp(PK) = SHA256(n.to_be_bytes() | e.to_be_bytes())
+//! ```
+//!
+//! For a bundle of four "root certificates" `PK1`, `PK2`, `PK3`, `PK4`, the fingerprint is defined as
+//! ```ignore
+//! fp(bundle) = SHA256(fp(PK1) | fp(PK2) | fp(PK3) | fp(PK4))
+//! ```
 
 use anyhow::Result;
-use crate::types::to_hex_string;
-use crate::protected_flash::{InfieldArea, Keystore, FactoryArea, Sha256Hash};
+use crate::protected_flash::{InfieldArea, Keystore, FactorySettings, Sha256Hash};
 
 use core::convert::TryInto;
 use std::fs;
@@ -27,7 +37,7 @@ use x509_parser::certificate::X509Certificate;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
     pub root_cert_filenames: [String; 4],
-    pub factory: FactoryArea,
+    pub factory: FactorySettings,
     pub infield: InfieldArea,
     pub keystore: Keystore,
 }
@@ -94,16 +104,16 @@ pub fn calculate(config_filename: &str) -> Result<()> {
     let rot_fingerprint = hash.finalize();
 
     config.factory.rot_fingerprint = Sha256Hash(rot_fingerprint.try_into().unwrap());
-    info!("RoT fingerprint: {}", to_hex_string(&rot_fingerprint));
+    info!("RoT fingerprint: {}", hex_str!(&rot_fingerprint, 4));
 
     debug!("loaded config: {}", serde_yaml::to_string(&config)?);
     debug!("rot_keys_status as u32: 0x{:x}", u32::from(config.infield.rot_keys_status));
     debug!("boot_configuration as u32: 0x{:x}", u32::from(config.factory.boot_configuration));
     debug!("secure_boot_configuration as u32: 0x{:x}", u32::from(config.factory.secure_boot_configuration));
 
-    debug!("factory: {}", to_hex_string(config.factory.to_bytes()?.as_ref()));
-    debug!("field: {}", to_hex_string(config.infield.to_bytes()?.as_ref()));
-    debug!("keystore: {}", to_hex_string(config.keystore.to_bytes().as_ref()));
+    debug!("factory: {}", hex_str!(config.factory.to_bytes()?.as_ref(), 4));
+    debug!("field: {}", hex_str!(config.infield.to_bytes()?.as_ref(), 4));
+    debug!("keystore: {}", hex_str!(config.keystore.to_bytes().as_ref(), 4));
 
     Ok(())
 }

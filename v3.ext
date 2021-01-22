@@ -1,0 +1,4 @@
+authorityKeyIdentifier = keyid, issuer
+basicConstraints = CA:FALSE
+# https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyCertSign

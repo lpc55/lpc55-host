@@ -4,7 +4,7 @@ use core::convert::TryInto;
 use core::fmt;
 use std::io::Write as _;
 
-use crate::types::to_hex_string;
+use crate::util::{hex_serialize, hex_deserialize_256, is_default};
 
 use serde::{Deserialize, Serialize};
 use sha2::Digest as _;
@@ -38,71 +38,17 @@ pub struct ProtectedFlash {
     pub infield: InfieldAreas,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub factory: FactoryArea,
+    pub factory: FactorySettings,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub keystore: Keystore,
 }
 
-pub fn hex_serialize<S, T>(x: &T, s: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-    T: AsRef<[u8]>,
-{
-    s.serialize_str(&to_hex_string(x.as_ref()))
-}
-
-// fn hex_deserialize<'a, 'de, D, T>(deserializer: D) -> Result<T, D::Error>
-// where
-//     D: serde::Deserializer<'de>,
-//     T: From<&'a [u8]>,
-// {
-//     let s: &str = serde::de::Deserialize::deserialize(deserializer)?;
-//     let mut s = String::from(s);
-//     s.retain(|c| !c.is_whitespace());
-//     // let v = hex::decode(&s).expect(format!("Hex decoding failed for {}", &s));
-//     let v = hex::decode(&s).expect("Hex decoding failed!");
-
-//     let t = T::from(&v);
-//     Ok(t)
-// }
-
-// NB: const-generics for this case coming soooon (Rust 1.51?)
-pub fn hex_deserialize_256<'de, D, T>(deserializer: D) -> Result<T, D::Error>
-where
-    D: serde::Deserializer<'de>,
-    T: From<[u8; 32]>
-{
-    let s: &str = serde::de::Deserialize::deserialize(deserializer)?;
-    let mut s = String::from(s);
-    s.retain(|c| !c.is_whitespace());
-    // let v = hex::decode(&s).expect(format!("Hex decoding failed for {}", &s));
-    let v: [u8; 32] = hex::decode(&s).expect("Hex decoding failed!").try_into().unwrap();
-
-    let t = T::from(v);
-    Ok(t)
-}
-
-pub fn hex_deserialize_32<'de, D, T>(deserializer: D) -> Result<T, D::Error>
-where
-    D: serde::Deserializer<'de>,
-    T: From<[u8; 4]>
-{
-    let s: &str = serde::de::Deserialize::deserialize(deserializer)?;
-    let mut s = String::from(s);
-    s.retain(|c| !c.is_whitespace());
-    // let v = hex::decode(&s).expect(format!("Hex decoding failed for {}", &s));
-    let v: [u8; 4] = hex::decode(&s).expect("Hex decoding failed!").try_into().unwrap();
-
-    let t = T::from(v);
-    Ok(t)
-}
-
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct FactoryArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+pub struct FactorySettings<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
-    CustomerData: FactoryAreaCustomerData,
-    VendorUsage: FactoryAreaVendorUsage,
+    CustomerData: FactorySettingsCustomerData,
+    VendorUsage: FactorySettingsVendorUsage,
 {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -142,6 +88,7 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
+    /// 224 bytes that the customer can use.
     pub customer_data: CustomerData,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -196,7 +143,7 @@ where
     pub enable_fault_analysis_mode: bool,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub factory_prog_in_progress: FactoryAreaProgInProgress,
+    pub factory_prog_in_progress: FactorySettingsProgInProgress,
 
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -218,17 +165,6 @@ impl InfieldArea {
     pub fn valid_activation_code(&self) -> bool {
         self.header.0 == 0x95959595
     }
-}
-
-// fn hex_serialize<S>(x: &Sha256Hash, s: S) -> Result<S::Ok, S::Error>
-// where
-//     S: serde::Serializer,
-// {
-//     s.serialize_str(&to_hex_string(&x.0))
-// }
-
-pub(crate) fn is_default<T: Default + PartialEq>(t: &T) -> bool {
-    *t == Default::default()
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -426,10 +362,10 @@ fn parse_keystore(input: &[u8]) -> IResult<&[u8], Keystore> {
     Ok((input, keystore))
 }
 
-impl<CustomerData, VendorUsage> FactoryArea<CustomerData, VendorUsage>
+impl<CustomerData, VendorUsage> FactorySettings<CustomerData, VendorUsage>
 where
-    CustomerData: FactoryAreaCustomerData,
-    VendorUsage: FactoryAreaVendorUsage,
+    CustomerData: FactorySettingsCustomerData,
+    VendorUsage: FactorySettingsVendorUsage,
 {
     pub fn to_bytes(&self) -> anyhow::Result<[u8; 512]> {
         let mut buf = [0u8; 512];
@@ -477,8 +413,8 @@ where
 
 }
 
-fn parse_factory<CustomerData: FactoryAreaCustomerData, VendorUsage: FactoryAreaVendorUsage>(input: &[u8])
-    -> IResult<&[u8], FactoryArea<CustomerData, VendorUsage>>
+fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: FactorySettingsVendorUsage>(input: &[u8])
+    -> IResult<&[u8], FactorySettings<CustomerData, VendorUsage>>
 {
     let (input, boot_cfg) = le_u32(input)?;
     let (input, _spi_flash_cfg) = le_u32(input)?;
@@ -509,7 +445,7 @@ fn parse_factory<CustomerData: FactoryAreaCustomerData, VendorUsage: FactoryArea
 
     let (input, sha256_hash) = take!(input, 32)?;
 
-    let factory = FactoryArea {
+    let factory = FactorySettings {
         boot_configuration: BootConfiguration::from(boot_cfg),
         usb_id: UsbId::from(usb_id),
         debug_settings: DebugSecurityPolicies::from([cc_socu_default, cc_socu_pin]),
@@ -877,7 +813,7 @@ bitflags::bitflags! {
 impl core::convert::TryFrom<&[u8]> for ProtectedFlash {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let factory = FactoryArea::try_from(&input[3*512..4*512]).unwrap();
+        let factory = FactorySettings::try_from(&input[3*512..4*512]).unwrap();
         let infield = InfieldAreas::try_from(&input[..3*512]).unwrap();
         let keystore = Keystore::try_from(&input[4*512..7*512]).unwrap();
 
@@ -910,7 +846,7 @@ fn format_bytes(bytes: &[u8], f: &mut fmt::Formatter<'_>) -> fmt::Result {
 }
 
 pub trait InfieldAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
-pub trait FactoryAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
+pub trait FactorySettingsCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RawCustomerData(
@@ -943,7 +879,7 @@ impl From<[u8; 14*4*4]> for RawCustomerData {
 }
 
 impl InfieldAreaCustomerData for RawCustomerData {}
-impl FactoryAreaCustomerData for RawCustomerData {}
+impl FactorySettingsCustomerData for RawCustomerData {}
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 /// This is a bit of an interesting construction.
@@ -984,7 +920,7 @@ pub struct Header(u32);
 // pub struct Version(u32);
 
 pub trait InfieldAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
-pub trait FactoryAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
+pub trait FactorySettingsVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RawVendorUsage(u32);
 
@@ -1007,7 +943,7 @@ impl From<u32> for RawVendorUsage {
 }
 
 impl InfieldAreaVendorUsage for RawVendorUsage {}
-impl FactoryAreaVendorUsage for RawVendorUsage {}
+impl FactorySettingsVendorUsage for RawVendorUsage {}
 
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Sha256Hash(pub [u8; 32]);
@@ -1031,9 +967,9 @@ impl From<[u8; 32]> for Sha256Hash {
 
 /// CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active CFPA page each time CMPA page programming is going on. It shall always be set to 0x00000000 in the CFPA scratch area.
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct FactoryAreaProgInProgress(u32);
+pub struct FactorySettingsProgInProgress(u32);
 
-impl fmt::Debug for FactoryAreaProgInProgress {
+impl fmt::Debug for FactorySettingsProgInProgress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.0 {
             // 0x00000000 => f.write_str("empty"),
@@ -1410,7 +1346,7 @@ fn parse_infield_page<CustomerData: InfieldAreaCustomerData, VendorUsage: Infiel
         rot_keys_status: RotKeysStatus::from(rot_keys_status),
         debug_settings: DebugSecurityPolicies::from([dcfg_cc_socu_ns_default, dcfg_cc_socu_ns_pin]),
         enable_fault_analysis_mode: enable_fa != 0,
-        factory_prog_in_progress: FactoryAreaProgInProgress(factory_prog_in_progress),
+        factory_prog_in_progress: FactorySettingsProgInProgress(factory_prog_in_progress),
         prince_ivs: [
             PrinceIvCode(prince_iv_code0.try_into().unwrap()),
             PrinceIvCode(prince_iv_code1.try_into().unwrap()),
@@ -1436,10 +1372,10 @@ where
     }
 }
 
-impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]> for FactoryArea<CustomerData, VendorUsage>
+impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]> for FactorySettings<CustomerData, VendorUsage>
 where
-    CustomerData: FactoryAreaCustomerData,
-    VendorUsage: FactoryAreaVendorUsage,
+    CustomerData: FactorySettingsCustomerData,
+    VendorUsage: FactorySettingsVendorUsage,
 {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {

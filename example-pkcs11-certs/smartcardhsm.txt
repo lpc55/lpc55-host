@@ -1,0 +1,35 @@
+For setup and use, cf. <https://raymii.org/s/articles/Get_Started_With_The_Nitrokey_HSM.html>
+
+Currently using Smartcard HSM with serial DECC0401648 and `dkek-share-1.pbe`.
+
+# SmartCard-HSM settings
+SO pin is left at its default of 57621880 (hex: 3537363231383830).
+User pin is set to 123456
+
+basic test: `pkcs11-tool --test --login --pin 1234`
+
+# dev CA
+
+for i in {0..3}; do echo "generating ${i}"; pkcs11-tool --login --pin 123456 --keypairgen --key-type rsa:2048 --usage-sign --label "lpc55-host-dev-ca-${i}"; done
+
+
+
+
+# raymii
+OPENSSL_CONF=./hsm.conf openssl req -engine pkcs11 -keyform engine -new -key 1:10 -sha256 -out "raymii.org.csr" -subj "/C=NL/ST=Zuid Holland/L=Rotterdam/O=Sparkling Network/OU=IT Dept/CN=raymii.org"
+
+OPENSSL_CONF=./hsm.conf openssl req -engine pkcs11 -keyform engine -new -key 1:10 -nodes -days 3560 -x509 -sha256 -out "raymii.org.pem" -subj "/C=NL/ST=Zuid Holland/L=Rotterdam/O=Sparkling Network/OU=IT Dept/CN=raymii.org"
+
+# yubico
+OPENSSL_CONF=engine.conf openssl req -new -x509 -days 365 -subj '/CN=my key/' -sha256 -engine pkcs11 -keyform engine -key slot_0-label_my_key -out cert.pem
+
+OPENSSL_CONF=engine.conf openssl x509 -req -CAkeyform engine -engine pkcs11 -in req.csr -CA cert.pem -CAkey slot_0-label_my_key -set_serial 1 -sha256
+
+# conor
+openssl req -new -key "$CA_PRIVATE" -out "$CA_PRIVATE".csr  -subj "/C=$country/ST=$state/O=$organization/OU=$unit/CN=$CN/emailAddress=$email"
+openssl x509 -req -days 18250 -in "$CA_PRIVATE".csr -signkey "$CA_PRIVATE" -sha256 -outform der -out "$CA_DER" -extfile v3.ext -set_serial 0x3cc30000abababab
+
+
+# ours
+OPENSSL_CONF=./openssl-smartcardhsm.conf openssl req -engine pkcs11 -keyform engine -new -key slot_0-label_lpc55-host-dev-ca-0 -sha256 -out lpc55-host-dev-ca-0.csr -subj "/C=CH/ST=Zurich/O=yamnord/OU=lpc55-host-dev-ca-0/CN=yamnord.com/emailAddress=nicolas@yamnord.com"
+OPENSSL_CONF=./openssl-smartcardhsm.conf openssl x509 -engine pkcs11 -req -keyform engine -days 7300 -sha256 -in lpc55-host-dev-ca-0.csr -signkey slot_0-label_lpc55-host-dev-ca-0 -outform der -out lpc55-host-dev-ca-0.der -extfile v3.ext -set_serial 0x3cc30000abababab

@@ -1,3 +1,55 @@
+//! NXP's CRC32 and AES-CTR algorithms
+
+pub fn sha256(data: &[u8]) -> [u8; 32] {
+    use sha2::Digest;
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(&data);
+    let mut digest = [0u8; 32];
+    digest.copy_from_slice(&hasher.finalize());
+    digest
+}
+
+pub fn hmac(mac_key: [u8; 32], data: &[u8]) -> [u8; 32] {
+    use sha2::Sha256;
+    use hmac::{Hmac, Mac, NewMac};
+
+    type HmacSha256 = Hmac<Sha256>;
+
+    let mut mac = HmacSha256::new_varkey(&mac_key).unwrap();
+    mac.update(data);
+    let result = mac.finalize();
+
+    let mut digest = [0u8; 32];
+    digest.copy_from_slice(&result.into_bytes());
+    digest
+}
+
+/// NXP's AES-CTR cipher.
+///
+///
+pub fn nxp_aes_ctr_cipher(ciphertext: &[u8], dek: [u8; 32], nonce: [u32; 4], offset_blocks: u32) -> Vec<u8> {
+    type Aes256Ctr = ctr::Ctr32BE<aes::Aes256>;
+    use ctr::cipher::SyncStreamCipher;
+    use ctr::cipher::stream::NewStreamCipher;
+
+    let mut plaintext = Vec::from(ciphertext);
+    assert_eq!(plaintext.len() % 16, 0);
+
+    for (i, chunk) in plaintext.chunks_mut(16).enumerate() {
+        // see SB2Image.cpp:229
+        let nonce3_offset = offset_blocks + (i as u32);
+        let mut nonce2 = [0u8; 16];
+        nonce2[..4].copy_from_slice(nonce[0].to_le_bytes().as_ref());
+        nonce2[4..8].copy_from_slice(&nonce[1].to_le_bytes().as_ref());
+        nonce2[8..12].copy_from_slice(&nonce[2].to_le_bytes().as_ref());
+        nonce2[12..16].copy_from_slice(&(nonce[3] + nonce3_offset).to_le_bytes().as_ref());
+        let mut cipher = Aes256Ctr::new(dek.as_ref().into(), nonce2.as_ref().into());
+        cipher.apply_keystream(chunk);
+    }
+
+    plaintext
+}
+
 /// Soooo.... This "uses" the "Ethernet CRC algorithm" values,
 /// but it doesn't really do CRC32.
 pub fn crc32(data: &[u8]) -> u32 {

@@ -210,7 +210,7 @@ impl Protocol {
                             let mut data_packet = vec![types::ReportId::CommandData as u8, 0, chunk.len() as u8, 0];
                             data_packet.extend_from_slice(chunk);
                             data_packet.resize(4 + 32, 0);
-                            trace!("--> {}", types::to_hex_string(&data_packet));
+                            trace!("--> {}", hex_str!(&data_packet, 4));
                             self.write(data_packet.as_slice())?;
 
                         }
@@ -241,7 +241,7 @@ impl Protocol {
                             let mut data_packet = vec![types::ReportId::CommandData as u8, 0, chunk.len() as u8, 0];
                             data_packet.extend_from_slice(chunk);
                             data_packet.resize(4 + 32, 0);
-                            trace!("--> {}", types::to_hex_string(&data_packet));
+                            trace!("--> {}", hex_str!(&data_packet, 4));
                             self.write(data_packet.as_slice())?;
                         }
 
@@ -261,7 +261,7 @@ impl Protocol {
                             let mut data_packet = vec![types::ReportId::CommandData as u8, 0, chunk.len() as u8, 0];
                             data_packet.extend_from_slice(chunk);
                             data_packet.resize(4 + 32, 0);
-                            trace!("--> {}", types::to_hex_string(&data_packet));
+                            trace!("--> {}", hex_str!(&data_packet, 4));
                             self.write(data_packet.as_slice())?;
                             // let packet = self.read_packet().unwrap();
                             // let what = self.device.read_timeout(&mut [], 0).unwrap();
@@ -360,7 +360,7 @@ impl Protocol {
         // the device often sends "extra junk"; we split this off early
         let expected_packet_len = u16::from_le_bytes(data[2..4].try_into().unwrap()) as usize;
         data.resize(4 + expected_packet_len, 0);
-        trace!("<-- {} ({} bytes)", types::to_hex_string(&data), data.len());
+        trace!("--> {} ({}B)", hex_str!(&data, 4), data.len());
 
         let response_packet = data.split_off(4);
 
