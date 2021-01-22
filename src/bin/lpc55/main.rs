@@ -266,7 +266,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
     if let Some(command) = args.subcommand_matches("sign-fw") {
         let config_filename = command.value_of("CONFIG").unwrap();
         let config = lpc55::secure_binary::Config::try_from(config_filename)?;
-        let _signed_image = lpc55::secure_binary::sign(&config)?;
+        let _signed_image = lpc55::signed_binary::sign(&config)?;
     }
 
     if let Some(command) = args.subcommand_matches("assemble-sb") {
