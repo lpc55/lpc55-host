@@ -31,7 +31,7 @@ Properties {
     verify_writes: true,
     flash_locked: false,
     max_packet_size: 56,
-    device_uuid: 156090513919447561107476615196208161407,
+    device_uuid: 256287365343490487041797348548817407015,
     system_uuid: 1168442901135557,
     crc_check_status: CrcChecker(
         Invalid,

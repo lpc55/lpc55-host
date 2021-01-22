@@ -90,6 +90,27 @@ generate! { FlashDriverError:
     InfieldScratchVersionBehindActualInfieldVersion = 32,
 }
 
+generate! { SbLoaderError:
+    SectionOverrun = 0,
+    Signature = 1,
+    SectionLength = 2,
+    UnencryptedOnly = 3,
+    EofReached = 4,
+    Checksum = 5,
+    Crc32Error = 6,
+    UnknownCommand = 7,
+    IdNotFound = 8,
+    DataUnderrun = 9,
+    JumpReturned = 10,
+    CallFailed = 11,
+    KeyNotFound = 12,
+    SecureOnly = 13,
+    ResetReturned = 14,
+    RollbackBlocked = 15,
+    InvalidSectionMacCount = 16,
+    UnexpectedCommand = 17,
+}
+
 generate! { PropertyStoreError:
     UnknownProperty = 0,
     ReadOnlyProperty = 1,
@@ -112,6 +133,7 @@ impl Into<(ErrorGroup, u8)> for BootloaderError {
             FlashDriver(error) => (ErrorGroup::FlashDriver, error as u8),
             PropertyStore(error) => (ErrorGroup::PropertyStore, error as u8),
             CrcChecker(error) => (ErrorGroup::CrcChecker, error as u8),
+            SbLoader(error) => (ErrorGroup::SbLoader, error as u8),
             Unknown(_status) => panic!(),
         }
     }
@@ -135,6 +157,7 @@ impl From<u32> for BootloaderError {
                 (ErrorGroup::FlashDriver, code) => FlashDriverError::try_from(code).map_or(Unknown(status), FlashDriver),
                 (ErrorGroup::PropertyStore, code) => PropertyStoreError::try_from(code).map_or(Unknown(status), PropertyStore),
                 (ErrorGroup::CrcChecker, code) => CrcCheckerError::try_from(code).map_or(Unknown(status), CrcChecker),
+                (ErrorGroup::SbLoader, code) => SbLoaderError::try_from(code).map_or(Unknown(status), SbLoader),
                 _ => return Unknown(status),
             }
         } else {

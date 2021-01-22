@@ -204,7 +204,7 @@ impl RawBootCommand {
 /// Since there does not seem to exit a command to enter the bootloader, but
 /// a corrupt / missing firmware makes the MCU enter the bootloader, one way
 /// to do so is the following specification, which erases the first flash page.
-/// ```
+/// ```ignore
 /// [[commands]]
 /// cmd = "Erase"
 /// start = 0
@@ -214,7 +214,7 @@ impl RawBootCommand {
 /// ### Example
 /// To securely flash firmware, it is advised to write the first page last, so that
 /// if flashing goes wrong or is interrupted, the MCU stays in the bootloader on next boot.
-/// ```
+/// ```ignore
 /// [[commands]]
 /// cmd = "Erase"
 /// start = 0
@@ -242,7 +242,7 @@ pub enum BootCommandDescriptor {
     ///
     /// The syntax is such that if source data and destination flash were slices
     /// `src: &[u8]` and `dst: &mut [u8]`, this command would do:
-    /// ```
+    /// ```ignore
     /// let src_len = src.len() - cmd.src;
     /// let len = cmd.len.unwrap_or(src_len);
     /// dst[cmd.dst..][..len].copy_from_slice(&src[cmd.src..][..len]);
@@ -1414,24 +1414,59 @@ impl<'de> serde::Deserialize<'de> for Version {
 // }
 
 #[allow(non_snake_case)]
-fn aes_wrap(_key: &[u8; 32], data: &[u8]) -> Vec<u8> {
-    // todo!();
+fn aes_wrap(key: [u8; 32], data: &[u8]) -> Vec<u8> {
+    #![allow(non_snake_case)]
+    if key.len() % 8 != 0 {
+        todo!();
+    }
+    assert!(data.len() % 8 == 0);
+    use aes::{BlockCipher, NewBlockCipher};
+    use aes::cipher::generic_array::GenericArray;
+    let aes = aes::Aes256::new(&key.into());
+    let n = (data.len() as u64) / 8;
 
-    // let mut X = Vec::new();
-    let mut X = Vec::from([0u8; 8].as_ref());
-    X.extend_from_slice(data);
-    X
+    let mut A = u64::from_be_bytes([0xA6u8; 8]);
+    let mut R = Vec::new();
+    // to keep NIST indices, never used
+    R.push(0);
+    for (_, P) in (1..=n).zip(data.chunks(8)) {
+        R.push(u64::from_be_bytes(P.try_into().unwrap()));
+    }
+
+    let mut B = [0u8; 16];
+    for j in 0..=5 {
+        for i in 1..=n {
+            B[..8].copy_from_slice(&A.to_be_bytes());
+            B[8..].copy_from_slice(&R[i as usize].to_be_bytes());
+            // i.e., B = AES(A | R[i])
+            aes.encrypt_block(GenericArray::from_mut_slice(&mut B));
+
+            let t = (n*j + i) as u64;
+            A = u64::from_be_bytes(B[..8].try_into().unwrap());
+            // i.e., MSB(64, B) ^ t
+            A = A ^ t;
+            R[i as usize] = u64::from_be_bytes(B[8..].try_into().unwrap());
+        }
+    }
+
+    let mut C = Vec::from(A.to_be_bytes());
+    for i in 1..=n {
+        C.extend_from_slice(&R[i as usize].to_be_bytes());
+    }
+    C
 }
 
-fn aes_unwrap(key: &[u8; 32], wrapped: &[u8]) -> Vec<u8> {
+fn aes_unwrap(key: [u8; 32], wrapped: &[u8]) -> Vec<u8> {
     #![allow(non_snake_case)]
     if key.len() % 8 != 0 {
         // return Err(());
         todo!();
     }
+    assert!(wrapped.len() % 8 == 0);
+    assert!(!wrapped.is_empty());
     use aes::{BlockCipher, NewBlockCipher};
     use aes::cipher::generic_array::GenericArray;
-    let aes = aes::Aes256::new(key.into());
+    let aes = aes::Aes256::new(&key.into());
     let n = (wrapped.len() as u64) / 8 - 1;
     let mut A = u64::from_be_bytes(wrapped[..8].try_into().unwrap());
     let mut R = Vec::new();
@@ -1463,6 +1498,23 @@ fn aes_unwrap(key: &[u8; 32], wrapped: &[u8]) -> Vec<u8> {
     P
 }
 
+#[cfg(test)]
+mod test_aes_keywrap {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let key = [42; 32];
+        let msg: &[u8] = &[];
+        assert_eq!(&msg, &aes_unwrap(key, &aes_wrap(key, &msg)).as_slice());
+        let msg = [
+            1, 2, 3, 4, 5, 6, 7, 8,
+            // 1, 2, 3, 4, 5, 6, 7, 8,
+        ];
+        assert_eq!(&msg, aes_unwrap(key, &aes_wrap(key, &msg)).as_slice());
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 /// For the proprietary use case, firmware inside the "commands" is encrypted.
 /// This works by using a "random" encryption key and a "random" HMAC key, both of which
@@ -1486,7 +1538,7 @@ impl Keyblob {
         let mut keys = [0u8; 64];
         keys[..32].copy_from_slice(&self.dek);
         keys[32..].copy_from_slice(&self.mac);
-        let wrapped = aes_wrap(Self::SBKEK, &keys);
+        let wrapped = aes_wrap(*Self::SBKEK, &keys);
         let mut padded = [0u8; 80];
         padded[..72].copy_from_slice(&wrapped);
         padded
@@ -1508,7 +1560,7 @@ impl Keyblob {
 
         // let keywrap = rust_aes_keywrap::Aes256KeyWrap::new(Self::SBKEK);
         // let decapsulated = keywrap.decapsulate(encapsulated, 64).unwrap();
-        let decapsulated = aes_unwrap(Self::SBKEK, encapsulated);//apsulate(encapsulated, 64).unwrap();
+        let decapsulated = aes_unwrap(*Self::SBKEK, encapsulated);//apsulate(encapsulated, 64).unwrap();
         // let mut nonce = [0u32; 4];
         println!("decapsulated = {}", hex_str!(&decapsulated));
         let mut dek = [0u8; 32];

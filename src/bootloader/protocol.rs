@@ -47,6 +47,8 @@ pub struct Protocol {
 /// The NXP bootloader protocol error type
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    #[error("receiver aborted data phase")]
+    AbortDataPhase,
     #[error("expected data response packet")]
     ExpectedDataPacket,
     #[error("expected (non-data) response packet")]
@@ -261,9 +263,18 @@ impl Protocol {
                             data_packet.resize(4 + 32, 0);
                             trace!("--> {}", types::to_hex_string(&data_packet));
                             self.write(data_packet.as_slice())?;
+                            // let packet = self.read_packet().unwrap();
+                            // let what = self.device.read_timeout(&mut [], 0).unwrap();
                         }
 
-                        let packet = ResponsePacket::try_from(self.read_packet()?)?;
+                        let packet = ResponsePacket::try_from(match self.read_packet() {
+                            Err(Error::AbortDataPhase) => {
+                                println!("aborting");
+                                self.read_packet().unwrap()
+                            }
+                            x => x?,
+                        })?;
+                        // let packet = ResponsePacket::try_from(self.read_packet()?)?;
                         assert_eq!(packet.has_data, false);
                         if let Some(status) = packet.status {
                             panic!("unexpected status {:?}", &status);
@@ -356,6 +367,12 @@ impl Protocol {
         // now handle the response packet
         Ok(match report_id {
             types::ReportId::Response => {
+                // NB: this can be  "short" answer (just `03 00 00 00`), which means an
+                // "AbortDataPhase".
+                // In this case, need to pull naother response to get the error.
+                if response_packet.is_empty() {
+                    return Err(Error::AbortDataPhase);
+                }
                 let tag = types::ResponseTag::try_from(response_packet[0]).map_err(Error::UnknownResponseTag)?;
                 let has_data = (response_packet[1] & 1) != 0;
                 let expected_param_count = response_packet[3] as usize;

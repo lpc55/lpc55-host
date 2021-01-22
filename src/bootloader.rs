@@ -31,6 +31,7 @@ pub enum Error {
     FlashDriver(error::FlashDriverError),
     PropertyStore(error::PropertyStoreError),
     CrcChecker(error::CrcCheckerError),
+    SbLoader(error::SbLoaderError),
     Unknown(u32),
 }
 
@@ -269,7 +270,8 @@ impl GetProperties<'_> {
 #[cfg(test)]
 #[test]
 fn test_all_properties() {
-    let (vid, pid) = (0x1fc9, 0x0021);
+    // let (vid, pid) = (0x1fc9, 0x0021);
+    let (vid, pid) = (0x1209, 0xb000);
     let bootloader = Bootloader::try_new(vid, pid).unwrap();
     insta::assert_debug_snapshot!(bootloader.all_properties());
 }
