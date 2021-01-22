@@ -26,7 +26,7 @@ use nom::{
     sequence::tuple,
 };
 
-use crate::protected_flash::is_default;
+use crate::protected_flash::{is_default, hex_serialize, hex_deserialize_256, hex_deserialize_32};
 use crate::signing::{SigningKey, SigningKeySource};
 use signature::Signature as _;
 
@@ -49,6 +49,28 @@ pub struct Config {
     /// - `file:/path/to/ca-0-private-key.pem`
     /// - `pkcs11:token=my-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&pin-source=file:pin.txt`
     pub root_cert_secret_key: String,
+
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
+    #[serde(deserialize_with = "hex_deserialize_256")]
+    #[serde(default)]
+    pub dek: [u8; 32],
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
+    #[serde(deserialize_with = "hex_deserialize_256")]
+    #[serde(default)]
+    pub mac: [u8; 32],
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(default)]
+    pub nonce: [u32; 4],
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(default)]
+    pub timestamp: u64,
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(default)]
+    #[serde(serialize_with = "hex_serialize")]
+    #[serde(deserialize_with = "hex_deserialize_32")]
+    pub random_junk: [u8; 4],
 
     /// Paths to the four root certificates.
     ///
@@ -336,6 +358,8 @@ impl BootCommand {
                 cmd.tag = BootTag::Tag as u8;
                 if *last {
                     cmd.flags = 1;
+                } else {
+                    cmd.flags = 0x8001;
                 }
                 cmd.address = *tag;
                 cmd.data = *flags;
@@ -550,6 +574,7 @@ pub struct Sb21FileParameters {
     product: Version,
     component: Version,
     build: u32,
+    random_junk: [u8; 4],
 }
 
 #[derive(Clone, Debug)]
@@ -603,10 +628,10 @@ impl Sb21CommandPart {
 
 #[derive(Clone, Debug)]
 pub struct SignedSb21File {
-    unsigned_file: UnsignedSb21File,
-    header_part: Sb21HeaderPart,
-    command_part: Sb21CommandPart,
-    signature: Vec<u8>,
+    pub unsigned_file: UnsignedSb21File,
+    pub header_part: Sb21HeaderPart,
+    pub command_part: Sb21CommandPart,
+    pub signature: Vec<u8>,
 }
 
 impl Sb21HeaderPart {
@@ -616,6 +641,8 @@ impl Sb21HeaderPart {
         bytes.extend_from_slice(&self.digest);
         bytes.extend_from_slice(&self.encrypted_keyblob);
         bytes.extend_from_slice(&self.certificate_block_header.to_bytes());
+        bytes.extend_from_slice(&(self.padded_certificate0_der.len() as u32).to_le_bytes());
+        assert!(self.padded_certificate0_der.len() > 100);
         bytes.extend_from_slice(&self.padded_certificate0_der);
         for rkh in self.rot_key_hashes.iter() {
             bytes.extend_from_slice(rkh.as_ref());
@@ -631,6 +658,7 @@ pub struct Sb21HeaderPart {
     // not sure if the 8 bytes padding can be set to zero or not
     encrypted_keyblob: [u8; 80],
     certificate_block_header: FullCertificateBlockHeader,
+    unpadded_cert_length: usize,
     padded_certificate0_der: Vec<u8>,
     rot_key_hashes: [[u8; 32]; 4],
 }
@@ -647,30 +675,44 @@ impl UnsignedSb21File {
         // pub commands: Vec<BootCommand>,
 
         let parameters = Sb21FileParameters {
-            nonce: rand::random(),
+            nonce: {
+                match config.nonce {
+                    [0, 0, 0, 0] => rand::random(),
+                    nonce => nonce,
+                }
+            },
             timestamp: {
-                use std::time::SystemTime;
-                // let nxp_epoch = ?
-                // let now = SystemTime::now().duration_since(nxp_epoch);
-                // now.as_millis()
+                match config.timestamp {
+                    0 => {
+                        use std::time::SystemTime;
+                        // let nxp_epoch = ?
+                        // let now = SystemTime::now().duration_since(nxp_epoch);
+                        // now.as_millis()
 
-                // double check, Python's `datetime.datetime(2000, 1, 1, 0, 0, 0, 0).timestamp()` is `946681200.0`
-                (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() - 946_681_200_000) as _
+                        // double check, Python's `datetime.datetime(2000, 1, 1, 0, 0, 0, 0).timestamp()` is `946681200.0`
+                        (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() - 946_681_200_000) as _
+                    }
+                    timestamp => timestamp,
+                }
             },
             build: config.build,
             component: config.component,
             product: config.product,
+            random_junk: config.random_junk,
         };
         dbg!("aaa");
 
         let mut certificates = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
         for (certificate, filename) in certificates.iter_mut().zip(config.root_cert_filenames.iter()) {
+            // info!("reading certificate {}", &filename);
             *certificate = fs::read(filename)?;
+            // info!("...length = {}", certificate.len());
+            assert!(certificate.len() > 100);
         }
         let certificates = Certificates::try_from_ders(certificates)?;
         dbg!("bbb");
 
-        let keyblob = Keyblob::default();
+        let keyblob = Keyblob { dek: config.dek, mac: config.mac };
         dbg!("ccc");
 
         let mut commands: Vec<BootCommand> = Vec::new();
@@ -679,12 +721,15 @@ impl UnsignedSb21File {
         }
         dbg!("ddd");
 
-        Ok(Self {
+        let return_value = Self {
             parameters,
             certificates,
             keyblob,
             commands,
-        })
+        };
+        // dbg!(return_value.clone());
+        // panic!();
+        Ok(return_value)
     }
 
     // let (i, header) = Sb2Header::inner_from_bytes(&data)?;//.unwrap();//.1;//.map_err(|_| anyhow::anyhow!("could not parse SB2 file"))?.1;
@@ -703,13 +748,19 @@ impl UnsignedSb21File {
         let encrypted_keyblob = self.keyblob.to_bytes();
 
         let mut padded_certificate0_der = self.certificates.certificate_ders[0].clone();
-        let padded_len = (padded_certificate0_der.len() + 15)/16;
+        let unpadded_cert_length = padded_certificate0_der.len();
+        let padded_len = 4*((unpadded_cert_length + 3)/4);
+        // dbg!(padded_certificate0_der.len());
         padded_certificate0_der.resize(padded_len, 0);
+        // dbg!(padded_certificate0_der.len());
+        // panic!();
 
         // really?
-        let cert_table_len = 4 + padded_certificate0_der.len() as u32 + 4;
+        // let cert_table_len = 4 + padded_certificate0_der.len() as u32 + 4;
+        let cert_table_len = 4 + padded_certificate0_der.len() as u32;
         // really?
-        let total_image_length_in_bytes = cert_table_len + 240;
+        // let total_image_length_in_bytes = self.signed_data_length() as _;
+        let total_image_length_in_bytes = cert_table_len + 368;
         let certificate_block_header = FullCertificateBlockHeader {
             header_length_in_bytes: 32,
             build_number: self.parameters.build,
@@ -751,12 +802,14 @@ impl UnsignedSb21File {
             product_version: self.parameters.product,
             component_version: self.parameters.component,
             build_number: self.parameters.build,
+            random_junk: self.parameters.random_junk,
         };
         Sb21HeaderPart {
             header,
             digest,
             encrypted_keyblob,
             certificate_block_header,
+            unpadded_cert_length,
             padded_certificate0_der,
             rot_key_hashes,
         }
@@ -776,8 +829,8 @@ impl UnsignedSb21File {
     }
 
     pub fn signed_data_length(&self) -> usize {
-        // todo!("clean up");
-        let certificate_length = self.certificates.certificate_ders[0].len();
+        // need "padded" length here
+        let certificate_length = 16*((self.certificates.certificate_ders[0].len() + 15)/16);
 
         // let header_blocks = 16;
         // let keyblob_blocks = 5;
@@ -821,24 +874,40 @@ impl UnsignedSb21File {
             self.boot_tag_offset_blocks() as u32 + 5,
         );
 
-        let last = false;
+        let expected_encrypted = hex::decode("F24D0184C7177577157ECFACD1F7C24B").unwrap();
+        let expected_decrypted = nxp_aes_ctr_cipher(
+            &expected_encrypted,
+            self.keyblob.dek,
+            self.parameters.nonce,
+            self.boot_tag_offset_blocks() as u32,
+        );
+        // expected: DE010180 00000000 01000000 01000000
+        println!("expected: {}", hex_str!(&expected_decrypted, 4));
+
+        let last = self.commands.is_empty();
         // TODO: figure out tag and flags here
-        let tag = 0;
+        let tag = 0x0;
         // https://github.com/NXPmicro/spsdk/blob/90fdc7e60917bdd01c0d1467bff7931551fe80f3/spsdk/sbfile/sb1/headers.py#L22
         // bit 0 = bootable (is set)
         // bit 1 = cleartext (is not set)
         // 0b01 = not cleartext bit 1 = "bootable", bit
-        let flags = 1;
+        let flags = 0x1;
         let cipher_blocks = encrypted_section.len() as u32 / 16;
         let boot_tag = BootCommand::Tag { last, tag, flags, cipher_blocks };
+        println!("boot tag: {}", hex_str!(&boot_tag.to_bytes(), 4));
         let encrypted_boot_tag = nxp_aes_ctr_cipher(
             &boot_tag.to_bytes(),
             self.keyblob.dek,
             self.parameters.nonce,
             self.boot_tag_offset_blocks() as u32,
         );
-        dbg!(&encrypted_boot_tag);
-        dbg!(encrypted_boot_tag.len());
+        println!("encr tag: {}", hex_str!(&encrypted_boot_tag, 4));
+        // boot tag: 5D010000 00000000 01000000 01000000
+        // encr tag: 714D0004 C7177577 157ECFAC D1F7C24B
+        // expected: F24D0184 C7177577 157ECFAC D1F7C24B
+        // dbg!(&encrypted_boot_tag);
+        // dbg!(encrypted_boot_tag.len());
+        // panic!();
 
         Sb21CommandPart {
             encrypted_boot_tag: encrypted_boot_tag[..].try_into().unwrap(),
@@ -905,8 +974,13 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
 
             // the weird sectionAllignment (sic!)
             info!("SB2 header: \n{:#?}", &header);
+            info!("  nonce: {:?}", &header.nonce);
+            info!("  tstmp: {}", header.timestamp_microseconds_since_millenium);
+            info!("  junk: {}", hexstr!(&header.random_junk));
             info!("HMAC:       \n{:?}", &digest_hmac);
             info!("keyblob:    \n{:?}", &keyblob);
+            info!("  KEK: {}", hexstr!(&keyblob.dek));
+            info!("  MAC: {}", hexstr!(&keyblob.mac));
             info!("CTH:        \n{:?}", &certificate_block_header);
 
             let certificate = match X509Certificate::from_der(certificate_data) {
@@ -1102,6 +1176,9 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
     todo!();
 }
 
+/// Assembles a "signed image" and signs it.
+///
+/// Note that this is *not* an SB2.1 container image.
 pub fn sign(config: &Config) -> Result<Vec<u8>> {
     let plain_image = fs::read(&config.image)?;
     let der = fs::read(&config.root_cert_filenames[0])?;
@@ -1543,7 +1620,7 @@ mod test_aes_keywrap {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 /// For the proprietary use case, firmware inside the "commands" is encrypted.
 /// This works by using a "random" encryption key and a "random" HMAC key, both of which
 /// are AES-keywrapped with a "secure boot" key encryption key (denoted SBKEK), which
@@ -1554,7 +1631,15 @@ mod test_aes_keywrap {
 /// This means that the dek is totally useless, and the mac key can just as well consist
 /// of all zeros too. Therefore, we implement `Default` for this struct.
 pub struct Keyblob {
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
+    #[serde(deserialize_with = "hex_deserialize_256")]
+    #[serde(default)]
     dek: [u8; 32],
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(serialize_with = "hex_serialize")]
+    #[serde(deserialize_with = "hex_deserialize_256")]
+    #[serde(default)]
     mac: [u8; 32],
 }
 
@@ -1625,6 +1710,8 @@ pub struct Sb2Header {
     product_version: Version,
     component_version: Version,
     build_number: u32,
+    /// For some reason, NXP thinks it's good to pad with random data here instead of zeros
+    random_junk: [u8; 4],
 }
 
     // struct certificate_block_header_t {
@@ -1725,7 +1812,7 @@ impl Sb2Header {
         bytes.extend_from_slice(&self.product_version.to_bytes());
         bytes.extend_from_slice(&self.component_version.to_bytes());
         bytes.extend_from_slice(&self.build_number.to_le_bytes());
-        bytes.extend_from_slice(&[0,0,0,0]);
+        bytes.extend_from_slice(&self.random_junk);
 
         let mut array = [0u8; 96];
         array.copy_from_slice(&bytes);
@@ -1769,7 +1856,8 @@ impl Sb2Header {
         let (i, product_version) = parse_version(i)?;
         let (i, component_version) = parse_version(i)?;
         let (i, build_number) = le_u32(i)?;
-        let (i, _) = take(4u8)(i)?;
+        let mut random_junk = [0u8; 4];
+        let (i, ()) = fill(u8, &mut random_junk)(i)?;
         // nom::exact!(i, take(4u8));
 
         Ok((i, Self {
@@ -1788,6 +1876,7 @@ impl Sb2Header {
             product_version,
             component_version,
             build_number,
+            random_junk,
         }))
     }
 }

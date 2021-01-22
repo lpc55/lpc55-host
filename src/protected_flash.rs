@@ -44,7 +44,7 @@ pub struct ProtectedFlash {
     pub keystore: Keystore,
 }
 
-fn hex_serialize<S, T>(x: &T, s: S) -> Result<S::Ok, S::Error>
+pub fn hex_serialize<S, T>(x: &T, s: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
     T: AsRef<[u8]>,
@@ -68,7 +68,7 @@ where
 // }
 
 // NB: const-generics for this case coming soooon (Rust 1.51?)
-fn hex_deserialize_256<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+pub fn hex_deserialize_256<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: serde::Deserializer<'de>,
     T: From<[u8; 32]>
@@ -78,6 +78,21 @@ where
     s.retain(|c| !c.is_whitespace());
     // let v = hex::decode(&s).expect(format!("Hex decoding failed for {}", &s));
     let v: [u8; 32] = hex::decode(&s).expect("Hex decoding failed!").try_into().unwrap();
+
+    let t = T::from(v);
+    Ok(t)
+}
+
+pub fn hex_deserialize_32<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: From<[u8; 4]>
+{
+    let s: &str = serde::de::Deserialize::deserialize(deserializer)?;
+    let mut s = String::from(s);
+    s.retain(|c| !c.is_whitespace());
+    // let v = hex::decode(&s).expect(format!("Hex decoding failed for {}", &s));
+    let v: [u8; 4] = hex::decode(&s).expect("Hex decoding failed!").try_into().unwrap();
 
     let t = T::from(v);
     Ok(t)

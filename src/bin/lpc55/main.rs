@@ -270,15 +270,16 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
     }
 
     if let Some(command) = args.subcommand_matches("assemble-sb") {
+        use lpc55::secure_binary::{SignedSb21File, UnsignedSb21File};
         let config_filename = command.value_of("CONFIG").unwrap();
         let config = lpc55::secure_binary::Config::try_from(config_filename)?;
         dbg!(111);
-        let unsigned_image = lpc55::secure_binary::UnsignedSb21File::try_assemble_from(&config)?;
+        let unsigned_image = UnsignedSb21File::try_assemble_from(&config)?;
         dbg!(222);
         let signing_key = lpc55::signing::SigningKey::try_from_uri(config.root_cert_secret_key.as_ref())?;
         dbg!(333);
         dbg!(&signing_key);
-        let signed_image = unsigned_image.sign(&signing_key);
+        let signed_image: SignedSb21File = unsigned_image.sign(&signing_key);
         let signed_image_bytes = signed_image.to_bytes();
         std::fs::write(&config.secure_boot_image, &signed_image_bytes)?;
         dbg!(signed_image_bytes.len());
