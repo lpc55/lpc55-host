@@ -44,8 +44,10 @@ use nom::{
 };
 
 use crate::crypto::{crc32, hmac, nxp_aes_ctr_cipher, sha256};
-use crate::util::{is_default, hex_serialize, hex_deserialize_256, hex_deserialize_32, word_padded};
+use crate::protected_flash::Sha256Hash;
 use crate::signature::{SigningKey, SigningKeySource};
+use crate::signed_binary::{Certificates, CertificateSlot};
+use crate::util::{is_default, hex_serialize, hex_deserialize_256, hex_deserialize_32, word_padded};
 use signature::Signature as _;
 
 pub mod command;
@@ -111,6 +113,10 @@ pub struct Config {
     ///
     /// Encoded as X.509 DER files.
     pub root_cert_filenames: [String; 4],
+
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(default)]
+    pub root_cert_slot: CertificateSlot,
 
     /// Path to the input image (can be ~~ELF,~~ signed or unsigned BIN)
     pub image: String,
@@ -181,31 +187,6 @@ pub fn sniff(file: &[u8]) -> Result<Filetype> {
             }
         }
     })
-}
-
-#[derive(Clone, Debug)]
-pub struct Certificates {
-    certificate_ders: [Vec<u8>; 4],
-}
-
-impl Certificates {
-    pub fn try_from_ders(certificate_ders: [Vec<u8>; 4]) -> Result<Self> {
-        // ensure all the certificates are valid
-        // - including that SPKI is an RSA key
-        // todo!()
-        Ok(Self { certificate_ders })
-    }
-
-    // the `i` parameter is a bit meh here
-    pub fn certificate0<'a>(&'a self) -> X509Certificate<'a> {
-        self.certificate(0)
-    }
-
-    // the `i` parameter is a bit meh here
-    fn certificate<'a>(&'a self, i: usize) -> X509Certificate<'a> {
-        // no panic, DER is verified in constructor
-        X509Certificate::from_der(&self.certificate_ders[i]).unwrap().1
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -291,8 +272,8 @@ impl Sb21HeaderPart {
         bytes.extend_from_slice(&(self.padded_certificate0_der.len() as u32).to_le_bytes());
         assert!(self.padded_certificate0_der.len() > 100);
         bytes.extend_from_slice(&self.padded_certificate0_der);
-        for rkh in self.rot_key_hashes.iter() {
-            bytes.extend_from_slice(rkh.as_ref());
+        for fp in self.rot_fingerprints.iter() {
+            bytes.extend_from_slice(fp.0.as_ref());
         }
         bytes
     }
@@ -307,7 +288,7 @@ pub struct Sb21HeaderPart {
     certificate_block_header: FullCertificateBlockHeader,
     unpadded_cert_length: usize,
     padded_certificate0_der: Vec<u8>,
-    rot_key_hashes: [[u8; 32]; 4],
+    rot_fingerprints: [Sha256Hash; 4],
 }
 
 impl UnsignedSb21File {
@@ -390,7 +371,7 @@ impl UnsignedSb21File {
 
         let encrypted_keyblob = self.keyblob.to_bytes();
 
-        let mut padded_certificate0_der = self.certificates.certificate_ders[0].clone();
+        let mut padded_certificate0_der = Vec::from(self.certificates.certificate_der(0.into()));
         let unpadded_cert_length = padded_certificate0_der.len();
         let padded_len = 4*((unpadded_cert_length + 3)/4);
         // dbg!(padded_certificate0_der.len());
@@ -412,12 +393,7 @@ impl UnsignedSb21File {
             certificate_table_length_in_bytes: cert_table_len,
         };
 
-        let rot_key_hashes = [
-            crate::rot_fingerprints::cert_fingerprint(self.certificates.certificate(0)).unwrap(),
-            crate::rot_fingerprints::cert_fingerprint(self.certificates.certificate(1)).unwrap(),
-            crate::rot_fingerprints::cert_fingerprint(self.certificates.certificate(2)).unwrap(),
-            crate::rot_fingerprints::cert_fingerprint(self.certificates.certificate(3)).unwrap(),
-        ];
+        let rot_fingerprints = self.certificates.fingerprints();
 
         let header = Sb2Header {
             nonce: self.parameters.nonce,
@@ -454,7 +430,7 @@ impl UnsignedSb21File {
             certificate_block_header,
             unpadded_cert_length,
             padded_certificate0_der,
-            rot_key_hashes,
+            rot_fingerprints,
         }
     }
 
@@ -474,7 +450,7 @@ impl UnsignedSb21File {
     pub fn signed_data_length(&self) -> usize {
         // need "padded" length here
         // let certificate_length = 16*((self.certificates.certificate_ders[0].len() + 15)/16);
-        let certificate_length = 4*((self.certificates.certificate_ders[0].len() + 3)/4);
+        let certificate_length = 4*((self.certificates.certificate_der(0.into()).len() + 3)/4);
 
         // let header_blocks = 16;
         // let keyblob_blocks = 5;

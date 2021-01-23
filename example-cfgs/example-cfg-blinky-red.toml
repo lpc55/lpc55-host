@@ -24,6 +24,7 @@ random_junk = "36BB2DC5"
 
 # [pki]
 root_cert_secret_key = "file:example-root-certs/ca_private_key_0.pem"
+root_cert_slot = 0
 # root_cert_secret_key = "pkcs11:serial=DECC0401648;object=lpc55-host-dev-ca-0;type=private?module-path=/usr/lib/onepin-opensc-pkcs11.so&pin-value=123456"
 # root_cert_secret_key = "pkcs11:object=lpc55-host-dev-ca-0;type=private?module-path=/usr/lib/opensc-pkcs11.so&pin-value=123456"
 

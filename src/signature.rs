@@ -98,6 +98,18 @@ impl SigningKey {
         array.copy_from_slice(&signature);
         Signature(array)
     }
+
+    pub fn public_key(&self) -> rsa::RSAPublicKey {
+        use SigningKey::*;
+        match self {
+            Pkcs1(key) => {
+                key.to_public_key()
+            }
+            Pkcs11Uri(_uri) => {
+                todo!();
+            }
+        }
+    }
 }
 
 impl<'a> core::convert::TryFrom<&'a [u8]> for Signature {
