@@ -7,20 +7,21 @@ use crate::secure_binary::Config;
 use crate::pki::{Certificate, Certificates, CertificateSlot, CertificateSource, SigningKey};
 use crate::util::word_padded;
 
-pub struct SignedImage(Vec<u8>);
+pub struct SignedImage(pub Vec<u8>);
 
 /// Technically probably incorrect naming, as no ownership of RoT keys is asserted.
 pub struct ImageSigningRequest {
     pub plain_image: Vec<u8>,
     certificates: Certificates,
+    signing_key: SigningKey,
     pub slot: CertificateSlot,
 }
 
 impl ImageSigningRequest {
 
-    pub fn from(plain_image: Vec<u8>, certificates: Certificates, slot: CertificateSlot) -> Self {
-        Self { plain_image, certificates, slot }
-    }
+    // pub fn from(plain_image: Vec<u8>, certificates: Certificates, signing_key: SigningKey) -> Self {
+    //     Self { plain_image, certificates, slot }
+    // }
 
     /// Parse config, load all data checking for validity.
     pub fn try_from(config: &Config) -> Result<Self> {
@@ -35,11 +36,15 @@ impl ImageSigningRequest {
         ];
         let certificates = Certificates::try_from(&certificate_sources)?;
 
+        let signing_key = SigningKey::try_from_uri(config.pki.signing_key.as_ref())?;
+
+        let slot = certificates.index_of(signing_key.public_key())?;
 
         Ok(Self {
             plain_image,
             certificates,
-            slot: config.pki.certificate_slot,
+            signing_key,
+            slot: slot,
         })
     }
 
@@ -52,16 +57,16 @@ impl ImageSigningRequest {
     }
 
     /// Fails only if signing key does not match selected certificate slot
-    pub fn sign(&self, signing_key: &SigningKey) -> Result<SignedImage> {
-        if signing_key.public_key() != self.selected_certificate().public_key() {
-            return Err(anyhow::anyhow!("Signing key does not match selected certificate slot!"));
-        }
+    pub fn sign(&self) -> SignedImage {
+        // if signing_key.public_key() != self.selected_certificate().public_key() {
+        //     return Err(anyhow::anyhow!("Signing key does not match selected certificate slot!"));
+        // }
         let mut image = self.assemble_unsigned_image(self.slot);
 
         // signature
-        let signature = signing_key.sign(&image);
+        let signature = self.signing_key.sign(&image);
         image.extend_from_slice(signature.as_ref());
-        Ok(SignedImage(image))
+        SignedImage(image)
     }
 
     fn assemble_unsigned_image(&self, i: CertificateSlot) -> Vec<u8> {
@@ -94,64 +99,7 @@ impl ImageSigningRequest {
         }
 
         image
-
     }
-
-}
-
-/// Assembles a "signed image" and signs it.
-///
-/// Note that this is *not* an SB2.1 container image.
-pub fn sign(config: &Config) -> Result<Vec<u8>> {
-    let plain_image = fs::read(&config.firmware.image)?;
-    let der = fs::read(&config.pki.certificates[0])?;
-
-    let key = SigningKey::try_from_uri(config.pki.signing_key.as_ref())?;
-
-    let rot_fingerprints = crate::rot_fingerprints::rot_fingerprints(&config.pki.certificates)?;
-    let signed_image = assemble_signed_image(
-        &plain_image,
-        &der,
-        rot_fingerprints,
-        &key,
-    );
-    fs::write(&config.firmware.signed_image, &signed_image)?;
-    Ok(signed_image)
-}
-
-
-fn assemble_signed_image(plain_image: &[u8], certificate_der: &[u8], rot_key_hashes: [[u8; 32]; 4], signing_key: &SigningKey) -> Vec<u8> {
-
-    let mut image = word_padded(plain_image);
-    let certificate = word_padded(certificate_der);
-
-    let total_image_size = modify_header(&mut image, certificate.len());
-    println!("{:x}", total_image_size);
-
-    let build_number = 1;
-    let certificate_block_header = certificate_block_header_bytes(
-        // total image size sans signature
-        total_image_size - 256,
-        certificate.len(),
-        build_number,
-    );
-    // certificate block header
-    image.extend_from_slice(&certificate_block_header);
-
-    // certificate block
-    extendu(&mut image, certificate.len());
-    image.extend_from_slice(&certificate);
-
-    // ROT key hash table
-    for rot_key_hash in rot_key_hashes.iter() {
-        image.extend_from_slice(rot_key_hash.as_ref());
-    }
-    // signature
-    let signature = signing_key.sign(&image);
-    image.extend_from_slice(signature.as_ref());
-
-    image
-
 }
 
 // UM11126, Chap. 6, Table 172, "Image header"

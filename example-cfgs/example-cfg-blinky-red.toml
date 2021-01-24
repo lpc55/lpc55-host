@@ -3,7 +3,7 @@
 # signed = "./hopefully-example-bin-signed.bin"
 # secure_boot = "./example-app.sb2"
 image = "example-binaries/blinky-red-bee.bin"
-signed-image = "example-binaries/blinky-red-signed.bin"
+signed-image = "example-binaries/blinky-red-signed.bin2"
 secure-boot-image = "example-binaries/blinky-red.sb2"
 
 build = 1

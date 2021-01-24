@@ -313,6 +313,16 @@ impl Certificates {
         ] })
     }
 
+    pub fn index_of(&self, public_key: PublicKey) -> Result<CertificateSlot> {
+        for i in 0..4 {
+            let slot = i.into();
+            if public_key == self.certificate(slot).public_key() {
+                return Ok(slot)
+            }
+        }
+        Err(anyhow::anyhow!("no matching certificate found for public key!"))
+    }
+
     pub fn certificate(&self, i: CertificateSlot) -> &Certificate {
         &self.certificates[usize::from(i)]
     }

@@ -265,9 +265,16 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
     }
 
     if let Some(command) = args.subcommand_matches("sign-fw") {
+        use lpc55::{
+            secure_binary::Config,
+            signed_binary::ImageSigningRequest,
+        };
         let config_filename = command.value_of("CONFIG").unwrap();
-        let config = lpc55::secure_binary::Config::try_from(config_filename)?;
-        let _signed_image = lpc55::signed_binary::sign(&config)?;
+        let config = Config::try_from(config_filename)?;
+        // let _signed_image = lpc55::signed_binary::sign(&config)?;
+        let signing_request = ImageSigningRequest::try_from(&config)?;
+        let signed_image = signing_request.sign();
+        std::fs::write(&config.firmware.signed_image, &signed_image.0)?;
 
         //////////////////////////////////////////////////////
         //
