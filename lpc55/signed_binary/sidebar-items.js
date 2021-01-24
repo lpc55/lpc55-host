@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["sign","Assembles a \"signed image\" and signs it."]]});
+initSidebarItems({"fn":[["sign","Assembles a \"signed image\" and signs it."]],"struct":[["Certificate",""],["CertificateSlot",""],["Certificates",""],["ImageSigningRequest","Technically probably incorrect naming, as no ownership of RoT keys is asserted."],["SignedImage",""]]});
