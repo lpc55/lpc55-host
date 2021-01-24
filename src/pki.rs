@@ -8,9 +8,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use x509_parser::certificate::X509Certificate;
 
-// todo: remove
-use crate::rot_fingerprints::cert_fingerprint;
-
+use crate::util::is_default;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SigningKeySource {
@@ -21,6 +19,57 @@ pub enum SigningKeySource {
 pub fn split_once(s: &str, delimiter: char) -> Option<(&str, &str)> {
     let i = s.find(delimiter)?;
     Some((&s[..i], &s[i + 1..]))
+}
+
+
+/// Specification of PKI for secure (signed) boot.
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields)]
+pub struct Pki {
+    /// URI specifying the private RSA2K key used for signing firmware.
+    ///
+    /// Currently, two options are supported
+    /// - `file:` path to PKCS #1 encoded PEM file containing private key
+    /// - `pkcs11:` PKCS #11 URI (RFC 7512), with the extension that `pin-source` can be `env:PIN`.
+    ///
+    /// Note that in PKCS #11 URIs, whitespace is stripped, and must be percent-encoded (`%20`) if
+    /// it is significant, such as in token or object labels.
+    ///
+    /// Examples:
+    /// - `file:/path/to/ca-0-private-key.pem`
+    /// - `pkcs11:token=my-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&pin-source=file:pin.txt`
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(default)]
+    pub signing_key: String,
+
+    /// Paths to the four root certificates.
+    ///
+    /// Encoded as X.509 DER files.
+    pub certificates: [String; 4],
+
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(default)]
+    pub certificate_slot: CertificateSlot,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+/// Type enabling `lpc55 rotkh` to share config file with the secure/signed
+/// firmware generation commands. Serializes `Pki` with a `[pki]` header.
+pub struct WrappedPki {
+    pub pki: Pki,
+}
+
+impl TryFrom<&'_ str> for Pki {
+    type Error = anyhow::Error;
+    fn try_from(config_filename: &str) -> anyhow::Result<Self> {
+        let config = fs::read_to_string(config_filename)?;
+        let wrapped_pki: WrappedPki = toml::from_str(&config)?;
+        let pki = wrapped_pki.pki;
+        trace!("{:#?}", &pki);
+        Ok(pki)
+    }
 }
 
 
@@ -254,7 +303,25 @@ impl Certificate {
         use CertificateSource::*;
         let der = match source {
             X509DerFile(filename) => fs::read(filename)?,
-            _ => todo!() ,
+            Pkcs11Uri(uri) => {
+                use pkcs11::types::{CK_ATTRIBUTE, CKA_VALUE};
+
+                let uri = pkcs11_uri::Pkcs11Uri::try_from(uri)?;
+                let (context, session, object) = uri.identify_object()?;
+
+                let buffer = [0u8; 4096];
+                let /*mut*/ attribute = CK_ATTRIBUTE::new(CKA_VALUE).with_bytes(&buffer);
+                let mut template = vec![attribute];
+                let (rv, _attributes) = context.get_attribute_value(session, object, &mut template).unwrap();
+                // compiler hint?
+                let attribute = _attributes[0];
+                assert_eq!(rv, 0);
+
+                let value = attribute.get_bytes()?;
+                trace!("certificate DER:\n{}", hex_str!(&value, 32));
+                value
+
+            }
         };
         Certificate::try_from_der(&der)
     }
@@ -262,8 +329,18 @@ impl Certificate {
     /// Checks certificate is valid, and public key is RSA.
     pub fn try_from_der(der: &[u8]) -> Result<Self> {
         // implicitly checks public key is RSA
-        let _ = cert_fingerprint(X509Certificate::from_der(der)?.1)?;
+        let _ = Self::cert_fingerprint(X509Certificate::from_der(der)?.1)?;
         Ok(Self { der: Vec::from(der) })
+    }
+
+    fn cert_fingerprint(certificate: X509Certificate<'_>) -> Result<Sha256Hash> {
+        let spki = certificate.tbs_certificate.subject_pki;
+        trace!("alg: {:?}", spki.algorithm.algorithm);
+        // let OID_RSA_ENCRYPTION = oid!(1.2.840.113549.1.1.1);
+        assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
+
+        let public_key = PublicKey(rsa::RSAPublicKey::from_pkcs1(&spki.subject_public_key.data)?);
+        Ok(public_key.fingerprint())
     }
 
     pub fn certificate(&self) -> X509Certificate<'_> {
@@ -283,7 +360,7 @@ impl Certificate {
 
     pub fn fingerprint(&self) -> Sha256Hash {
         // no panic, DER is verified in constructor
-        Sha256Hash(cert_fingerprint(self.certificate()).unwrap())
+        Self::cert_fingerprint(self.certificate()).unwrap()
     }
 }
 
@@ -293,6 +370,23 @@ pub struct Certificates {
 }
 
 impl Certificates {
+    pub fn try_from_pki(pki: &Pki) -> Result<Self> {
+        let sources = [
+            CertificateSource::try_from(pki.certificates[0].as_ref())?,
+            CertificateSource::try_from(pki.certificates[1].as_ref())?,
+            CertificateSource::try_from(pki.certificates[2].as_ref())?,
+            CertificateSource::try_from(pki.certificates[3].as_ref())?,
+        ];
+        let certificates = [
+            Certificate::try_from(&sources[0])?,
+            Certificate::try_from(&sources[1])?,
+            Certificate::try_from(&sources[2])?,
+            Certificate::try_from(&sources[3])?,
+        ];
+
+        Ok(Certificates { certificates })
+    }
+
     // todo: consider using pkcs11-uri here too
     pub fn try_from(sources: &[CertificateSource; 4]) -> Result<Self> {
         Ok(Self { certificates: [

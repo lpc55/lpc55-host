@@ -3,7 +3,7 @@
 class Lpc55Bin < Formula
     version '0.1.0-pre'
   desc "lpc55 host-side utilities"
-  homepage "https://github.com/nickray/lpc55"
+  homepage "https://github.com/lpc55/lpc55-host"
 
   if OS.mac?
       url "https://github.com/BurntSushi/ripgrep/releases/download/#{version}/ripgrep-#{version}-x86_64-apple-darwin.tar.gz"

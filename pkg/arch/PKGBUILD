@@ -4,7 +4,7 @@ pkgver=0.1.0pre
 pkgrel=2
 pkgdesc='lpc55 host-side utilities'
 arch=('x86_64')
-url="https://github.com/nickray/lpc55"
+url="https://github.com/lpc55/lpc55-host"
 license=(Apache)
 # we only need `libudev.so`, during build we also need `pkgconfig/udev/.pc`
 depends=(systemd-libs)

@@ -45,7 +45,7 @@ use nom::{
 
 use crate::crypto::{crc32, hmac, nxp_aes_ctr_cipher, sha256};
 use crate::protected_flash::{CustomerSettings, FactorySettings};
-use crate::pki::{Certificates, CertificateSlot, Sha256Hash, SigningKey, SigningKeySource};
+use crate::pki::{Certificates, CertificateSlot, Pki, Sha256Hash, SigningKey, SigningKeySource};
 use crate::util::{is_default, hex_serialize, hex_deserialize_256, hex_deserialize_32, word_padded};
 use signature::Signature as _;
 
@@ -157,37 +157,6 @@ pub struct Reproducibility {
     pub sb_header_padding: [u8; 4],
 }
 
-
-/// Specification of PKI for secure (signed) boot.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
-#[serde(deny_unknown_fields)]
-pub struct Pki {
-    /// URI specifying the private RSA2K key used for signing firmware.
-    ///
-    /// Currently, two options are supported
-    /// - `file:` path to PKCS #1 encoded PEM file containing private key
-    /// - `pkcs11:` PKCS #11 URI (RFC 7512), with the extension that `pin-source` can be `env:PIN`.
-    ///
-    /// Note that in PKCS #11 URIs, whitespace is stripped, and must be percent-encoded (`%20`) if
-    /// it is significant, such as in token or object labels.
-    ///
-    /// Examples:
-    /// - `file:/path/to/ca-0-private-key.pem`
-    /// - `pkcs11:token=my-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&pin-source=file:pin.txt`
-    #[serde(skip_serializing_if = "is_default")]
-    #[serde(default)]
-    pub signing_key: String,
-
-    /// Paths to the four root certificates.
-    ///
-    /// Encoded as X.509 DER files.
-    pub certificates: [String; 4],
-
-    #[serde(skip_serializing_if = "is_default")]
-    #[serde(default)]
-    pub certificate_slot: CertificateSlot,
-}
 
 #[derive(Clone, Copy, Debug, Hash)]
 pub enum Filetype {
@@ -371,14 +340,7 @@ impl UnsignedSb21File {
             sb_header_padding: config.reproducibility.sb_header_padding,
         };
 
-        let mut certificates = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
-        for (certificate, filename) in certificates.iter_mut().zip(config.pki.certificates.iter()) {
-            // info!("reading certificate {}", &filename);
-            *certificate = fs::read(filename)?;
-            // info!("...length = {}", certificate.len());
-            assert!(certificate.len() > 100);
-        }
-        let certificates = Certificates::try_from_ders(certificates)?;
+        let certificates = Certificates::try_from_pki(&config.pki)?;
 
         let keyblob = Keyblob { dek: config.reproducibility.dek, mac: config.reproducibility.mac };
 

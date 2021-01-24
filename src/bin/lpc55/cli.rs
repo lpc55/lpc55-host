@@ -18,7 +18,7 @@ lpc55 offers various host-side utilities.
 
 Use -h for short descriptions and --help for more details
 
-Project homepage: https://github.com/nickray/lpc55
+Project homepage: https://github.com/lpc55/lpc55-host
 ";
 pub fn app() -> clap::App<'static, 'static> {
     // We need to specify our version in a static because we've painted clap
@@ -228,10 +228,10 @@ pub fn app() -> clap::App<'static, 'static> {
                  .required(true))
         )
 
-        .subcommand(SubCommand::with_name("rotkh")
+        .subcommand(SubCommand::with_name("fingerprint-certificates")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
-            .about("calculate ROTKH")
+            .about("calculate fingerprint of root certificates (aka ROTKH)")
             .arg(Arg::with_name("CONFIG")
                  .help("Configuration file")
                  .required(true))

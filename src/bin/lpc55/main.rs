@@ -259,9 +259,13 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    if let Some(command) = args.subcommand_matches("rotkh") {
+    if let Some(command) = args.subcommand_matches("fingerprint-certificates") {
+        use lpc55::pki::{Certificates, Pki};
         let config_filename = command.value_of("CONFIG").unwrap();
-        lpc55::rot_fingerprints::calculate(config_filename)?;
+        let pki = Pki::try_from(config_filename)?;
+        let certificates = Certificates::try_from_pki(&pki)?;
+        let fingerprint = certificates.fingerprint();
+        println!("{}", hex_str!(&fingerprint.0, 4));
     }
 
     if let Some(command) = args.subcommand_matches("sign-fw") {
