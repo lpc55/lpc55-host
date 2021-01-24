@@ -44,9 +44,8 @@ use nom::{
 };
 
 use crate::crypto::{crc32, hmac, nxp_aes_ctr_cipher, sha256};
-use crate::protected_flash::{CustomerSettings, FactorySettings, Sha256Hash};
-use crate::signature::{SigningKey, SigningKeySource};
-use crate::signed_binary::{Certificates, CertificateSlot};
+use crate::protected_flash::{CustomerSettings, FactorySettings};
+use crate::pki::{Certificates, CertificateSlot, Sha256Hash, SigningKey, SigningKeySource};
 use crate::util::{is_default, hex_serialize, hex_deserialize_256, hex_deserialize_32, word_padded};
 use signature::Signature as _;
 
@@ -54,7 +53,8 @@ pub mod command;
 
 use command::{BootCommand, BootCommandDescriptor};
 
-/// Main configuration file format
+/// Main configuration file format for chip configuration and secure/signed firmware
+/// image/container generation.
 ///
 /// TODOs:
 /// - check if `factory-settings.rot-fingerprint` matches `pki.certificates`' fingerprint
@@ -63,25 +63,12 @@ use command::{BootCommand, BootCommandDescriptor};
 #[serde(rename_all = "kebab-case")]
 #[serde(deny_unknown_fields)]
 pub struct Config {
+    pub firmware: Firmware,
     pub pki: Pki,
 
-    /// Path to the input image (can be ~~ELF,~~ signed or unsigned BIN)
-    pub image: String,
-
-    /// Path to place signed binary
-    pub signed_image: String,
-
-    /// Path to place signed SB2.1 file
-    pub secure_boot_image: String,
-    // pub factory: FactorySettings,
-    // pub customer: CustomerSettings,
-    // pub keystore: Keystore,
-    //
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub reproducibility: Reproducibility,
-
-    pub build: u32,
-    pub component: Version,
-    pub product: Version,
 
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -99,12 +86,34 @@ impl TryFrom<&'_ str> for Config {
     fn try_from(config_filename: &str) -> anyhow::Result<Self> {
         let config = fs::read_to_string(config_filename)?;
         let config: Config = toml::from_str(&config)?;
-        println!("{:#?}", &config);
+        trace!("{:#?}", &config);
         Ok(config)
     }
 }
 
+/// Firmware versions and image locations.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields)]
+pub struct Firmware {
+    /// Path to the input image (can be ~~ELF,~~ signed or unsigned BIN)
+    pub image: String,
+
+    /// Path to place signed binary
+    pub signed_image: String,
+
+    /// Path to place signed SB2.1 file
+    pub secure_boot_image: String,
+    // pub factory: FactorySettings,
+    // pub customer: CustomerSettings,
+    // pub keystore: Keystore,
+    //
+    pub build: u32,
+    pub component: Version,
+    pub product: Version,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(deny_unknown_fields)]
 pub struct Reproducibility {
@@ -145,10 +154,11 @@ pub struct Reproducibility {
     /// For the non-private firmware case (where encryption is a farce, since SBKEK is well-known),
     /// if this is left out, we use `[0u8; 4]`. The configuration option exists to match `elftosb`
     /// generated SB2.1 containers with ours (by copying their choice).
-    pub random_junk: [u8; 4],
+    pub sb_header_padding: [u8; 4],
 }
 
 
+/// Specification of PKI for secure (signed) boot.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(deny_unknown_fields)]
@@ -165,16 +175,18 @@ pub struct Pki {
     /// Examples:
     /// - `file:/path/to/ca-0-private-key.pem`
     /// - `pkcs11:token=my-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&pin-source=file:pin.txt`
-    pub root_cert_secret_key: String,
+    #[serde(skip_serializing_if = "is_default")]
+    #[serde(default)]
+    pub signing_key: String,
 
     /// Paths to the four root certificates.
     ///
     /// Encoded as X.509 DER files.
-    pub root_cert_filenames: [String; 4],
+    pub certificates: [String; 4],
 
     #[serde(skip_serializing_if = "is_default")]
     #[serde(default)]
-    pub root_cert_slot: CertificateSlot,
+    pub certificate_slot: CertificateSlot,
 }
 
 #[derive(Clone, Copy, Debug, Hash)]
@@ -232,7 +244,7 @@ pub struct Sb21FileParameters {
     product: Version,
     component: Version,
     build: u32,
-    random_junk: [u8; 4],
+    sb_header_padding: [u8; 4],
 }
 
 #[derive(Clone, Debug)]
@@ -353,14 +365,14 @@ impl UnsignedSb21File {
                     timestamp => timestamp,
                 }
             },
-            build: config.build,
-            component: config.component,
-            product: config.product,
-            random_junk: config.reproducibility.random_junk,
+            build: config.firmware.build,
+            component: config.firmware.component,
+            product: config.firmware.product,
+            sb_header_padding: config.reproducibility.sb_header_padding,
         };
 
         let mut certificates = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
-        for (certificate, filename) in certificates.iter_mut().zip(config.pki.root_cert_filenames.iter()) {
+        for (certificate, filename) in certificates.iter_mut().zip(config.pki.certificates.iter()) {
             // info!("reading certificate {}", &filename);
             *certificate = fs::read(filename)?;
             // info!("...length = {}", certificate.len());
@@ -451,7 +463,7 @@ impl UnsignedSb21File {
             product_version: self.parameters.product,
             component_version: self.parameters.component,
             build_number: self.parameters.build,
-            random_junk: self.parameters.random_junk,
+            sb_header_padding: self.parameters.sb_header_padding,
         };
         Sb21HeaderPart {
             header,
@@ -650,7 +662,7 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
             info!("SB2 header: \n{:#?}", &header);
             info!("  nonce: {:?}", &header.nonce);
             info!("  tstmp: {}", header.timestamp_microseconds_since_millenium);
-            info!("  junk: {}", hexstr!(&header.random_junk));
+            info!("  junk: {}", hexstr!(&header.sb_header_padding));
             info!("HMAC:       \n{:?}", &digest_hmac);
             info!("keyblob:    \n{:?}", &keyblob);
             info!("  DEK: {}", hexstr!(&keyblob.dek));
@@ -1142,7 +1154,7 @@ pub struct Sb2Header {
     component_version: Version,
     build_number: u32,
     /// For some reason, NXP thinks it's good to pad with random data here instead of zeros
-    random_junk: [u8; 4],
+    sb_header_padding: [u8; 4],
 }
 
     // struct certificate_block_header_t {
@@ -1250,7 +1262,7 @@ impl Sb2Header {
         bytes.extend_from_slice(&self.product_version.to_bytes());
         bytes.extend_from_slice(&self.component_version.to_bytes());
         bytes.extend_from_slice(&self.build_number.to_le_bytes());
-        bytes.extend_from_slice(&self.random_junk);
+        bytes.extend_from_slice(&self.sb_header_padding);
 
         let mut array = [0u8; 96];
         array.copy_from_slice(&bytes);
@@ -1294,8 +1306,8 @@ impl Sb2Header {
         let (i, product_version) = parse_version(i)?;
         let (i, component_version) = parse_version(i)?;
         let (i, build_number) = le_u32(i)?;
-        let mut random_junk = [0u8; 4];
-        let (i, ()) = fill(u8, &mut random_junk)(i)?;
+        let mut sb_header_padding = [0u8; 4];
+        let (i, ()) = fill(u8, &mut sb_header_padding)(i)?;
         // nom::exact!(i, take(4u8));
 
         Ok((i, Self {
@@ -1314,7 +1326,7 @@ impl Sb2Header {
             product_version,
             component_version,
             build_number,
-            random_junk,
+            sb_header_padding,
         }))
     }
 }

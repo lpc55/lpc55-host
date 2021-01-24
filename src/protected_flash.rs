@@ -4,6 +4,7 @@ use core::convert::TryInto;
 use core::fmt;
 use std::io::Write as _;
 
+use crate::pki::{format_bytes, Sha256Hash};
 use crate::util::{hex_serialize, hex_deserialize_256, is_default};
 
 use serde::{Deserialize, Serialize};
@@ -853,28 +854,6 @@ impl core::convert::TryFrom<&[u8]> for ProtectedFlash {
     }
 }
 
-fn format_bytes(bytes: &[u8], f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    // let l = bytes.len();
-    let empty = bytes.iter().all(|&byte| byte == 0);
-    if empty {
-        // return f.write_fmt(format_args!("<all zero>"));
-        return f.write_fmt(format_args!("∅"));
-    }
-
-    for byte in bytes.iter() {
-        f.write_fmt(format_args!("{:02X} ", byte))?;
-    }
-    Ok(())
-    // let info = if empty { "empty" } else { "non-empty" };
-
-    // f.write_fmt(format_args!(
-    //     "'{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x} ({})'",
-    //     bytes[0], bytes[1], bytes[3],
-    //     bytes[l-3], bytes[l-2], bytes[l-1],
-    //     info,
-    // ))
-}
-
 pub trait CustomerSettingsCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
 pub trait FactorySettingsCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
 
@@ -974,26 +953,6 @@ impl From<u32> for RawVendorUsage {
 
 impl CustomerSettingsVendorUsage for RawVendorUsage {}
 impl FactorySettingsVendorUsage for RawVendorUsage {}
-
-#[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct Sha256Hash(pub [u8; 32]);
-impl fmt::Debug for Sha256Hash {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        format_bytes(&self.0, f)
-    }
-}
-
-impl AsRef<[u8]> for Sha256Hash {
-    fn as_ref(&self) -> &[u8] {
-        &self.0
-    }
-}
-
-impl From<[u8; 32]> for Sha256Hash {
-    fn from(array: [u8; 32]) -> Self {
-        Sha256Hash(array)
-    }
-}
 
 /// CMPA Page programming on going. This field shall be set to 0x5CC55AA5 in the active CFPA page each time CMPA page programming is going on. It shall always be set to 0x00000000 in the CFPA scratch area.
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

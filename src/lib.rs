@@ -32,9 +32,9 @@ pub mod bootloader;
 pub mod crypto;
 pub mod protected_flash;
 pub mod rot_fingerprints;
+pub mod pki;
 pub mod secure_binary;
 pub mod signed_binary;
-pub mod signature;
 pub mod types;
 pub mod util;
 

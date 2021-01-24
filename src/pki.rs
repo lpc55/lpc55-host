@@ -2,8 +2,15 @@
 //! for signing data.
 
 use std::convert::{TryFrom, TryInto};
+use std::{fmt, fs};
 
-use crate::protected_flash::Sha256Hash;
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use x509_parser::certificate::X509Certificate;
+
+// todo: remove
+use crate::rot_fingerprints::cert_fingerprint;
+
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SigningKeySource {
@@ -194,3 +201,188 @@ impl signature::Signer<Signature> for SigningKey {
         Ok(self.sign(data))
     }
 }
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
+pub struct CertificateSlot(usize);
+
+impl From<usize> for CertificateSlot {
+    /// panics if i > 3
+    fn from(i: usize) -> Self {
+        if i <= 3 {
+            Self(i)
+        } else {
+            panic!("Index {} not one of 0, 1, 2, 3", i);
+        }
+    }
+}
+
+impl From<CertificateSlot> for usize {
+    /// panics if i > 3
+    fn from(i: CertificateSlot) -> usize {
+        i.0
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum CertificateSource {
+    X509DerFile(std::path::PathBuf),
+    Pkcs11Uri(std::string::String),
+    // RawDer(Vec<u8>),
+}
+
+impl TryFrom<&'_ str> for CertificateSource {
+    type Error = anyhow::Error;
+    fn try_from(uri: &str) -> anyhow::Result<Self> {
+        let (scheme, content) = split_once(uri, ':').unwrap();
+        let key_source = match scheme {
+            "file" => CertificateSource::X509DerFile(std::path::PathBuf::from(content)),
+            "pkcs11" => CertificateSource::Pkcs11Uri(uri.to_string()),
+            _ => return Err(anyhow::anyhow!("only file and pkcs11 certificate URIs supported")),
+        };
+        Ok(key_source)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Certificate {
+    der: Vec<u8>,
+}
+
+impl Certificate {
+    // todo: consider offering pkcs11-uri here too
+    pub fn try_from(source: &CertificateSource) -> Result<Self> {
+        use CertificateSource::*;
+        let der = match source {
+            X509DerFile(filename) => fs::read(filename)?,
+            _ => todo!() ,
+        };
+        Certificate::try_from_der(&der)
+    }
+
+    /// Checks certificate is valid, and public key is RSA.
+    pub fn try_from_der(der: &[u8]) -> Result<Self> {
+        // implicitly checks public key is RSA
+        let _ = cert_fingerprint(X509Certificate::from_der(der)?.1)?;
+        Ok(Self { der: Vec::from(der) })
+    }
+
+    pub fn certificate(&self) -> X509Certificate<'_> {
+        // no panic, DER is verified in constructor
+        X509Certificate::from_der(&self.der).unwrap().1
+    }
+
+    pub fn der(&self) -> &[u8] {
+        &self.der
+    }
+
+    pub fn public_key(&self) -> PublicKey {
+        let spki = self.certificate().tbs_certificate.subject_pki;
+        assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
+        PublicKey(rsa::RSAPublicKey::from_pkcs1(&spki.subject_public_key.data).unwrap())
+    }
+
+    pub fn fingerprint(&self) -> Sha256Hash {
+        // no panic, DER is verified in constructor
+        Sha256Hash(cert_fingerprint(self.certificate()).unwrap())
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Certificates {
+    certificates: [Certificate; 4],
+}
+
+impl Certificates {
+    // todo: consider using pkcs11-uri here too
+    pub fn try_from(sources: &[CertificateSource; 4]) -> Result<Self> {
+        Ok(Self { certificates: [
+            Certificate::try_from(&sources[0])?,
+            Certificate::try_from(&sources[1])?,
+            Certificate::try_from(&sources[2])?,
+            Certificate::try_from(&sources[3])?,
+        ] })
+    }
+
+    /// Checks certificates are valid, and public keys are all RSA.
+    pub fn try_from_ders(certificate_ders: [Vec<u8>; 4]) -> Result<Self> {
+        Ok(Self { certificates: [
+            Certificate::try_from_der(&certificate_ders[0])?,
+            Certificate::try_from_der(&certificate_ders[1])?,
+            Certificate::try_from_der(&certificate_ders[2])?,
+            Certificate::try_from_der(&certificate_ders[3])?,
+        ] })
+    }
+
+    pub fn certificate(&self, i: CertificateSlot) -> &Certificate {
+        &self.certificates[usize::from(i)]
+    }
+
+    pub fn certificate_der(&self, i: CertificateSlot) -> &[u8] {
+        self.certificates[usize::from(i)].der()
+    }
+
+    pub fn fingerprints(&self) -> [Sha256Hash; 4] {
+        // array_map when? :)
+        [
+            self.certificates[0].fingerprint(),
+            self.certificates[1].fingerprint(),
+            self.certificates[2].fingerprint(),
+            self.certificates[3].fingerprint(),
+        ]
+    }
+
+    pub fn fingerprint(&self) -> Sha256Hash {
+        use sha2::Digest;
+        let mut hash = sha2::Sha256::new();
+        for fingerprint in self.fingerprints().iter() {
+            hash.update(&fingerprint);
+        }
+        let hash = <[u8; 32]>::try_from(hash.finalize()).unwrap();
+        Sha256Hash(hash)
+    }
+}
+
+
+#[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct Sha256Hash(pub [u8; 32]);
+impl fmt::Debug for Sha256Hash {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        format_bytes(&self.0, f)
+    }
+}
+
+impl AsRef<[u8]> for Sha256Hash {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+impl From<[u8; 32]> for Sha256Hash {
+    fn from(array: [u8; 32]) -> Self {
+        Sha256Hash(array)
+    }
+}
+
+pub(crate) fn format_bytes(bytes: &[u8], f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    // let l = bytes.len();
+    let empty = bytes.iter().all(|&byte| byte == 0);
+    if empty {
+        // return f.write_fmt(format_args!("<all zero>"));
+        return f.write_fmt(format_args!("∅"));
+    }
+
+    for byte in bytes.iter() {
+        f.write_fmt(format_args!("{:02X} ", byte))?;
+    }
+    Ok(())
+    // let info = if empty { "empty" } else { "non-empty" };
+
+    // f.write_fmt(format_args!(
+    //     "'{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x} ({})'",
+    //     bytes[0], bytes[1], bytes[3],
+    //     bytes[l-3], bytes[l-2], bytes[l-1],
+    //     info,
+    // ))
+}
+
+

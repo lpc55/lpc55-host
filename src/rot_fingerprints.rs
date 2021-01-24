@@ -12,7 +12,8 @@
 //! ```
 
 use anyhow::Result;
-use crate::protected_flash::{CustomerSettings, Keystore, FactorySettings, Sha256Hash};
+use crate::protected_flash::{CustomerSettings, Keystore, FactorySettings};
+use crate::pki::Sha256Hash;
 
 use core::convert::TryInto;
 use std::fs;
@@ -36,7 +37,7 @@ use x509_parser::certificate::X509Certificate;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
-    pub root_cert_filenames: [String; 4],
+    pub certificates: [String; 4],
     pub factory: FactorySettings,
     pub customer: CustomerSettings,
     pub keystore: Keystore,
@@ -97,7 +98,7 @@ pub fn calculate(config_filename: &str) -> Result<()> {
 
     let mut hash = sha2::Sha256::new();
 
-    let fingerprints = rot_fingerprints(&config.root_cert_filenames)?;
+    let fingerprints = rot_fingerprints(&config.certificates)?;
     for fingerprint in fingerprints.iter() {
         hash.update(&fingerprint);
     }

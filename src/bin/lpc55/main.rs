@@ -268,6 +268,13 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         let config_filename = command.value_of("CONFIG").unwrap();
         let config = lpc55::secure_binary::Config::try_from(config_filename)?;
         let _signed_image = lpc55::signed_binary::sign(&config)?;
+
+        //////////////////////////////////////////////////////
+        //
+        // TODO NEXT: use ImageSigningRequest
+        // THEN: make sure uri-certificates in Config work
+        //
+        //////////////////////////////////////////////////////
     }
 
     if let Some(command) = args.subcommand_matches("assemble-sb") {
@@ -275,11 +282,11 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         let config_filename = command.value_of("CONFIG").unwrap();
         let config = lpc55::secure_binary::Config::try_from(config_filename)?;
         let unsigned_image = UnsignedSb21File::try_assemble_from(&config)?;
-        let signing_key = lpc55::signature::SigningKey::try_from_uri(config.pki.root_cert_secret_key.as_ref())?;
+        let signing_key = lpc55::pki::SigningKey::try_from_uri(config.pki.signing_key.as_ref())?;
         // dbg!(&signing_key);
         let signed_image: SignedSb21File = unsigned_image.sign(&signing_key);
         let signed_image_bytes = signed_image.to_bytes();
-        std::fs::write(&config.secure_boot_image, &signed_image_bytes)?;
+        std::fs::write(&config.firmware.secure_boot_image, &signed_image_bytes)?;
         // dbg!(signed_image_bytes.len());
     }
 
