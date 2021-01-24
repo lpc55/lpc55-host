@@ -8,7 +8,7 @@ use x509_parser::certificate::X509Certificate;
 use crate::protected_flash::Sha256Hash;
 use crate::rot_fingerprints::cert_fingerprint;
 use crate::secure_binary::Config;
-use crate::signature::SigningKey;
+use crate::signature::{PublicKey, SigningKey};
 use crate::util::word_padded;
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
@@ -38,7 +38,7 @@ pub struct Certificate {
 }
 
 impl Certificate {
-    // todo: consider using pkcs11-uri here too
+    // todo: consider offering pkcs11-uri here too
     pub fn try_from_der_file(filename: &String) -> Result<Self> {
         let der = fs::read(filename)?;
         Certificate::try_from_der(&der)
@@ -60,10 +60,10 @@ impl Certificate {
         &self.der
     }
 
-    pub fn public_key(&self) -> rsa::RSAPublicKey {
+    pub fn public_key(&self) -> PublicKey {
         let spki = self.certificate().tbs_certificate.subject_pki;
         assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
-        rsa::RSAPublicKey::from_pkcs1(&spki.subject_public_key.data).unwrap()
+        PublicKey(rsa::RSAPublicKey::from_pkcs1(&spki.subject_public_key.data).unwrap())
     }
 
     pub fn fingerprint(&self) -> Sha256Hash {
@@ -74,50 +74,46 @@ impl Certificate {
 
 #[derive(Clone, Debug)]
 pub struct Certificates {
-    certificate_ders: [Vec<u8>; 4],
+    certificates: [Certificate; 4],
 }
 
 impl Certificates {
     // todo: consider using pkcs11-uri here too
     pub fn try_from_der_files(certificate_der_filenames: &[String; 4]) -> Result<Self> {
-        let mut ders = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
-        for (der, filename) in ders.iter_mut().zip(certificate_der_filenames.iter()) {
-            *der = fs::read(filename)?;
-        }
-        Certificates::try_from_ders(ders)
+        Ok(Self { certificates: [
+            Certificate::try_from_der_file(&certificate_der_filenames[0])?,
+            Certificate::try_from_der_file(&certificate_der_filenames[1])?,
+            Certificate::try_from_der_file(&certificate_der_filenames[2])?,
+            Certificate::try_from_der_file(&certificate_der_filenames[3])?,
+        ] })
     }
 
     /// Checks certificates are valid, and public keys are all RSA.
     pub fn try_from_ders(certificate_ders: [Vec<u8>; 4]) -> Result<Self> {
-        for der in certificate_ders.iter() {
-            // implicitly checks public key is RSA
-            let _ = cert_fingerprint(X509Certificate::from_der(der)?.1)?;
-        }
-        Ok(Self { certificate_ders })
+        Ok(Self { certificates: [
+            Certificate::try_from_der(&certificate_ders[0])?,
+            Certificate::try_from_der(&certificate_ders[1])?,
+            Certificate::try_from_der(&certificate_ders[2])?,
+            Certificate::try_from_der(&certificate_ders[3])?,
+        ] })
     }
 
-    pub fn certificate_0<'a>(&'a self) -> X509Certificate<'a> {
-        self.certificate(0.into())
+    pub fn certificate(&self, i: CertificateSlot) -> &Certificate {
+        &self.certificates[usize::from(i)]
     }
 
-    // the `i` parameter is a bit meh here
-    pub fn certificate(&self, i: CertificateSlot) -> X509Certificate<'_> {
-        // no panic, DER is verified in constructor
-        X509Certificate::from_der(&self.certificate_ders[usize::from(i)]).unwrap().1
-    }
-
-    // the `i` parameter is a bit meh here
     pub fn certificate_der(&self, i: CertificateSlot) -> &[u8] {
-        &self.certificate_ders[usize::from(i)]
+        self.certificates[usize::from(i)].der()
     }
 
     pub fn fingerprints(&self) -> [Sha256Hash; 4] {
-        let mut fingerprints = [Sha256Hash::default(); 4];
-        for i in 0..4 {
-            // no panic, DER is verified in constructor
-            fingerprints[i] = Sha256Hash(cert_fingerprint(self.certificate(i.into())).unwrap());
-        }
-        fingerprints
+        // array_map when? :)
+        [
+            self.certificates[0].fingerprint(),
+            self.certificates[1].fingerprint(),
+            self.certificates[2].fingerprint(),
+            self.certificates[3].fingerprint(),
+        ]
     }
 
     pub fn fingerprint(&self) -> Sha256Hash {
@@ -162,18 +158,25 @@ impl ImageSigningRequest {
         })
     }
 
+    pub fn selected_certificate(&self) -> &Certificate {
+        self.certificates.certificate(self.slot)
+    }
+
     pub fn certificates(&self) -> &Certificates {
         &self.certificates
     }
 
-    /// TODO: pick CertificateSlot based on public keys
-    pub fn sign(&self, signing_key: &SigningKey) -> SignedImage {
+    /// Fails only if signing key does not match selected certificate slot
+    pub fn sign(&self, signing_key: &SigningKey) -> Result<SignedImage> {
+        if signing_key.public_key() != self.selected_certificate().public_key() {
+            return Err(anyhow::anyhow!("Signing key does not match selected certificate slot!"));
+        }
         let mut image = self.assemble_unsigned_image(self.slot);
 
         // signature
         let signature = signing_key.sign(&image);
         image.extend_from_slice(signature.as_ref());
-        SignedImage(image)
+        Ok(SignedImage(image))
     }
 
     fn assemble_unsigned_image(&self, i: CertificateSlot) -> Vec<u8> {
@@ -201,8 +204,8 @@ impl ImageSigningRequest {
 
         // ROT key hash table
         for i in 0..4 {
-            let fingerprint = cert_fingerprint(self.certificates.certificate(i.into())).unwrap();
-            image.extend_from_slice(&fingerprint);
+            let fingerprint = self.certificates.certificate(i.into()).fingerprint();
+            image.extend_from_slice(&fingerprint.0);
         }
 
         image

@@ -3,6 +3,8 @@
 
 use std::convert::{TryFrom, TryInto};
 
+use crate::protected_flash::Sha256Hash;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum SigningKeySource {
     Pkcs1PemFile(std::path::PathBuf),
@@ -32,6 +34,25 @@ impl TryFrom<&'_ str> for SigningKeySource {
 pub enum SigningKey {
     Pkcs1(rsa::RSAPrivateKey),
     Pkcs11Uri(pkcs11_uri::Pkcs11Uri),
+}
+
+/// An RSA2k public key
+#[derive(Clone, Debug, PartialEq)]
+pub struct PublicKey(pub rsa::RSAPublicKey);
+
+impl PublicKey {
+    pub fn fingerprint(&self) -> Sha256Hash {
+        use rsa::PublicKeyParts as _;
+        let n = self.0.n();
+        let e = self.0.e();
+
+        use sha2::Digest;
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(n.to_bytes_be());
+        hasher.update(e.to_bytes_be());
+        let hash = <[u8; 32]>::try_from(hasher.finalize()).unwrap();
+        Sha256Hash(hash)
+    }
 }
 
 const SIGNATURE_LENGTH: usize = 256;
@@ -82,7 +103,6 @@ impl SigningKey {
                 //  CKM_SHA256_RSA_PKCS
                 let mechanism = pkcs11::types::CK_MECHANISM {
                     mechanism: pkcs11::types::CKM_SHA256_RSA_PKCS,
-                    // mechanism: pkcs11::types::CKM_RSA_PKCS,
                     pParameter: std::ptr::null_mut(),
                     ulParameterLen: 0,
                 };
@@ -99,16 +119,44 @@ impl SigningKey {
         Signature(array)
     }
 
-    pub fn public_key(&self) -> rsa::RSAPublicKey {
+    pub fn public_key(&self) -> PublicKey {
         use SigningKey::*;
-        match self {
+        PublicKey(match self {
             Pkcs1(key) => {
                 key.to_public_key()
             }
-            Pkcs11Uri(_uri) => {
-                todo!();
+            Pkcs11Uri(uri) => {
+                let (context, session, object) = uri.identify_object().unwrap();
+
+                use pkcs11::types::{CK_ATTRIBUTE, CKA_MODULUS, CKA_PUBLIC_EXPONENT};
+
+                let /*mut*/ n_buffer = [0u8; 256];  // rust-pkcs11 API is sloppy about mut here; 256B = 2048b is enough for RSA2k keys
+                let /*mut*/ e_buffer = [0u8; 3];    // always 0x10001 = u16::MAX + 2 anyway
+                let mut n_attribute = CK_ATTRIBUTE::new(CKA_MODULUS);
+                n_attribute.set_biginteger(&n_buffer);
+                let mut e_attribute = CK_ATTRIBUTE::new(CKA_PUBLIC_EXPONENT);
+                e_attribute.set_biginteger(&e_buffer);
+                let mut template = vec![n_attribute, e_attribute];
+
+                let (rv, attributes) = context.get_attribute_value(session, object, &mut template).unwrap();
+                assert_eq!(rv, 0);
+                let n = attributes[0].get_biginteger().unwrap();
+                let e = attributes[1].get_biginteger().unwrap();
+                assert_eq!(n.bits(), 2048);
+                // dbg!(n.to_str_radix(10));
+                assert_eq!(e.to_str_radix(10), "65537");
+
+                // https://github.com/mheese/rust-pkcs11/issues/44
+                let n = rsa::BigUint::from_bytes_be(&n.to_bytes_le());
+                let e = rsa::BigUint::from_bytes_be(&e.to_bytes_le());
+                let public_key = rsa::RSAPublicKey::new(n, e).unwrap();
+                public_key
             }
-        }
+        })
+    }
+
+    pub fn fingerprint(&self) -> Sha256Hash {
+        self.public_key().fingerprint()
     }
 }
 
