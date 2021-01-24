@@ -330,7 +330,7 @@
 
                 <span class="kw">use</span> <span class="ident">pkcs11</span>::<span class="ident">types</span>::{<span class="ident">CK_ATTRIBUTE</span>, <span class="ident">CKA_MODULUS</span>, <span class="ident">CKA_PUBLIC_EXPONENT</span>};
 
-                <span class="kw">let</span> <span class="comment">/*mut*/</span> <span class="ident">n_buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">256</span>];  <span class="comment">// rust-pkcs11 API is sloppy here; 256B = 2048b is enough for RSA2k keys</span>
+                <span class="kw">let</span> <span class="comment">/*mut*/</span> <span class="ident">n_buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">256</span>];  <span class="comment">// rust-pkcs11 API is sloppy about mut here; 256B = 2048b is enough for RSA2k keys</span>
                 <span class="kw">let</span> <span class="comment">/*mut*/</span> <span class="ident">e_buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">3</span>];    <span class="comment">// always 0x10001 = u16::MAX + 2 anyway</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n_attribute</span> <span class="op">=</span> <span class="ident">CK_ATTRIBUTE</span>::<span class="ident">new</span>(<span class="ident">CKA_MODULUS</span>);
                 <span class="ident">n_attribute</span>.<span class="ident">set_biginteger</span>(<span class="kw-2">&amp;</span><span class="ident">n_buffer</span>);
