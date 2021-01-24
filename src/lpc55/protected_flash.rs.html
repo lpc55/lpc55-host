@@ -1419,12 +1419,12 @@
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FACTORY_SETTINGS_ADDRESS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0x9_E400</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INFIELD_SETTINGS_SCRATCH_ADDRESS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0x9_DE00</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CUSTOMER_SETTINGS_SCRATCH_ADDRESS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0x9_DE00</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="doccomment">/// For a graphical overview: &lt;https://whimsical.com/lpc55-flash-memory-map-4eU3ei4wsqiAD7D2cAiv5s&gt;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// - infield page: one flash page (512B) of configuration data that may be updated during the device&#39;s</span>
+<span class="doccomment">/// - customer page: one flash page (512B) of configuration data that may be updated during the device&#39;s</span>
 <span class="doccomment">/// lifecycle via a scratch/ping/pong process</span>
 <span class="doccomment">/// - factory page: one flash page (512B) of configuration data, to be set during manufacturing process</span>
 <span class="doccomment">/// - keystore: three flash pages, technically considered part of the factory configuration data,</span>
@@ -1432,7 +1432,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProtectedFlash</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">infield</span>: <span class="ident">InfieldAreas</span>,
+    <span class="kw">pub</span> <span class="ident">customer</span>: <span class="ident">CustomerSettingsArea</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">factory</span>: <span class="ident">FactorySettings</span>,
@@ -1494,12 +1494,12 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
-<span class="doccomment">/// See `InfieldAreas` documentation for how this part of the configuration is</span>
+<span class="doccomment">/// See `CustomerSettingsArea` documentation for how this part of the configuration is</span>
 <span class="doccomment">/// used and updated by the ROM bootloader.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InfieldArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">CustomerData</span>: <span class="ident">InfieldAreaCustomerData</span>,
-    <span class="ident">VendorUsage</span>: <span class="ident">InfieldAreaVendorUsage</span>,
+    <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
+    <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
 {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
@@ -1507,7 +1507,7 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="doccomment">/// monotonic counter</span>
-    <span class="kw">pub</span> <span class="ident">infield_version</span>: <span class="ident">MonotonicCounter</span>,
+    <span class="kw">pub</span> <span class="ident">customer_version</span>: <span class="ident">MonotonicCounter</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="doccomment">/// monotonic counter</span>
@@ -1558,7 +1558,7 @@
     <span class="kw">pub</span> <span class="ident">sha256_hash</span>: <span class="ident">Sha256Hash</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">InfieldArea</span> {
+<span class="kw">impl</span> <span class="ident">CustomerSettings</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">valid_activation_code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">header</span>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x95959595</span>
     }
@@ -2211,10 +2211,10 @@
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
     <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">factory</span> <span class="op">=</span> <span class="ident">FactorySettings</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">3</span><span class="kw-2">*</span><span class="number">512</span>..<span class="number">4</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">infield</span> <span class="op">=</span> <span class="ident">InfieldAreas</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">3</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">customer</span> <span class="op">=</span> <span class="ident">CustomerSettingsArea</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">3</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">keystore</span> <span class="op">=</span> <span class="ident">Keystore</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">4</span><span class="kw-2">*</span><span class="number">512</span>..<span class="number">7</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="ident">pfr</span> <span class="op">=</span> <span class="ident">ProtectedFlash</span> { <span class="ident">infield</span>, <span class="ident">factory</span>, <span class="ident">keystore</span> };
+        <span class="kw">let</span> <span class="ident">pfr</span> <span class="op">=</span> <span class="ident">ProtectedFlash</span> { <span class="ident">customer</span>, <span class="ident">factory</span>, <span class="ident">keystore</span> };
 
         <span class="prelude-val">Ok</span>(<span class="ident">pfr</span>)
     }
@@ -2242,7 +2242,7 @@
     <span class="comment">// ))</span>
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">InfieldAreaCustomerData</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">14</span><span class="kw-2">*</span><span class="number">4</span><span class="kw-2">*</span><span class="number">4</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span> {}
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CustomerSettingsCustomerData</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">14</span><span class="kw-2">*</span><span class="number">4</span><span class="kw-2">*</span><span class="number">4</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span> {}
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FactorySettingsCustomerData</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">14</span><span class="kw-2">*</span><span class="number">4</span><span class="kw-2">*</span><span class="number">4</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span> {}
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
@@ -2275,7 +2275,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">InfieldAreaCustomerData</span> <span class="kw">for</span> <span class="ident">RawCustomerData</span> {}
+<span class="kw">impl</span> <span class="ident">CustomerSettingsCustomerData</span> <span class="kw">for</span> <span class="ident">RawCustomerData</span> {}
 <span class="kw">impl</span> <span class="ident">FactorySettingsCustomerData</span> <span class="kw">for</span> <span class="ident">RawCustomerData</span> {}
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
@@ -2287,26 +2287,26 @@
 <span class="doccomment">/// During startup, bootloader selects one of ping or pong page, depending on which has higher</span>
 <span class="doccomment">/// &quot;version&quot; field. If scratch page has even higher &quot;version&quot;, the bootloader erases the older</span>
 <span class="doccomment">/// of ping/pong and overwrites with scratch.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InfieldAreas</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CustomerSettingsArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">CustomerData</span>: <span class="ident">InfieldAreaCustomerData</span>,
-    <span class="ident">VendorUsage</span>: <span class="ident">InfieldAreaVendorUsage</span>,
+    <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
+    <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
 {
-    <span class="kw">pub</span> <span class="ident">scratch</span>: <span class="ident">InfieldArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">ping</span>: <span class="ident">InfieldArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">pong</span>: <span class="ident">InfieldArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">scratch</span>: <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">ping</span>: <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">pong</span>: <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">InfieldAreas</span> {
+<span class="kw">impl</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CustomerSettingsArea</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
     <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">scratch</span> <span class="op">=</span> <span class="ident">InfieldArea</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">512</span>]).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">ping</span> <span class="op">=</span> <span class="ident">InfieldArea</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">512</span>..<span class="number">2</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pong</span> <span class="op">=</span> <span class="ident">InfieldArea</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">2</span><span class="kw-2">*</span><span class="number">512</span>..<span class="number">3</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">scratch</span> <span class="op">=</span> <span class="ident">CustomerSettings</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">512</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">ping</span> <span class="op">=</span> <span class="ident">CustomerSettings</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">512</span>..<span class="number">2</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">pong</span> <span class="op">=</span> <span class="ident">CustomerSettings</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">2</span><span class="kw-2">*</span><span class="number">512</span>..<span class="number">3</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">InfieldAreas</span> { <span class="ident">scratch</span>, <span class="ident">ping</span>, <span class="ident">pong</span> };
+        <span class="kw">let</span> <span class="ident">customer_settings</span> <span class="op">=</span> <span class="ident">CustomerSettingsArea</span> { <span class="ident">scratch</span>, <span class="ident">ping</span>, <span class="ident">pong</span> };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">field</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">customer_settings</span>)
     }
 }
 
@@ -2316,7 +2316,7 @@
 <span class="comment">// #[derive(Debug)]</span>
 <span class="comment">// pub struct Version(u32);</span>
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">InfieldAreaVendorUsage</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span> {}
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CustomerSettingsVendorUsage</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span> {}
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FactorySettingsVendorUsage</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span> {}
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawVendorUsage</span>(<span class="ident">u32</span>);
@@ -2339,7 +2339,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">InfieldAreaVendorUsage</span> <span class="kw">for</span> <span class="ident">RawVendorUsage</span> {}
+<span class="kw">impl</span> <span class="ident">CustomerSettingsVendorUsage</span> <span class="kw">for</span> <span class="ident">RawVendorUsage</span> {}
 <span class="kw">impl</span> <span class="ident">FactorySettingsVendorUsage</span> <span class="kw">for</span> <span class="ident">RawVendorUsage</span> {}
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
@@ -2628,10 +2628,10 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span> <span class="ident">InfieldArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span> <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">CustomerData</span>: <span class="ident">InfieldAreaCustomerData</span>,
-    <span class="ident">VendorUsage</span>: <span class="ident">InfieldAreaVendorUsage</span>,
+    <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
+    <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">512</span>]<span class="op">&gt;</span> {
 
@@ -2639,7 +2639,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">as_mut</span>();
 
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">header</span>.<span class="number">0</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
-        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">infield_version</span>.<span class="number">0</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">customer_version</span>.<span class="number">0</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">secure_firmware_version</span>.<span class="number">0</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nonsecure_firmware_version</span>.<span class="number">0</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">image_key_revocation_id</span>.<span class="number">0</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
@@ -2697,12 +2697,12 @@
 
 }
 
-<span class="kw">fn</span> <span class="ident">parse_infield_page</span><span class="op">&lt;</span><span class="ident">CustomerData</span>: <span class="ident">InfieldAreaCustomerData</span>, <span class="ident">VendorUsage</span>: <span class="ident">InfieldAreaVendorUsage</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>])
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">InfieldArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">parse_customer_page</span><span class="op">&lt;</span><span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>, <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>])
+    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span><span class="op">&gt;</span>
 {
     <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">input</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">512</span>);
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">header</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">infield_version</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">customer_version</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">secure_firmware_version</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">nonsecure_firmware_version</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">image_key_revocation_id</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
@@ -2733,9 +2733,9 @@
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">sha256_hash</span>) <span class="op">=</span> <span class="macro">take</span><span class="macro">!</span>(<span class="ident">input</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
     <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">input</span>.<span class="ident">is_empty</span>());
-    <span class="kw">let</span> <span class="ident">page</span> <span class="op">=</span> <span class="ident">InfieldArea</span> {
+    <span class="kw">let</span> <span class="ident">page</span> <span class="op">=</span> <span class="ident">CustomerSettings</span> {
         <span class="ident">header</span>: <span class="ident">Header</span>(<span class="ident">header</span>),
-        <span class="ident">infield_version</span>: <span class="ident">MonotonicCounter</span>::<span class="ident">from</span>(<span class="ident">infield_version</span>),
+        <span class="ident">customer_version</span>: <span class="ident">MonotonicCounter</span>::<span class="ident">from</span>(<span class="ident">customer_version</span>),
         <span class="ident">secure_firmware_version</span>: <span class="ident">MonotonicCounter</span>::<span class="ident">from</span>(<span class="ident">secure_firmware_version</span>),
         <span class="ident">nonsecure_firmware_version</span>: <span class="ident">MonotonicCounter</span>::<span class="ident">from</span>(<span class="ident">nonsecure_firmware_version</span>),
         <span class="ident">image_key_revocation_id</span>: <span class="ident">MonotonicCounter</span>::<span class="ident">from</span>(<span class="ident">image_key_revocation_id</span>),
@@ -2757,14 +2757,14 @@
 }
 
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">InfieldArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">CustomerData</span>: <span class="ident">InfieldAreaCustomerData</span>,
-    <span class="ident">VendorUsage</span>: <span class="ident">InfieldAreaVendorUsage</span>,
+    <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
+    <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
     <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">_input</span>, <span class="ident">page</span>) <span class="op">=</span> <span class="ident">parse_infield_page</span>(<span class="ident">input</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> (<span class="ident">_input</span>, <span class="ident">page</span>) <span class="op">=</span> <span class="ident">parse_customer_page</span>(<span class="ident">input</span>).<span class="ident">unwrap</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">page</span>)
     }
 }
