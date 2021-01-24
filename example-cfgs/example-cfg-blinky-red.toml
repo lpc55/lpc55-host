@@ -2,9 +2,9 @@
 # raw = "../lpc55-secure-config/example-app.bin"
 # signed = "./hopefully-example-bin-signed.bin"
 # secure_boot = "./example-app.sb2"
-image = "blinky-red-bee.bin"
-signed_image = "blinky-red-signed.bin"
-secure_boot_image = "blinky-red.sb2"
+image = "example-binaries/blinky-red-bee.bin"
+signed_image = "example-binaries/blinky-red-signed.bin"
+secure_boot_image = "example-binaries/blinky-red.sb2"
 
 build = 1
 component = "0.0.0"
@@ -23,17 +23,17 @@ timestamp = 664665542000000
 random_junk = "36BB2DC5"
 
 # [pki]
-root_cert_secret_key = "file:example-root-certs/ca_private_key_0.pem"
+root_cert_secret_key = "file:example-file-certs/ca_private_key_0.pem"
 root_cert_slot = 0
 # root_cert_secret_key = "pkcs11:serial=DECC0401648;object=lpc55-host-dev-ca-0;type=private?module-path=/usr/lib/onepin-opensc-pkcs11.so&pin-value=123456"
 # root_cert_secret_key = "pkcs11:object=lpc55-host-dev-ca-0;type=private?module-path=/usr/lib/opensc-pkcs11.so&pin-value=123456"
 
 # D826E2FD 44F5C254 BC58C62E BF96A938 95C19DC2 25810C95 C8B9E6FD 9F7CC9CB
 root_cert_filenames = [
-    "example-root-certs/ca_certificate_0.der",
-    "example-root-certs/ca_certificate_1.der",
-    "example-root-certs/ca_certificate_2.der",
-    "example-root-certs/ca_certificate_3.der",
+    "example-file-certs/ca_certificate_0.der",
+    "example-file-certs/ca_certificate_1.der",
+    "example-file-certs/ca_certificate_2.der",
+    "example-file-certs/ca_certificate_3.der",
 ]
 
 # 6A528D30 4FD8F9B7 D06FF7C4 32DFD512 09668660 6E48193B 2EB21102 0B7FD7C0
@@ -69,4 +69,11 @@ end = 0xC00  # = 3072 = 6*512, size of blinky-red.bin is 856 bytes, signed versi
 
 [[commands]]
 cmd = "Load"
-file = "blinky-red-signed.bin"
+file = "example-binaries/blinky-red-signed.bin"
+src = 512
+dst = 512
+
+[[commands]]
+cmd = "Load"
+file = "example-binaries/blinky-red-signed.bin"
+len = 512
