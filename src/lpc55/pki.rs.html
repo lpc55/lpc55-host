@@ -385,6 +385,10 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Abstraction allowing use of either PKCS1 PEM file or PKCS11 keys</span>
 <span class="doccomment">//! for signing data.</span>
@@ -615,7 +619,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CertificateSource</span> {
     <span class="ident">X509DerFile</span>(<span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>),
     <span class="ident">Pkcs11Uri</span>(<span class="ident">std</span>::<span class="ident">string</span>::<span class="ident">String</span>),
-    <span class="ident">RawDer</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
+    <span class="comment">// RawDer(Vec&lt;u8&gt;),</span>
 }
 
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CertificateSource</span> {
@@ -638,8 +642,12 @@
 
 <span class="kw">impl</span> <span class="ident">Certificate</span> {
     <span class="comment">// todo: consider offering pkcs11-uri here too</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from_der_file</span>(<span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read</span>(<span class="ident">filename</span>)<span class="question-mark">?</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">CertificateSource</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">use</span> <span class="ident">CertificateSource</span>::<span class="kw-2">*</span>;
+        <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">source</span> {
+            <span class="ident">X509DerFile</span>(<span class="ident">filename</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fs</span>::<span class="ident">read</span>(<span class="ident">filename</span>)<span class="question-mark">?</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo</span><span class="macro">!</span>() ,
+        };
         <span class="ident">Certificate</span>::<span class="ident">try_from_der</span>(<span class="kw-2">&amp;</span><span class="ident">der</span>)
     }
 
@@ -678,12 +686,12 @@
 
 <span class="kw">impl</span> <span class="ident">Certificates</span> {
     <span class="comment">// todo: consider using pkcs11-uri here too</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from_der_files</span>(<span class="ident">certificate_der_filenames</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>; <span class="number">4</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">sources</span>: <span class="kw-2">&amp;</span>[<span class="ident">CertificateSource</span>; <span class="number">4</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">certificates</span>: [
-            <span class="ident">Certificate</span>::<span class="ident">try_from_der_file</span>(<span class="kw-2">&amp;</span><span class="ident">certificate_der_filenames</span>[<span class="number">0</span>])<span class="question-mark">?</span>,
-            <span class="ident">Certificate</span>::<span class="ident">try_from_der_file</span>(<span class="kw-2">&amp;</span><span class="ident">certificate_der_filenames</span>[<span class="number">1</span>])<span class="question-mark">?</span>,
-            <span class="ident">Certificate</span>::<span class="ident">try_from_der_file</span>(<span class="kw-2">&amp;</span><span class="ident">certificate_der_filenames</span>[<span class="number">2</span>])<span class="question-mark">?</span>,
-            <span class="ident">Certificate</span>::<span class="ident">try_from_der_file</span>(<span class="kw-2">&amp;</span><span class="ident">certificate_der_filenames</span>[<span class="number">3</span>])<span class="question-mark">?</span>,
+            <span class="ident">Certificate</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">sources</span>[<span class="number">0</span>])<span class="question-mark">?</span>,
+            <span class="ident">Certificate</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">sources</span>[<span class="number">1</span>])<span class="question-mark">?</span>,
+            <span class="ident">Certificate</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">sources</span>[<span class="number">2</span>])<span class="question-mark">?</span>,
+            <span class="ident">Certificate</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">sources</span>[<span class="number">3</span>])<span class="question-mark">?</span>,
         ] })
     }
 

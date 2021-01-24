@@ -229,13 +229,21 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">secure_binary</span>::<span class="ident">Config</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pki</span>::{<span class="ident">Certificate</span>, <span class="ident">Certificates</span>, <span class="ident">CertificateSlot</span>, <span class="ident">SigningKey</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pki</span>::{<span class="ident">Certificate</span>, <span class="ident">Certificates</span>, <span class="ident">CertificateSlot</span>, <span class="ident">CertificateSource</span>, <span class="ident">SigningKey</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">word_padded</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SignedImage</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>);
@@ -258,7 +266,13 @@
 
         <span class="kw">let</span> <span class="ident">plain_image</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">firmware</span>.<span class="ident">image</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">certificates</span> <span class="op">=</span> <span class="ident">Certificates</span>::<span class="ident">try_from_der_files</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">pki</span>.<span class="ident">certificates</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">certificate_sources</span> <span class="op">=</span> [
+            <span class="ident">CertificateSource</span>::<span class="ident">try_from</span>(<span class="ident">config</span>.<span class="ident">pki</span>.<span class="ident">certificates</span>[<span class="number">0</span>].<span class="ident">as_ref</span>())<span class="question-mark">?</span>,
+            <span class="ident">CertificateSource</span>::<span class="ident">try_from</span>(<span class="ident">config</span>.<span class="ident">pki</span>.<span class="ident">certificates</span>[<span class="number">1</span>].<span class="ident">as_ref</span>())<span class="question-mark">?</span>,
+            <span class="ident">CertificateSource</span>::<span class="ident">try_from</span>(<span class="ident">config</span>.<span class="ident">pki</span>.<span class="ident">certificates</span>[<span class="number">2</span>].<span class="ident">as_ref</span>())<span class="question-mark">?</span>,
+            <span class="ident">CertificateSource</span>::<span class="ident">try_from</span>(<span class="ident">config</span>.<span class="ident">pki</span>.<span class="ident">certificates</span>[<span class="number">3</span>].<span class="ident">as_ref</span>())<span class="question-mark">?</span>,
+        ];
+        <span class="kw">let</span> <span class="ident">certificates</span> <span class="op">=</span> <span class="ident">Certificates</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">certificate_sources</span>)<span class="question-mark">?</span>;
 
 
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
