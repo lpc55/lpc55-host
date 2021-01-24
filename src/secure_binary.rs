@@ -44,7 +44,7 @@ use nom::{
 };
 
 use crate::crypto::{crc32, hmac, nxp_aes_ctr_cipher, sha256};
-use crate::protected_flash::Sha256Hash;
+use crate::protected_flash::{CustomerSettings, FactorySettings, Sha256Hash};
 use crate::signature::{SigningKey, SigningKeySource};
 use crate::signed_binary::{Certificates, CertificateSlot};
 use crate::util::{is_default, hex_serialize, hex_deserialize_256, hex_deserialize_32, word_padded};
@@ -54,22 +54,60 @@ pub mod command;
 
 use command::{BootCommand, BootCommandDescriptor};
 
+/// Main configuration file format
+///
+/// TODOs:
+/// - check if `factory-settings.rot-fingerprint` matches `pki.certificates`' fingerprint
+/// - ...
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields)]
 pub struct Config {
-    /// URI specifying the private RSA2K key used for signing firmware.
-    ///
-    /// Currently, two options are supported
-    /// - `file:` path to PKCS #1 encoded PEM file containing private key
-    /// - `pkcs11:` PKCS #11 URI (RFC 7512), with the extension that `pin-source` can be `env:PIN`.
-    ///
-    /// Note that in PKCS #11 URIs, whitespace is stripped, and must be percent-encoded (`%20`) if
-    /// it is significant, such as in token or object labels.
-    ///
-    /// Examples:
-    /// - `file:/path/to/ca-0-private-key.pem`
-    /// - `pkcs11:token=my-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&pin-source=file:pin.txt`
-    pub root_cert_secret_key: String,
+    pub pki: Pki,
 
+    /// Path to the input image (can be ~~ELF,~~ signed or unsigned BIN)
+    pub image: String,
+
+    /// Path to place signed binary
+    pub signed_image: String,
+
+    /// Path to place signed SB2.1 file
+    pub secure_boot_image: String,
+    // pub factory: FactorySettings,
+    // pub customer: CustomerSettings,
+    // pub keystore: Keystore,
+    //
+    pub reproducibility: Reproducibility,
+
+    pub build: u32,
+    pub component: Version,
+    pub product: Version,
+
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub factory_settings: FactorySettings,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub customer_settings: CustomerSettings,
+
+    /// Commands for the SB file
+    pub commands: Vec<BootCommandDescriptor>
+}
+
+impl TryFrom<&'_ str> for Config {
+    type Error = anyhow::Error;
+    fn try_from(config_filename: &str) -> anyhow::Result<Self> {
+        let config = fs::read_to_string(config_filename)?;
+        let config: Config = toml::from_str(&config)?;
+        println!("{:#?}", &config);
+        Ok(config)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields)]
+pub struct Reproducibility {
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
     #[serde(deserialize_with = "hex_deserialize_256")]
@@ -108,6 +146,26 @@ pub struct Config {
     /// if this is left out, we use `[0u8; 4]`. The configuration option exists to match `elftosb`
     /// generated SB2.1 containers with ours (by copying their choice).
     pub random_junk: [u8; 4],
+}
+
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields)]
+pub struct Pki {
+    /// URI specifying the private RSA2K key used for signing firmware.
+    ///
+    /// Currently, two options are supported
+    /// - `file:` path to PKCS #1 encoded PEM file containing private key
+    /// - `pkcs11:` PKCS #11 URI (RFC 7512), with the extension that `pin-source` can be `env:PIN`.
+    ///
+    /// Note that in PKCS #11 URIs, whitespace is stripped, and must be percent-encoded (`%20`) if
+    /// it is significant, such as in token or object labels.
+    ///
+    /// Examples:
+    /// - `file:/path/to/ca-0-private-key.pem`
+    /// - `pkcs11:token=my-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&pin-source=file:pin.txt`
+    pub root_cert_secret_key: String,
 
     /// Paths to the four root certificates.
     ///
@@ -117,36 +175,8 @@ pub struct Config {
     #[serde(skip_serializing_if = "is_default")]
     #[serde(default)]
     pub root_cert_slot: CertificateSlot,
-
-    /// Path to the input image (can be ~~ELF,~~ signed or unsigned BIN)
-    pub image: String,
-
-    /// Path to place signed binary
-    pub signed_image: String,
-
-    /// Path to place signed SB2.1 file
-    pub secure_boot_image: String,
-    // pub factory: FactorySettings,
-    // pub customer: CustomerSettings,
-    // pub keystore: Keystore,
-
-    pub build: u32,
-    pub component: Version,
-    pub product: Version,
-
-    /// Commands for the SB file
-    pub commands: Vec<BootCommandDescriptor>
 }
 
-impl TryFrom<&'_ str> for Config {
-    type Error = anyhow::Error;
-    fn try_from(config_filename: &str) -> anyhow::Result<Self> {
-        let config = fs::read_to_string(config_filename)?;
-        let config: Config = toml::from_str(&config)?;
-        println!("{:#?}", &config);
-        Ok(config)
-    }
-}
 #[derive(Clone, Copy, Debug, Hash)]
 pub enum Filetype {
     Elf,
@@ -304,13 +334,13 @@ impl UnsignedSb21File {
 
         let parameters = Sb21FileParameters {
             nonce: {
-                match config.nonce {
+                match config.reproducibility.nonce {
                     [0, 0, 0, 0] => rand::random(),
                     nonce => nonce,
                 }
             },
             timestamp: {
-                match config.timestamp {
+                match config.reproducibility.timestamp {
                     0 => {
                         use std::time::SystemTime;
                         // let nxp_epoch = ?
@@ -326,11 +356,11 @@ impl UnsignedSb21File {
             build: config.build,
             component: config.component,
             product: config.product,
-            random_junk: config.random_junk,
+            random_junk: config.reproducibility.random_junk,
         };
 
         let mut certificates = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
-        for (certificate, filename) in certificates.iter_mut().zip(config.root_cert_filenames.iter()) {
+        for (certificate, filename) in certificates.iter_mut().zip(config.pki.root_cert_filenames.iter()) {
             // info!("reading certificate {}", &filename);
             *certificate = fs::read(filename)?;
             // info!("...length = {}", certificate.len());
@@ -338,7 +368,7 @@ impl UnsignedSb21File {
         }
         let certificates = Certificates::try_from_ders(certificates)?;
 
-        let keyblob = Keyblob { dek: config.dek, mac: config.mac };
+        let keyblob = Keyblob { dek: config.reproducibility.dek, mac: config.reproducibility.mac };
 
         let mut commands: Vec<BootCommand> = Vec::new();
         for command_descriptor in config.commands.iter() {

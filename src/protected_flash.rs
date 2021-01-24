@@ -45,6 +45,8 @@ pub struct ProtectedFlash {
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields)]
 pub struct FactorySettings<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
     CustomerData: FactorySettingsCustomerData,
@@ -99,6 +101,8 @@ where
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 /// See `CustomerSettingsArea` documentation for how this part of the configuration is
 /// used and updated by the ROM bootloader.
+#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields)]
 pub struct CustomerSettings<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
     CustomerData: CustomerSettingsCustomerData,
@@ -165,6 +169,32 @@ impl CustomerSettings {
     pub fn valid_activation_code(&self) -> bool {
         self.header.0 == 0x95959595
     }
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "kebab-case")]
+/// Type enabling `lpc55 configure factory-settings` to share config file with the secure/signed
+/// firmware generation commands. Serializes `FactorySettings` with a `[factory-settings]` header.
+pub struct WrappedFactorySettings<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+where
+    CustomerData: FactorySettingsCustomerData,
+    VendorUsage: FactorySettingsVendorUsage,
+{
+    #[serde(skip_serializing_if = "is_default")]
+    pub factory_settings: FactorySettings<CustomerData, VendorUsage>,
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "kebab-case")]
+/// Type enabling `lpc55 configure customer-settings` to share config file with the secure/signed
+/// firmware generation commands. Serializes `CustomerSettings` with a `[customer-settings]` header.
+pub struct WrappedCustomerSettings<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+where
+    CustomerData: CustomerSettingsCustomerData,
+    VendorUsage: CustomerSettingsVendorUsage,
+{
+    #[serde(skip_serializing_if = "is_default")]
+    pub customer_settings: CustomerSettings<CustomerData, VendorUsage>,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

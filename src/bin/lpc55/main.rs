@@ -63,7 +63,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         if let Some(subcommand) = subcommand.subcommand_matches("factory-settings") {
             let config_path = std::path::Path::new(subcommand.value_of("SETTINGS").unwrap());
             let settings = std::fs::read_to_string(&config_path)?;
-            let settings: lpc55::protected_flash::FactorySettings = match config_path.extension() {
+            let wrapped_settings: lpc55::protected_flash::WrappedFactorySettings = match config_path.extension() {
                 Some(extension) => match extension {
                     os_str if os_str == "yaml" => {
                         serde_yaml::from_str(&settings)?
@@ -75,6 +75,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 }
                 None => return Err(anyhow::anyhow!("no extension detected in path {:?}", &config_path)),
             };
+            let settings = wrapped_settings.factory_settings;
 
             info!("settings: {:#?}", &settings);
             let settings = Vec::from(settings.to_bytes()?.as_ref());
@@ -274,7 +275,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         let config_filename = command.value_of("CONFIG").unwrap();
         let config = lpc55::secure_binary::Config::try_from(config_filename)?;
         let unsigned_image = UnsignedSb21File::try_assemble_from(&config)?;
-        let signing_key = lpc55::signature::SigningKey::try_from_uri(config.root_cert_secret_key.as_ref())?;
+        let signing_key = lpc55::signature::SigningKey::try_from_uri(config.pki.root_cert_secret_key.as_ref())?;
         // dbg!(&signing_key);
         let signed_image: SignedSb21File = unsigned_image.sign(&signing_key);
         let signed_image_bytes = signed_image.to_bytes();

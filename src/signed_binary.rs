@@ -148,13 +148,13 @@ impl ImageSigningRequest {
 
         let plain_image = fs::read(&config.image)?;
 
-        let certificates = Certificates::try_from_der_files(&config.root_cert_filenames)?;
+        let certificates = Certificates::try_from_der_files(&config.pki.root_cert_filenames)?;
 
 
         Ok(Self {
             plain_image,
             certificates,
-            slot: config.root_cert_slot,
+            slot: config.pki.root_cert_slot,
         })
     }
 
@@ -219,11 +219,11 @@ impl ImageSigningRequest {
 /// Note that this is *not* an SB2.1 container image.
 pub fn sign(config: &Config) -> Result<Vec<u8>> {
     let plain_image = fs::read(&config.image)?;
-    let der = fs::read(&config.root_cert_filenames[0])?;
+    let der = fs::read(&config.pki.root_cert_filenames[0])?;
 
-    let key = SigningKey::try_from_uri(config.root_cert_secret_key.as_ref())?;
+    let key = SigningKey::try_from_uri(config.pki.root_cert_secret_key.as_ref())?;
 
-    let rot_fingerprints = crate::rot_fingerprints::rot_fingerprints(&config.root_cert_filenames)?;
+    let rot_fingerprints = crate::rot_fingerprints::rot_fingerprints(&config.pki.root_cert_filenames)?;
     let signed_image = assemble_signed_image(
         &plain_image,
         &der,
