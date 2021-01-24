@@ -1,6 +1,6 @@
 [package]
 name = "lpc55"
-version = "0.1.0-alpha.0"
+version = "0.1.0-alpha.1"
 authors = ["Nicolas Stalder <n@stalder.io>"]
 edition = "2018"
 description = "Host-side tooling to interact with LPC55 chips via the ROM bootloader"
@@ -9,7 +9,7 @@ readme = "README.md"
 license = "Apache-2.0 OR MIT"
 documentation = "https://docs.rs/lpc55"
 keywords = ["cortex-m", "nxp", "lpc"]
-categories = ["command-line-utilities", "configuration", "development-tools", "embedded", "hardware-support"]
+categories = ["command-line-utilities", "config", "development-tools", "embedded", "hardware-support"]
 exclude = ["pkg"]
 
 [[bin]]
@@ -30,7 +30,7 @@ hex = "0.4.2"
 hmac = "0.10.1"
 hidapi = { version = "1.2.3", default-features = false, features = ["linux-static-hidraw"] }
 nom = { version = "6" }
-serde = "1.0.117"
+serde = { version = "1", features = ["derive"] }
 serde-big-array = "0.3.0"
 serde_json = "1"
 serde_yaml = "0.8.14"
