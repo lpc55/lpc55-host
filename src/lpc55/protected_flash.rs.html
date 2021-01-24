@@ -1394,6 +1394,36 @@
 <span id="1391">1391</span>
 <span id="1392">1392</span>
 <span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
+<span id="1397">1397</span>
+<span id="1398">1398</span>
+<span id="1399">1399</span>
+<span id="1400">1400</span>
+<span id="1401">1401</span>
+<span id="1402">1402</span>
+<span id="1403">1403</span>
+<span id="1404">1404</span>
+<span id="1405">1405</span>
+<span id="1406">1406</span>
+<span id="1407">1407</span>
+<span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The protected flash area (PFR) as Rust types</span>
 <span class="doccomment">//!</span>
@@ -1442,6 +1472,8 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deny_unknown_fields</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">CustomerData</span>: <span class="ident">FactorySettingsCustomerData</span>,
@@ -1496,6 +1528,8 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="doccomment">/// See `CustomerSettingsArea` documentation for how this part of the configuration is</span>
 <span class="doccomment">/// used and updated by the ROM bootloader.</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deny_unknown_fields</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
@@ -1562,6 +1596,32 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">valid_activation_code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">header</span>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x95959595</span>
     }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="doccomment">/// Type enabling `lpc55 configure factory-settings` to share config file with the secure/signed</span>
+<span class="doccomment">/// firmware generation commands. Serializes `FactorySettings` with a `[factory-settings]` header.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WrappedFactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">CustomerData</span>: <span class="ident">FactorySettingsCustomerData</span>,
+    <span class="ident">VendorUsage</span>: <span class="ident">FactorySettingsVendorUsage</span>,
+{
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">factory_settings</span>: <span class="ident">FactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="doccomment">/// Type enabling `lpc55 configure customer-settings` to share config file with the secure/signed</span>
+<span class="doccomment">/// firmware generation commands. Serializes `CustomerSettings` with a `[customer-settings]` header.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WrappedCustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
+    <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
+{
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">customer_settings</span>: <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
