@@ -22,12 +22,12 @@ big_array! {
 }
 
 pub const FACTORY_SETTINGS_ADDRESS: usize = 0x9_E400;
-pub const INFIELD_SETTINGS_SCRATCH_ADDRESS: usize = 0x9_DE00;
+pub const CUSTOMER_SETTINGS_SCRATCH_ADDRESS: usize = 0x9_DE00;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 /// For a graphical overview: <https://whimsical.com/lpc55-flash-memory-map-4eU3ei4wsqiAD7D2cAiv5s>
 ///
-/// - infield page: one flash page (512B) of configuration data that may be updated during the device's
+/// - customer page: one flash page (512B) of configuration data that may be updated during the device's
 /// lifecycle via a scratch/ping/pong process
 /// - factory page: one flash page (512B) of configuration data, to be set during manufacturing process
 /// - keystore: three flash pages, technically considered part of the factory configuration data,
@@ -35,7 +35,7 @@ pub const INFIELD_SETTINGS_SCRATCH_ADDRESS: usize = 0x9_DE00;
 pub struct ProtectedFlash {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub infield: InfieldAreas,
+    pub customer: CustomerSettingsArea,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub factory: FactorySettings,
@@ -97,12 +97,12 @@ where
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-/// See `InfieldAreas` documentation for how this part of the configuration is
+/// See `CustomerSettingsArea` documentation for how this part of the configuration is
 /// used and updated by the ROM bootloader.
-pub struct InfieldArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+pub struct CustomerSettings<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
-    CustomerData: InfieldAreaCustomerData,
-    VendorUsage: InfieldAreaVendorUsage,
+    CustomerData: CustomerSettingsCustomerData,
+    VendorUsage: CustomerSettingsVendorUsage,
 {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -110,7 +110,7 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     /// monotonic counter
-    pub infield_version: MonotonicCounter,
+    pub customer_version: MonotonicCounter,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     /// monotonic counter
@@ -161,7 +161,7 @@ where
     pub sha256_hash: Sha256Hash,
 }
 
-impl InfieldArea {
+impl CustomerSettings {
     pub fn valid_activation_code(&self) -> bool {
         self.header.0 == 0x95959595
     }
@@ -814,10 +814,10 @@ impl core::convert::TryFrom<&[u8]> for ProtectedFlash {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
         let factory = FactorySettings::try_from(&input[3*512..4*512]).unwrap();
-        let infield = InfieldAreas::try_from(&input[..3*512]).unwrap();
+        let customer = CustomerSettingsArea::try_from(&input[..3*512]).unwrap();
         let keystore = Keystore::try_from(&input[4*512..7*512]).unwrap();
 
-        let pfr = ProtectedFlash { infield, factory, keystore };
+        let pfr = ProtectedFlash { customer, factory, keystore };
 
         Ok(pfr)
     }
@@ -845,7 +845,7 @@ fn format_bytes(bytes: &[u8], f: &mut fmt::Formatter<'_>) -> fmt::Result {
     // ))
 }
 
-pub trait InfieldAreaCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
+pub trait CustomerSettingsCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
 pub trait FactorySettingsCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -878,7 +878,7 @@ impl From<[u8; 14*4*4]> for RawCustomerData {
     }
 }
 
-impl InfieldAreaCustomerData for RawCustomerData {}
+impl CustomerSettingsCustomerData for RawCustomerData {}
 impl FactorySettingsCustomerData for RawCustomerData {}
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -890,26 +890,26 @@ impl FactorySettingsCustomerData for RawCustomerData {}
 /// During startup, bootloader selects one of ping or pong page, depending on which has higher
 /// "version" field. If scratch page has even higher "version", the bootloader erases the older
 /// of ping/pong and overwrites with scratch.
-pub struct InfieldAreas<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+pub struct CustomerSettingsArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
 where
-    CustomerData: InfieldAreaCustomerData,
-    VendorUsage: InfieldAreaVendorUsage,
+    CustomerData: CustomerSettingsCustomerData,
+    VendorUsage: CustomerSettingsVendorUsage,
 {
-    pub scratch: InfieldArea<CustomerData, VendorUsage>,
-    pub ping: InfieldArea<CustomerData, VendorUsage>,
-    pub pong: InfieldArea<CustomerData, VendorUsage>,
+    pub scratch: CustomerSettings<CustomerData, VendorUsage>,
+    pub ping: CustomerSettings<CustomerData, VendorUsage>,
+    pub pong: CustomerSettings<CustomerData, VendorUsage>,
 }
 
-impl core::convert::TryFrom<&[u8]> for InfieldAreas {
+impl core::convert::TryFrom<&[u8]> for CustomerSettingsArea {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let scratch = InfieldArea::try_from(&input[..512]).unwrap();
-        let ping = InfieldArea::try_from(&input[512..2*512]).unwrap();
-        let pong = InfieldArea::try_from(&input[2*512..3*512]).unwrap();
+        let scratch = CustomerSettings::try_from(&input[..512]).unwrap();
+        let ping = CustomerSettings::try_from(&input[512..2*512]).unwrap();
+        let pong = CustomerSettings::try_from(&input[2*512..3*512]).unwrap();
 
-        let field = InfieldAreas { scratch, ping, pong };
+        let customer_settings = CustomerSettingsArea { scratch, ping, pong };
 
-        Ok(field)
+        Ok(customer_settings)
     }
 }
 
@@ -919,7 +919,7 @@ pub struct Header(u32);
 // #[derive(Debug)]
 // pub struct Version(u32);
 
-pub trait InfieldAreaVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
+pub trait CustomerSettingsVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
 pub trait FactorySettingsVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RawVendorUsage(u32);
@@ -942,7 +942,7 @@ impl From<u32> for RawVendorUsage {
     }
 }
 
-impl InfieldAreaVendorUsage for RawVendorUsage {}
+impl CustomerSettingsVendorUsage for RawVendorUsage {}
 impl FactorySettingsVendorUsage for RawVendorUsage {}
 
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -1231,10 +1231,10 @@ impl From<DebugSecurityPolicies> for [u32; 2] {
     }
 }
 
-impl<CustomerData, VendorUsage> InfieldArea<CustomerData, VendorUsage>
+impl<CustomerData, VendorUsage> CustomerSettings<CustomerData, VendorUsage>
 where
-    CustomerData: InfieldAreaCustomerData,
-    VendorUsage: InfieldAreaVendorUsage,
+    CustomerData: CustomerSettingsCustomerData,
+    VendorUsage: CustomerSettingsVendorUsage,
 {
     pub fn to_bytes(&self) -> anyhow::Result<[u8; 512]> {
 
@@ -1242,7 +1242,7 @@ where
         let mut cursor = buf.as_mut();
 
         cursor.write_all(&self.header.0.to_le_bytes())?;
-        cursor.write_all(&self.infield_version.0.to_le_bytes())?;
+        cursor.write_all(&self.customer_version.0.to_le_bytes())?;
         cursor.write_all(&self.secure_firmware_version.0.to_le_bytes())?;
         cursor.write_all(&self.nonsecure_firmware_version.0.to_le_bytes())?;
         cursor.write_all(&self.image_key_revocation_id.0.to_le_bytes())?;
@@ -1300,12 +1300,12 @@ where
 
 }
 
-fn parse_infield_page<CustomerData: InfieldAreaCustomerData, VendorUsage: InfieldAreaVendorUsage>(input: &[u8])
-    -> IResult<&[u8], InfieldArea<CustomerData, VendorUsage>>
+fn parse_customer_page<CustomerData: CustomerSettingsCustomerData, VendorUsage: CustomerSettingsVendorUsage>(input: &[u8])
+    -> IResult<&[u8], CustomerSettings<CustomerData, VendorUsage>>
 {
     assert!(input.len() == 512);
     let (input, header) = le_u32(input)?;
-    let (input, infield_version) = le_u32(input)?;
+    let (input, customer_version) = le_u32(input)?;
     let (input, secure_firmware_version) = le_u32(input)?;
     let (input, nonsecure_firmware_version) = le_u32(input)?;
     let (input, image_key_revocation_id) = le_u32(input)?;
@@ -1336,9 +1336,9 @@ fn parse_infield_page<CustomerData: InfieldAreaCustomerData, VendorUsage: Infiel
     let (input, sha256_hash) = take!(input, 32)?;
 
     assert!(input.is_empty());
-    let page = InfieldArea {
+    let page = CustomerSettings {
         header: Header(header),
-        infield_version: MonotonicCounter::from(infield_version),
+        customer_version: MonotonicCounter::from(customer_version),
         secure_firmware_version: MonotonicCounter::from(secure_firmware_version),
         nonsecure_firmware_version: MonotonicCounter::from(nonsecure_firmware_version),
         image_key_revocation_id: MonotonicCounter::from(image_key_revocation_id),
@@ -1360,14 +1360,14 @@ fn parse_infield_page<CustomerData: InfieldAreaCustomerData, VendorUsage: Infiel
 }
 
 
-impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]> for InfieldArea<CustomerData, VendorUsage>
+impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]> for CustomerSettings<CustomerData, VendorUsage>
 where
-    CustomerData: InfieldAreaCustomerData,
-    VendorUsage: InfieldAreaVendorUsage,
+    CustomerData: CustomerSettingsCustomerData,
+    VendorUsage: CustomerSettingsVendorUsage,
 {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let (_input, page) = parse_infield_page(input).unwrap();
+        let (_input, page) = parse_customer_page(input).unwrap();
         Ok(page)
     }
 }

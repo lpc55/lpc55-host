@@ -12,7 +12,7 @@
 //! ```
 
 use anyhow::Result;
-use crate::protected_flash::{InfieldArea, Keystore, FactorySettings, Sha256Hash};
+use crate::protected_flash::{CustomerSettings, Keystore, FactorySettings, Sha256Hash};
 
 use core::convert::TryInto;
 use std::fs;
@@ -38,7 +38,7 @@ use x509_parser::certificate::X509Certificate;
 pub struct Config {
     pub root_cert_filenames: [String; 4],
     pub factory: FactorySettings,
-    pub infield: InfieldArea,
+    pub customer: CustomerSettings,
     pub keystore: Keystore,
 }
 
@@ -107,12 +107,12 @@ pub fn calculate(config_filename: &str) -> Result<()> {
     info!("RoT fingerprint: {}", hex_str!(&rot_fingerprint, 4));
 
     debug!("loaded config: {}", serde_yaml::to_string(&config)?);
-    debug!("rot_keys_status as u32: 0x{:x}", u32::from(config.infield.rot_keys_status));
+    debug!("rot_keys_status as u32: 0x{:x}", u32::from(config.customer.rot_keys_status));
     debug!("boot_configuration as u32: 0x{:x}", u32::from(config.factory.boot_configuration));
     debug!("secure_boot_configuration as u32: 0x{:x}", u32::from(config.factory.secure_boot_configuration));
 
-    debug!("factory: {}", hex_str!(config.factory.to_bytes()?.as_ref(), 4));
-    debug!("field: {}", hex_str!(config.infield.to_bytes()?.as_ref(), 4));
+    debug!("factory settings: {}", hex_str!(config.factory.to_bytes()?.as_ref(), 4));
+    debug!("customer settings: {}", hex_str!(config.customer.to_bytes()?.as_ref(), 4));
     debug!("keystore: {}", hex_str!(config.keystore.to_bytes().as_ref(), 4));
 
     Ok(())

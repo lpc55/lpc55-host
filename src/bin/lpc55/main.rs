@@ -76,9 +76,9 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 None => return Err(anyhow::anyhow!("no extension detected in path {:?}", &config_path)),
             };
 
-            info!("settings: {:?}", &settings);
+            info!("settings: {:#?}", &settings);
             let settings = Vec::from(settings.to_bytes()?.as_ref());
-            info!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
+            trace!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
 
             let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid)?;
             bootloader.write_memory(lpc55::protected_flash::FACTORY_SETTINGS_ADDRESS, settings);
@@ -89,10 +89,10 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         // - ensure DICE key calc is disabled
         // - if secure-boot is on, at least one of RoT keys must be enabled
 
-        if let Some(subcommand) = subcommand.subcommand_matches("infield-settings") {
+        if let Some(subcommand) = subcommand.subcommand_matches("customer-settings") {
             let config_path = std::path::Path::new(subcommand.value_of("SETTINGS").unwrap());
             let settings = std::fs::read_to_string(&config_path)?;
-            let settings: lpc55::protected_flash::InfieldArea = match config_path.extension() {
+            let settings: lpc55::protected_flash::CustomerSettings = match config_path.extension() {
                 Some(extension) => match extension {
                     os_str if os_str == "yaml" => {
                         serde_yaml::from_str(&settings)?
@@ -110,7 +110,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             info!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
 
             let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid)?;
-            bootloader.write_memory(lpc55::protected_flash::INFIELD_SETTINGS_SCRATCH_ADDRESS, settings);
+            bootloader.write_memory(lpc55::protected_flash::CUSTOMER_SETTINGS_SCRATCH_ADDRESS, settings);
         }
 
     }

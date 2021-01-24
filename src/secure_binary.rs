@@ -127,7 +127,7 @@ pub struct Config {
     /// Path to place signed SB2.1 file
     pub secure_boot_image: String,
     // pub factory: FactorySettings,
-    // pub field: FieldAreaPage,
+    // pub customer: CustomerSettings,
     // pub keystore: Keystore,
 
     pub build: u32,

@@ -1,5 +1,5 @@
-# must be > previous infield version
-infield_version: 1
+# must be > previous customer settings version
+customer_settings_version: 1
 # secure_firmware_version: 0
 # nonsecure_firmware_version: 0
 rot_keys_status: ["Enabled", "Enabled", "Enabled", "Enabled"]

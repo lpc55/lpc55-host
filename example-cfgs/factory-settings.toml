@@ -3,9 +3,7 @@
 # file-based keys
 rot_fingerprint = "D826E2FD 44F5C254 BC58C62E BF96A938 95C19DC2 25810C95 C8B9E6FD 9F7CC9CB"
 
-[usb_id]
-vid = 0x1209
-pid = 0xb000
+usb_id = { vid = 0x1209, pid = 0xb000 }
 
 [secure_boot_configuration]
 # puf_enrollment_disabled = true

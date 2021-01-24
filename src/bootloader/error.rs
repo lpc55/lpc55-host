@@ -87,7 +87,7 @@ generate! { FlashDriverError:
     EraseKeyError = 7,
     ExecuteOnlyRegion = 8,
     CommandNotSupported = 15,
-    InfieldScratchVersionBehindActualInfieldVersion = 32,
+    CustomerScratchVersionBehindActualCustomerVersion = 32,
 }
 
 generate! { SbLoaderError:

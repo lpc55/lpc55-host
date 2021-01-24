@@ -35,13 +35,13 @@ bits = 0
 [[factory.prince_subregions]]
 bits = 0xffff
 
-[infield]
+[customer]
 rot_keys_status = ["Enabled", "Enabled", "Enabled", "Enabled"]
 version = 3
 secure_firmware_version = 1
 nonsecure_firmware_version = 1
 
-[infield.boot_configuration]
+[customer.boot_configuration]
 speed = "48Mhz"
 mode = "Usb"
 

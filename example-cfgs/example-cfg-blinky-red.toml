@@ -44,17 +44,16 @@ root_cert_filenames = [
 #     "lpc55-host-dev-ca-3.der",
 # ]
 
-[factory.usb_id]
-vid = 0x1209
-pid = 0xb000
+[factory]
+usb_id = { vid = 0x1209, pid = 0xb000 }
 
 [factory.secure_boot_configuration]
 # secure_boot_enabled = false
 dice_computation_disabled = true
 
-[infield]
+[customer]
 rot_keys_status = ["Enabled", "Enabled", "Enabled", "Enabled"]
-infield_version = 1
+customer_version = 1
 secure_firmware_version = 1
 nonsecure_firmware_version = 1
 
