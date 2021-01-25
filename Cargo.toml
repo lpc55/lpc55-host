@@ -66,3 +66,9 @@ http = ["tiny_http"]
 # uriparse = { path = "../uriparse-rs" }
 # pkcs11-uri = { path = "../pkcs11-uri" }
 # pkcs11-uri = { git = "https://github.com/nickray/pkcs11-uri", branch = "main" }
+
+# 20201-01-25: brings `lpc55` size on Linux from 9.3M down to 5.4M, 3.2M after stripping
+# [profile.release]
+# opt-level = 'z'
+# lto = true
+# codegen-units = 1
