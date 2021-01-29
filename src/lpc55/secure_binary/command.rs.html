@@ -378,6 +378,14 @@
 <span id="375">375</span>
 <span id="376">376</span>
 <span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
@@ -403,6 +411,8 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">crypto</span>::<span class="ident">crc32</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">is_default</span>;
+
+<span class="kw">const</span> <span class="ident">START_OF_PROTECTED_FLASH</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x9_DE00</span>;
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
@@ -623,6 +633,9 @@
                 <span class="ident">Vec</span>::<span class="ident">from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
             }
             <span class="ident">Load</span> { <span class="ident">address</span>, <span class="ident">data</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">address</span> <span class="op">+</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">START_OF_PROTECTED_FLASH</span> {
+                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;It is nearly always a mistake to write into the protected flash area&quot;</span>);
+                }
                 <span class="comment">//           CRC|tag|flags  addr     count    data</span>
                 <span class="comment">// expected:  54|02|0000    00000000 78090000 7E976AF8</span>
                 <span class="comment">// generated: 03|02|0000    00000000 78090000 FD96E7AC (...)</span>
@@ -654,6 +667,9 @@
                 <span class="ident">Vec</span>::<span class="ident">from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
             }
             <span class="ident">EraseRegion</span> { <span class="ident">address</span>, <span class="ident">bytes</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">address</span> <span class="op">+</span> <span class="ident">bytes</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">START_OF_PROTECTED_FLASH</span> {
+                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;It is nearly always a mistake to erase the protected flash area&quot;</span>);
+                }
                 <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag</span>::<span class="ident">Erase</span> <span class="kw">as</span> <span class="ident">u8</span>;
                 <span class="ident">cmd</span>.<span class="ident">address</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">address</span>;
                 <span class="ident">cmd</span>.<span class="ident">count</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">bytes</span>;
