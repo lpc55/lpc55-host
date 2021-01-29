@@ -23,6 +23,8 @@ use nom::{
 use crate::crypto::crc32;
 use crate::util::is_default;
 
+const START_OF_PROTECTED_FLASH: u32 = 0x9_DE00;
+
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BootTag {
@@ -242,6 +244,9 @@ impl BootCommand {
                 Vec::from(cmd.to_bytes().as_ref())
             }
             Load { address, data } => {
+                if address + data.len() as u32 >= START_OF_PROTECTED_FLASH {
+                    panic!("It is nearly always a mistake to write into the protected flash area");
+                }
                 //           CRC|tag|flags  addr     count    data
                 // expected:  54|02|0000    00000000 78090000 7E976AF8
                 // generated: 03|02|0000    00000000 78090000 FD96E7AC (...)
@@ -273,6 +278,9 @@ impl BootCommand {
                 Vec::from(cmd.to_bytes().as_ref())
             }
             EraseRegion { address, bytes } => {
+                if address + bytes >= START_OF_PROTECTED_FLASH {
+                    panic!("It is nearly always a mistake to erase the protected flash area");
+                }
                 cmd.tag = BootTag::Erase as u8;
                 cmd.address = *address;
                 cmd.count = *bytes;
