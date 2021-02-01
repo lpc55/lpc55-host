@@ -81,8 +81,15 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             let settings = Vec::from(settings.to_bytes()?.as_ref());
             trace!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
 
-            let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid)?;
-            bootloader.write_memory(lpc55::protected_flash::FACTORY_SETTINGS_ADDRESS, settings);
+
+            if subcommand.value_of("OUTPUT").is_none() {
+                let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid)?;
+                bootloader.write_memory(lpc55::protected_flash::FACTORY_SETTINGS_ADDRESS, settings);
+            } else {
+                let output_name = subcommand.value_of("OUTPUT").unwrap();
+                std::fs::write(&output_name, &settings).expect("Unable to write file");
+                println!("outputing to file..");
+            }
         }
 
         // TODO: https://github.com/NXPmicro/spsdk/blob/020a983e53769fe16cb9b49395d56f0201eccca6/spsdk/data/pfr/rules.json#L51-L61
@@ -110,8 +117,14 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             let settings = Vec::from(settings.to_bytes()?.as_ref());
             info!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
 
-            let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid)?;
-            bootloader.write_memory(lpc55::protected_flash::CUSTOMER_SETTINGS_SCRATCH_ADDRESS, settings);
+            if subcommand.value_of("OUTPUT").is_none() {
+                let bootloader = lpc55::bootloader::Bootloader::try_new(vid, pid)?;
+                bootloader.write_memory(lpc55::protected_flash::CUSTOMER_SETTINGS_SCRATCH_ADDRESS, settings);
+            } else {
+                let output_name = subcommand.value_of("OUTPUT").unwrap();
+                std::fs::write(&output_name, &settings).expect("Unable to write file");
+                println!("outputing to file..");
+            }
         }
 
     }
