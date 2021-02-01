@@ -3,53 +3,6 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  # ci:
-  #   name: ${{ matrix.rust }} on ${{ matrix.os }}
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-latest, windows-latest, macos-latest]
-  #       # rust: [stable, nightly]
-  #       rust: [stable]
-
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-
-  #     - name: Setup Rust toolchain
-  #       uses: actions-rs/toolchain@v1
-  #       with:
-  #         profile: minimal
-  #         toolchain: ${{ matrix.rust }}
-  #         override: true
-  #         components: rustfmt, clippy
-
-  #     - name: Install libudev for Linux
-  #       run: sudo apt-get install -qq libudev-dev
-  #       if: matrix.os == 'ubuntu-latest'
-
-  #     - name: cargo build
-  #       uses: actions-rs/cargo@v1
-  #       with:
-  #         command: build
-
-  #     # - name: cargo test
-  #     #   uses: actions-rs/cargo@v1
-  #     #   with:
-  #     #     command: test
-
-  #     # - name: cargo fmt
-  #     #   uses: actions-rs/cargo@v1
-  #     #   with:
-  #     #     command: fmt
-  #     #     args: --all -- --check
-
-  #     # - name: cargo clippy
-  #     #   uses: actions-rs/cargo@v1
-  #     #   with:
-  #     #     command: clippy
-  #     #     args: -- -D warnings
-
   artifacts:
     name: ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
@@ -128,29 +81,8 @@ jobs:
           args: --release --target=${{ matrix.target }} --verbose
           use-cross: ${{ matrix.cross }}
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.release_name }}
-          path: ${{ matrix.artifact_name }}
+      # - uses: actions/upload-artifact@v2
+      #   with:
+      #     name: ${{ matrix.release_name }}
+      #     path: ${{ matrix.artifact_name }}
 
-  docs:
-    runs-on: windows-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-
-    - name: Build Documentation
-      run: cargo doc --no-deps
-
-    - name: Deploy Docs
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./target/doc
