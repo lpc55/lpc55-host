@@ -181,7 +181,6 @@ where
     CustomerData: FactorySettingsCustomerData,
     VendorUsage: FactorySettingsVendorUsage,
 {
-    #[serde(skip_serializing_if = "is_default")]
     pub factory_settings: FactorySettings<CustomerData, VendorUsage>,
 }
 
@@ -194,7 +193,6 @@ where
     CustomerData: CustomerSettingsCustomerData,
     VendorUsage: CustomerSettingsVendorUsage,
 {
-    #[serde(skip_serializing_if = "is_default")]
     pub customer_settings: CustomerSettings<CustomerData, VendorUsage>,
 }
 

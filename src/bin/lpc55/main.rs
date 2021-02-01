@@ -61,7 +61,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
     if let Some(subcommand) = args.subcommand_matches("configure") {
         if let Some(subcommand) = subcommand.subcommand_matches("factory-settings") {
-            let config_path = std::path::Path::new(subcommand.value_of("SETTINGS").unwrap());
+            let config_path = std::path::Path::new(subcommand.value_of("CONFIG").unwrap());
             let settings = std::fs::read_to_string(&config_path)?;
             let wrapped_settings: lpc55::protected_flash::WrappedFactorySettings = match config_path.extension() {
                 Some(extension) => match extension {
@@ -98,9 +98,9 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         // - if secure-boot is on, at least one of RoT keys must be enabled
 
         if let Some(subcommand) = subcommand.subcommand_matches("customer-settings") {
-            let config_path = std::path::Path::new(subcommand.value_of("SETTINGS").unwrap());
+            let config_path = std::path::Path::new(subcommand.value_of("CONFIG").unwrap());
             let settings = std::fs::read_to_string(&config_path)?;
-            let settings: lpc55::protected_flash::CustomerSettings = match config_path.extension() {
+            let wrapped_settings: lpc55::protected_flash::WrappedCustomerSettings = match config_path.extension() {
                 Some(extension) => match extension {
                     os_str if os_str == "yaml" => {
                         serde_yaml::from_str(&settings)?
@@ -112,6 +112,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 }
                 None => return Err(anyhow::anyhow!("no extension detected in path {:?}", &config_path)),
             };
+            let settings = wrapped_settings.customer_settings;
 
             info!("settings: {:?}", &settings);
             let settings = Vec::from(settings.to_bytes()?.as_ref());
