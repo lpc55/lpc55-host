@@ -1,5 +1,5 @@
 # must be > previous customer settings version
-customer-settings-version: 1
-# secure_firmware_version: 0
-# nonsecure_firmware_version: 0
+customer-version: 1
+secure-firmware-version: 0
+nonsecure-firmware-version: 0
 rot-keys-status: ["Enabled", "Enabled", "Enabled", "Enabled"]
