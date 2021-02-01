@@ -1,5 +1,0 @@
-# must be > previous customer settings version
-customer-version: 1
-secure-firmware-version: 0
-nonsecure-firmware-version: 0
-rot-keys-status: ["Enabled", "Enabled", "Enabled", "Enabled"]

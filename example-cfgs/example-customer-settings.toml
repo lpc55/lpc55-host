@@ -1,0 +1,8 @@
+[factory-settings]
+usb-id = { vid = 0x1209, pid = 0xb000 }
+
+[customer-settings]
+customer-version = 1
+nonsecure-firmware-version = 1
+secure-firmware-version = 1
+rot-keys-status = ["Enabled", "Enabled", "Enabled", "Enabled"]
