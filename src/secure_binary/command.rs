@@ -164,6 +164,14 @@ pub enum BootCommandDescriptor {
         #[serde(skip_serializing_if = "Option::is_none")]
         len: Option<u32>,
     },
+
+    CheckNonsecureFirmwareVersion {
+        version: u32,
+    },
+
+    CheckSecureFirmwareVersion {
+        version: u32,
+    },
 }
 
 impl<'a> TryFrom<&'a BootCommandDescriptor> for BootCommand {
@@ -189,6 +197,8 @@ impl<'a> TryFrom<&'a BootCommandDescriptor> for BootCommand {
                 BootCommand::Load { address: *dst, data }
 
             }
+            CheckNonsecureFirmwareVersion { version } => BootCommand::CheckNonsecureFirmwareVersion { version: *version },
+            CheckSecureFirmwareVersion { version } => BootCommand::CheckSecureFirmwareVersion { version: *version },
         })
     }
 }
@@ -288,6 +298,8 @@ impl BootCommand {
             }
             CheckSecureFirmwareVersion { version } => {
                 cmd.tag = BootTag::CheckFirmwareVersion as u8;
+                // according to nxp/spsdk
+                cmd.address = 2;
                 cmd.count = *version;
                 Vec::from(cmd.to_bytes().as_ref())
             }

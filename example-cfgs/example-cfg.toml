@@ -70,6 +70,14 @@ nonsecure-firmware-version = 1
 # sbkek = "AAAAAAAA AAAAAAAAA AAAAAAAA AAAAAAAA AAAAAAA AAAAAAAA AAAAAAAA AAAAAAAA"
 
 [[commands]]
+cmd = "CheckSecureFirmwareVersion"
+version = 1
+
+[[commands]]
+cmd = "CheckNonsecureFirmwareVersion"
+version = 1
+
+[[commands]]
 cmd = "Erase"
 start = 0x0
 end = 0xC00  # = 3072 = 6*512, size of blinky-red.bin is 856 bytes, signed version is 2148 bytes
