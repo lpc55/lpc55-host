@@ -25,6 +25,9 @@ pub struct Bootloader {
 /// Bootloader commands return a "status". The non-zero statii can be split
 /// as `100*group + code`. We map these groups into enum variants, containing
 /// the code interpreted as an error the area.
+///
+/// TODO: To implement StdError via thiserror::Error, we need to
+/// add error messages to all the error variants.
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum Error {
     Generic(error::GenericError),
@@ -39,11 +42,34 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 
 impl Bootloader {
+    /// Select first available ROM bootloader with the given VID/PID pair.
     pub fn try_new(vid: u16, pid: u16) -> anyhow::Result<Self> {
         let api = HidApi::new()?;
         let device = api.open(vid, pid)?;
         let protocol = Protocol::new(device);
         Ok(Self { protocol, vid, pid } )
+    }
+
+    /// Attempt to find a ROM bootloader with the given UUID (and VID/PID pair).
+    pub fn try_find(vid: u16, pid: u16, uuid: Option<u128>) -> anyhow::Result<Self> {
+        if let Some(uuid) = uuid {
+            let api = HidApi::new()?;
+            for device_info in api.device_list() {
+                if (vid, pid) != (device_info.vendor_id(), device_info.product_id()) {
+                    continue;
+                }
+                let device = device_info.open_device(&api)?;
+                let device = Self {
+                    protocol: Protocol::new(device),
+                    vid, pid };
+                if uuid == device.properties().device_uuid().unwrap() {
+                    return Ok(device);
+                }
+            }
+            Err(anyhow::anyhow!("No device with vid {:04x}, pid {:04x}, uuid {:032x} found", vid, pid, uuid))
+        } else {
+            Self::try_new(vid, pid)
+        }
     }
 
     // pub fn command(&self, command: Command) {
