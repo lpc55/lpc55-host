@@ -1,18 +1,21 @@
 //! The bootloader interface
+//!
+//! Construct a `Bootloader` from a VID/PID pair (optionally a UUID to disambiguate),
+//! then call its methods.
 
 use enum_iterator::IntoEnumIterator;
 use hidapi::HidApi;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+pub mod command;
+pub use command::{Command, KeystoreOperation, Response};
 pub mod error;
-pub use error::*;
-
-// use error::Error as BootloaderError;
-use crate::types::*;
-
+pub mod property;
+pub use property::{GetProperties, Property, Properties};
 pub mod protocol;
 use protocol::Protocol;
+
 
 #[derive(Debug)]
 pub struct Bootloader {
@@ -21,6 +24,7 @@ pub struct Bootloader {
     // to pull out all the info
     pub vid: u16,
     pub pid: u16,
+    pub uuid: u128,
 }
 
 /// Bootloader commands return a "status". The non-zero statii can be split
@@ -48,23 +52,25 @@ impl Bootloader {
         let api = HidApi::new()?;
         let device = api.open(vid, pid)?;
         let protocol = Protocol::new(device);
-        Ok(Self { protocol, vid, pid } )
+        let uuid = GetProperties { protocol: &protocol }.device_uuid().unwrap();
+        Ok(Self { protocol, vid, pid, uuid })
+
     }
 
     /// Attempt to find a ROM bootloader with the given UUID (and VID/PID pair).
     pub fn try_find(vid: u16, pid: u16, uuid: Option<Uuid>) -> anyhow::Result<Self> {
         if let Some(uuid) = uuid {
+            println!("UUID v{:?} variant {:?}", &uuid.get_version(), &uuid.get_variant());
             let api = HidApi::new()?;
             for device_info in api.device_list() {
                 if (vid, pid) != (device_info.vendor_id(), device_info.product_id()) {
                     continue;
                 }
                 let device = device_info.open_device(&api)?;
-                let device = Self {
-                    protocol: Protocol::new(device),
-                    vid, pid };
-                if uuid.as_u128() == device.properties().device_uuid().unwrap() {
-                    return Ok(device);
+                let protocol = Protocol::new(device);
+                let device_uuid = GetProperties { protocol: &protocol }.device_uuid().unwrap();
+                if uuid.as_u128() == device_uuid {
+                    return Ok(Self { protocol, vid, pid, uuid: device_uuid });
                 }
             }
             Err(anyhow::anyhow!("No device with VID:PID = {:04X}:{:04X} and UUID {:X} found", vid, pid, uuid))
@@ -158,139 +164,24 @@ impl Bootloader {
         let _response = self.protocol.call(&Command::ReceiveSbFile { data }).expect("success");
     }
 
+    pub fn erase_flash(&self, address: usize, length: usize) {
+        let _response = self.protocol.call(&Command::EraseFlash { address, length }).expect("success");
+    }
+
     pub fn write_memory(&self, address: usize, data: Vec<u8>) {
         let _response = self.protocol.call(&Command::WriteMemory { address, data }).expect("success");
     }
 
-    fn property(&self, property: Property) -> Result<Vec<u32>> {
-        let response = self.protocol.call(&Command::GetProperty(property)).expect("success");
-        if let Response::GetProperty(values) = response {
-            Ok(values)
-        } else {
-            todo!();
-        }
+    fn property(&self, property: property::Property) -> Result<Vec<u32>> {
+        self.protocol.property(property)
     }
 
-    pub fn properties(&self) -> GetProperties<'_> {
-        GetProperties { bl: self }
+    pub fn properties(&self) -> property::GetProperties<'_> {
+        GetProperties { protocol: &self.protocol }
     }
 
     pub fn all_properties(&self) -> Properties {
-        let proxy = self.properties();
-        Properties {
-            current_version: proxy.current_version().unwrap(),
-            target_version: proxy.target_version().unwrap(),
-            available_commands: proxy.available_commands().unwrap(),
-            available_peripherals: proxy.available_peripherals().unwrap(),
-            pfr_keystore_update_option: proxy.pfr_keystore_update_option().unwrap(),
-            ram_start_address: proxy.ram_start_address().unwrap(),
-            ram_size: proxy.ram_size().unwrap(),
-            flash_start_address: proxy.flash_start_address().unwrap(),
-            flash_size: proxy.flash_size().unwrap(),
-            flash_page_size: proxy.flash_page_size().unwrap(),
-            flash_sector_size: proxy.flash_sector_size().unwrap(),
-            verify_writes: proxy.verify_writes().unwrap(),
-            flash_locked: proxy.flash_locked().unwrap(),
-            max_packet_size: proxy.max_packet_size().unwrap(),
-            device_uuid: proxy.device_uuid().unwrap(),
-            system_uuid: proxy.system_uuid().unwrap(),
-            crc_check_status: proxy.crc_check_status().unwrap(),
-            reserved_regions: proxy.reserved_regions().unwrap(),
-            irq_notification_pin: proxy.irq_notification_pin().unwrap(),
-        }
-    }
-}
-
-pub struct GetProperties<'a> {
-    bl: &'a Bootloader
-}
-
-impl GetProperties<'_> {
-    pub fn current_version(&self) -> Result<Version> {
-        Ok(Version::from(self.bl.property(Property::CurrentVersion)?[0]))
-    }
-    pub fn target_version(&self) -> Result<Version> {
-        Ok(Version::from(self.bl.property(Property::TargetVersion)?[0]))
-    }
-    pub fn ram_start_address(&self) -> Result<usize> {
-        Ok(self.bl.property(Property::RamStartAddress)?[0] as _)
-    }
-    pub fn ram_size(&self) -> Result<usize> {
-        Ok(self.bl.property(Property::RamSize)?[0] as _)
-    }
-    pub fn flash_start_address(&self) -> Result<usize> {
-        Ok(self.bl.property(Property::FlashStartAddress)?[0] as _)
-    }
-    pub fn flash_size(&self) -> Result<usize> {
-        Ok(self.bl.property(Property::FlashSize)?[0] as _)
-    }
-    pub fn flash_page_size(&self) -> Result<usize> {
-        Ok(self.bl.property(Property::FlashPageSize)?[0] as _)
-    }
-    pub fn flash_sector_size(&self) -> Result<usize> {
-        Ok(self.bl.property(Property::FlashSectorSize)?[0] as _)
-    }
-    pub fn max_packet_size(&self) -> Result<usize> {
-        Ok(self.bl.property(Property::MaxPacketSize)?[0] as _)
-    }
-    pub fn available_peripherals(&self) -> Result<crate::types::AvailablePeripherals> {
-        Ok(AvailablePeripherals::from_bits_truncate(self.bl.property(Property::AvailablePeripherals)?[0]))
-    }
-    pub fn available_commands(&self) -> Result<crate::types::AvailableCommands> {
-        Ok(AvailableCommands::from_bits_truncate(self.bl.property(Property::AvailableCommands)?[0]))
-    }
-    pub fn pfr_keystore_update_option(&self) -> Result<crate::types::PfrKeystoreUpdateOptions> {
-        let values = self.bl.property(Property::PfrKeystoreUpdateOptions)?;
-        assert_eq!(values.len(), 1);
-        Ok(PfrKeystoreUpdateOptions::from(values[0]))
-    }
-    pub fn verify_writes(&self) -> Result<bool> {
-        Ok(self.bl.property(Property::VerifyWrites)?[0] == 1)
-    }
-    pub fn flash_locked(&self) -> Result<bool> {
-        Ok(match self.bl.property(Property::FlashSecurityState)?[0] {
-            0x0 | 0x5AA55AA5 => false,
-            0x1 | 0xC33CC33C => true,
-            _ => panic!(),
-        })
-    }
-    pub fn device_uuid(&self) -> Result<u128> {
-        let values = self.bl.property(Property::UniqueDeviceIdent)?;
-        assert_eq!(values.len(), 4);
-        Ok(
-            ((values[3] as u128) << 96) +
-            ((values[2] as u128) << 64) +
-            ((values[1] as u128) << 32) +
-            ((values[0] as u128))
-        )
-    }
-    pub fn system_uuid(&self) -> Result<u64> {
-        let values = self.bl.property(Property::SystemDeviceIdent)?;
-        assert_eq!(values.len(), 2);
-        Ok(((values[1] as u64) << 32) + (values[0] as u64))
-    }
-
-    pub fn crc_check_status(&self) -> Result<Error> {
-        Ok(Error::from(self.bl.property(Property::CrcCheckStatus)?[0]))
-    }
-
-    pub fn reserved_regions(&self) -> Result<Vec<(usize, usize)>> {
-        let values = self.bl.property(Property::ReservedRegions)?;
-        assert_eq!(values.len() % 2, 0);
-        let mut pairs = Vec::new();
-        for pair in values.chunks_exact(2) {
-            let left = pair[0];
-            let right = pair[1];
-            assert!(right >= left);
-            if right > left {
-                pairs.push((left as usize, right as usize));
-            }
-        }
-        Ok(pairs)
-    }
-
-    pub fn irq_notification_pin(&self) -> Result<crate::types::IrqNotificationPin> {
-        Ok(IrqNotificationPin::from(self.bl.property(Property::IrqNotificationPin)?[0]))
+        self.properties().all()
     }
 }
 

@@ -2,11 +2,14 @@
 
 use core::convert::TryFrom;
 use std::io::{self, Write as _};
+use std::fs;
 
 use anyhow::{anyhow, Context as _};
 use delog::hex_str;
 use log::{info, trace};
 use uuid::Uuid;
+
+use lpc55::bootloader::command;
 
 mod cli;
 mod logger;
@@ -16,6 +19,14 @@ fn main() {
     if let Err(err) = try_main(args) {
         eprintln!("Error: {}", err);
         std::process::exit(1);
+    }
+}
+
+fn check_align(number: usize) -> anyhow::Result<()> {
+    if number % 512 == 0 {
+        Ok(())
+    } else {
+        Err(anyhow!("{} is not a multiple of 512"))
     }
 }
 
@@ -41,7 +52,6 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         Some(Err(e)) => return Err(e)?,
         None => None,
     };
-        // .map(|uuid| u128::from_str_radix(uuid, 16).unwrap());
 
     let bootloader = || lpc55::bootloader::Bootloader::try_find(vid, pid, uuid);
 
@@ -72,7 +82,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
     if let Some(subcommand) = args.subcommand_matches("configure") {
         if let Some(subcommand) = subcommand.subcommand_matches("factory-settings") {
             let config_path = std::path::Path::new(subcommand.value_of("CONFIG").unwrap());
-            let settings = std::fs::read_to_string(&config_path)?;
+            let settings = fs::read_to_string(&config_path)?;
             let wrapped_settings: lpc55::protected_flash::WrappedFactorySettings = match config_path.extension() {
                 Some(extension) => match extension {
                     os_str if os_str == "yaml" => {
@@ -97,7 +107,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 bootloader.write_memory(lpc55::protected_flash::FACTORY_SETTINGS_ADDRESS, settings);
             } else {
                 let output_name = subcommand.value_of("OUTPUT").unwrap();
-                std::fs::write(&output_name, &settings).expect("Unable to write file");
+                fs::write(&output_name, &settings).expect("Unable to write file");
                 println!("outputing to file..");
             }
         }
@@ -109,7 +119,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
         if let Some(subcommand) = subcommand.subcommand_matches("customer-settings") {
             let config_path = std::path::Path::new(subcommand.value_of("CONFIG").unwrap());
-            let settings = std::fs::read_to_string(&config_path)?;
+            let settings = fs::read_to_string(&config_path)?;
             let wrapped_settings: lpc55::protected_flash::WrappedCustomerSettings = match config_path.extension() {
                 Some(extension) => match extension {
                     os_str if os_str == "yaml" => {
@@ -133,7 +143,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 bootloader.write_memory(lpc55::protected_flash::CUSTOMER_SETTINGS_SCRATCH_ADDRESS, settings);
             } else {
                 let output_name = subcommand.value_of("OUTPUT").unwrap();
-                std::fs::write(&output_name, &settings).expect("Unable to write file");
+                fs::write(&output_name, &settings).expect("Unable to write file");
                 println!("outputing to file..");
             }
         }
@@ -151,12 +161,12 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             let bootloader = bootloader()?;
             // let data = bootloader.read_memory(0x9_DE60, 3*512);
 
-            let command = lpc55::types::Command::Keystore(
-                lpc55::types::KeystoreOperation::ReadKeystore
+            let command = command::Command::Keystore(
+                command::KeystoreOperation::ReadKeystore
             );
             let response = bootloader.protocol.call(&command).expect("success");
 
-            let data = if let lpc55::types::Response::Data(data) = response {
+            let data = if let command::Response::Data(data) = response {
                 data
             } else {
                 todo!();
@@ -169,11 +179,11 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
         if let Some(command) = subcommand.subcommand_matches("generate-key") {
             let bootloader = bootloader()?;
-            let key = lpc55::types::Key::try_from(command.value_of("KEY").unwrap()).unwrap();
+            let key = command::Key::try_from(command.value_of("KEY").unwrap()).unwrap();
             let len: u32 = command.value_of("LENGTH").unwrap().parse()?;
 
-            let command = lpc55::types::Command::Keystore(
-                lpc55::types::KeystoreOperation::GenerateKey { key, len }
+            let command = command::Command::Keystore(
+                command::KeystoreOperation::GenerateKey { key, len }
             );
 
             bootloader.protocol.call(&command).expect("success");
@@ -182,12 +192,12 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
         if let Some(command) = subcommand.subcommand_matches("set-key") {
             let bootloader = bootloader()?;
-            let key = lpc55::types::Key::try_from(command.value_of("KEY").unwrap()).unwrap();
+            let key = command::Key::try_from(command.value_of("KEY").unwrap()).unwrap();
             let keydata_filename = command.value_of("KEYDATA_FILENAME").unwrap();
-            let data = std::fs::read(keydata_filename)?;
+            let data = fs::read(keydata_filename)?;
 
-            let command = lpc55::types::Command::Keystore(
-                lpc55::types::KeystoreOperation::SetKey { key, data }
+            let command = command::Command::Keystore(
+                command::KeystoreOperation::SetKey { key, data }
             );
 
             bootloader.protocol.call(&command).expect("success");
@@ -197,8 +207,8 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         if subcommand.subcommand_matches("write-keys").is_some() {
             let bootloader = bootloader()?;
 
-            let command = lpc55::types::Command::Keystore(
-                lpc55::types::KeystoreOperation::WriteNonVolatile { memory_id: 0 }
+            let command = command::Command::Keystore(
+                command::KeystoreOperation::WriteNonVolatile { memory_id: 0 }
             );
 
             bootloader.protocol.call(&command).expect("success");
@@ -208,8 +218,8 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         if subcommand.subcommand_matches("read-keys").is_some() {
             let bootloader = bootloader()?;
 
-            let command = lpc55::types::Command::Keystore(
-                lpc55::types::KeystoreOperation::ReadNonVolatile { memory_id: 0 }
+            let command = command::Command::Keystore(
+                command::KeystoreOperation::ReadNonVolatile { memory_id: 0 }
             );
 
             bootloader.protocol.call(&command).expect("success");
@@ -256,6 +266,29 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         // println!("CFPA-ping == CFPA-pong: {}", pfr.field.ping == pfr.field.pong);
     }
 
+    if let Some(command) = args.subcommand_matches("write-memory") {
+        let bootloader = bootloader()?;
+        let address = clap::value_t!(command.value_of("ADDRESS"), usize).unwrap();
+        check_align(address)?;
+        let data = fs::read(command.value_of("INPUT").unwrap()).unwrap();
+        let length = data.len();
+        check_align(length)?;
+        bootloader.write_memory(address, data);
+        return Ok(());
+    }
+
+    if let Some(command) = args.subcommand_matches("write-flash") {
+        let bootloader = bootloader()?;
+        let address = clap::value_t!(command.value_of("ADDRESS"), usize).unwrap();
+        check_align(address)?;
+        let data = fs::read(command.value_of("INPUT").unwrap()).unwrap();
+        let length = data.len();
+        check_align(length)?;
+        bootloader.erase_flash(address, length);
+        bootloader.write_memory(address, data);
+        return Ok(());
+    }
+
     if let Some(command) = args.subcommand_matches("read-memory") {
         let bootloader = bootloader()?;
         let address = clap::value_t!(command.value_of("ADDRESS"), usize).unwrap();
@@ -264,7 +297,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         let data = bootloader.read_memory(address, length);
 
         if let Some(output_filename) = command.value_of("OUTPUT") {
-            let mut file = std::fs::File::create(output_filename)?;
+            let mut file = fs::File::create(output_filename)?;
             use std::io::Write;
             file.write_all(&data)?;
             file.sync_all()?;
@@ -278,7 +311,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
     if let Some(command) = args.subcommand_matches("receive-sb-file") {
         let bootloader = bootloader()?;
         let filename = command.value_of("SB-FILE").unwrap();
-        let image = std::fs::read(&filename)?;
+        let image = fs::read(&filename)?;
         bootloader.receive_sb_file(image);
         return Ok(());
     }
@@ -302,7 +335,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         // let _signed_image = lpc55::signed_binary::sign(&config)?;
         let signing_request = ImageSigningRequest::try_from(&config)?;
         let signed_image = signing_request.sign();
-        std::fs::write(&config.firmware.signed_image, &signed_image.0)?;
+        fs::write(&config.firmware.signed_image, &signed_image.0)?;
 
         //////////////////////////////////////////////////////
         //
@@ -321,7 +354,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         // dbg!(&signing_key);
         let signed_image: SignedSb21File = unsigned_image.sign(&signing_key);
         let signed_image_bytes = signed_image.to_bytes();
-        std::fs::write(&config.firmware.secure_boot_image, &signed_image_bytes)?;
+        fs::write(&config.firmware.secure_boot_image, &signed_image_bytes)?;
         // dbg!(signed_image_bytes.len());
     }
 

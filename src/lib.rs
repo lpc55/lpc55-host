@@ -34,7 +34,6 @@ pub mod protected_flash;
 pub mod pki;
 pub mod secure_binary;
 pub mod signed_binary;
-pub mod types;
 pub mod util;
 
 // optional modules
