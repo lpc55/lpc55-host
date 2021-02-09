@@ -9,7 +9,7 @@ use delog::hex_str;
 use log::{info, trace};
 use uuid::Uuid;
 
-use lpc55::bootloader::command;
+use lpc55::bootloader::{Bootloader, command};
 
 mod cli;
 mod logger;
@@ -53,7 +53,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         None => None,
     };
 
-    let bootloader = || lpc55::bootloader::Bootloader::try_find(vid, pid, uuid);
+    let bootloader = || Bootloader::try_find(vid, pid, uuid).ok_or(anyhow!("Could not attach to a bootloader"));
 
     trace!("using vid = {} pid = {}", vid, pid);
 
@@ -65,6 +65,15 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         let server = lpc55::http::Server::new(&http_config, bootloader)?;
         server.run()?;
         return Ok(());
+    }
+
+    if args.subcommand_matches("ls").is_some() {
+        let bootloaders = Bootloader::list();
+        println!("bootloaders:");
+        for bootloader in bootloaders {
+            println!("{:?}", &bootloader);
+        }
+
     }
 
     if let Some(_command) = args.subcommand_matches("info") {

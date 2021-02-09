@@ -200,6 +200,10 @@ pub fn app() -> clap::App<'static, 'static> {
             .about("query all properties from bootloader")
         )
 
+        .subcommand(SubCommand::with_name("ls")
+            .about("list all available bootloaders")
+        )
+
         .subcommand(SubCommand::with_name("pfr")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())

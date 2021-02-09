@@ -17,7 +17,6 @@ pub mod protocol;
 use protocol::Protocol;
 
 
-#[derive(Debug)]
 pub struct Bootloader {
     pub protocol: Protocol,
     // move around; also "new" should scan the device_list iterator
@@ -26,6 +25,18 @@ pub struct Bootloader {
     pub pid: u16,
     pub uuid: u128,
 }
+
+impl core::fmt::Debug for Bootloader {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Bootloader")
+            .field("vid", &hexstr!(&self.vid.to_be_bytes()))
+            .field("pid", &hexstr!(&self.pid.to_be_bytes()))
+            // .field("uuid", &hexstr!(self.uuid.to_be_bytes().as_ref()))
+            .field("uuid", &Uuid::from_u128(self.uuid))
+        .finish()
+    }
+}
+
 
 /// Bootloader commands return a "status". The non-zero statii can be split
 /// as `100*group + code`. We map these groups into enum variants, containing
@@ -48,39 +59,61 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 impl Bootloader {
     /// Select first available ROM bootloader with the given VID/PID pair.
-    pub fn try_new(vid: u16, pid: u16) -> anyhow::Result<Self> {
-        let api = HidApi::new()?;
-        let device = api.open(vid, pid)?;
-        let protocol = Protocol::new(device);
-        let uuid = GetProperties { protocol: &protocol }.device_uuid().unwrap();
-        Ok(Self { protocol, vid, pid, uuid })
-
+    ///
+    /// TODO: Open question is whether this is a good idea.
+    /// For instance, `write-flash` on the wrong device could wreak havoc.
+    pub fn try_new(vid: u16, pid: u16) -> Option<Self> {
+        Self::try_find(vid, pid, None)
+        // // Bootloader is not Copy, so we can't filter
+        // let mut bootloaders = Self::list();
+        // let index = bootloaders.iter()
+        //     .position(|bootloader| bootloader.vid == vid && bootloader.pid == pid);
+        // index.map(|i| bootloaders.remove(i))
     }
 
     /// Attempt to find a ROM bootloader with the given UUID (and VID/PID pair).
-    pub fn try_find(vid: u16, pid: u16, uuid: Option<Uuid>) -> anyhow::Result<Self> {
-        if let Some(uuid) = uuid {
-            println!("UUID v{:?} variant {:?}", &uuid.get_version(), &uuid.get_variant());
-            let api = HidApi::new()?;
-            for device_info in api.device_list() {
-                if (vid, pid) != (device_info.vendor_id(), device_info.product_id()) {
-                    continue;
+    pub fn try_find(vid: u16, pid: u16, uuid: Option<Uuid>) -> Option<Self> {
+        // Bootloader is not Copy, so we can't filter
+        let mut bootloaders = Self::list();
+        let index = bootloaders.iter()
+            .position(|bootloader| bootloader.vid == vid && bootloader.pid == pid && {
+                if let Some(uuid) = uuid {
+                    bootloader.uuid == uuid.as_u128()
+                } else {
+                    true
                 }
-                let device = device_info.open_device(&api)?;
-                let protocol = Protocol::new(device);
-                let device_uuid = GetProperties { protocol: &protocol }.device_uuid().unwrap();
-                if uuid.as_u128() == device_uuid {
-                    return Ok(Self { protocol, vid, pid, uuid: device_uuid });
-                }
-            }
-            Err(anyhow::anyhow!("No device with VID:PID = {:04X}:{:04X} and UUID {:X} found", vid, pid, uuid))
-        } else {
-            Self::try_new(vid, pid)
-        }
+            });
+        index.map(|i| bootloaders.remove(i))
     }
 
-    // pub fn command(&self, command: Command) {
-    // }
+    /// Returns a vector of all HID devices that appear to be ROM bootloaders
+    pub fn list() -> Vec<Self> {
+        let api = HidApi::new().unwrap();
+        api.device_list()
+            .filter_map(|device_info| {
+                let vid = device_info.vendor_id();
+                let pid = device_info.product_id();
+
+                // TODO: Check if these checks are globally valid.
+                // Perhaps drop them completely?
+                // The intent is to avoid sending the UUID query to completely unrelated devices.
+                if device_info.manufacturer_string() != Some("NXP SEMICONDUCTOR INC.") {
+                    return None;
+                }
+                if device_info.product_string() != Some("USB COMPOSITE DEVICE") {
+                    return None;
+                }
+                device_info.open_device(&api).ok()
+                    .map(|device| (device, vid, pid))
+            })
+            .filter_map(|(device, vid, pid)| {
+                let protocol = Protocol::new(device);
+                let bootloader = GetProperties { protocol: &protocol }.device_uuid().ok()
+                    .map(|uuid| Self { protocol, vid, pid, uuid });
+                bootloader
+            })
+            .collect()
+    }
 
     pub fn info(&self) {
         for property in Property::into_enum_iter() {
