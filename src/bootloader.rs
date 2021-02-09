@@ -3,6 +3,7 @@
 use enum_iterator::IntoEnumIterator;
 use hidapi::HidApi;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 pub mod error;
 pub use error::*;
@@ -51,7 +52,7 @@ impl Bootloader {
     }
 
     /// Attempt to find a ROM bootloader with the given UUID (and VID/PID pair).
-    pub fn try_find(vid: u16, pid: u16, uuid: Option<u128>) -> anyhow::Result<Self> {
+    pub fn try_find(vid: u16, pid: u16, uuid: Option<Uuid>) -> anyhow::Result<Self> {
         if let Some(uuid) = uuid {
             let api = HidApi::new()?;
             for device_info in api.device_list() {
@@ -62,11 +63,11 @@ impl Bootloader {
                 let device = Self {
                     protocol: Protocol::new(device),
                     vid, pid };
-                if uuid == device.properties().device_uuid().unwrap() {
+                if uuid.as_u128() == device.properties().device_uuid().unwrap() {
                     return Ok(device);
                 }
             }
-            Err(anyhow::anyhow!("No device with vid {:04x}, pid {:04x}, uuid {:032x} found", vid, pid, uuid))
+            Err(anyhow::anyhow!("No device with VID:PID = {:04X}:{:04X} and UUID {:X} found", vid, pid, uuid))
         } else {
             Self::try_new(vid, pid)
         }

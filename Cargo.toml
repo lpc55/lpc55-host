@@ -47,6 +47,7 @@ tiny_http = { version = "0.7", optional = true }
 toml = "0.5.7"
 x509-parser = "0.9.0"
 uriparse = "0.6.3"
+uuid = "0.8.2"
 pkcs11 = "0.5.0"
 pkcs11-uri = "0.1.2"
 

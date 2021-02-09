@@ -6,6 +6,7 @@ use std::io::{self, Write as _};
 use anyhow::{anyhow, Context as _};
 use delog::hex_str;
 use log::{info, trace};
+use uuid::Uuid;
 
 mod cli;
 mod logger;
@@ -34,8 +35,13 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         .with_context(|| format!("Failed to parse VID"))?;
     let pid = u16::from_str_radix(args.value_of("PID").ok_or(anyhow!("Need a PID"))?.trim_start_matches("0x"), 16)
         .with_context(|| format!("Failed to parse PID"))?;
-    let uuid: Option<u128> = args.value_of("UUID")
-        .map(|uuid| u128::from_str_radix(uuid, 16).unwrap());
+    let uuid: Option<Uuid> = match args.value_of("UUID").map(Uuid::parse_str) {
+        // isn't there a combinator for this? o.o
+        Some(Ok(uuid)) => Some(uuid),
+        Some(Err(e)) => return Err(e)?,
+        None => None,
+    };
+        // .map(|uuid| u128::from_str_radix(uuid, 16).unwrap());
 
     let bootloader = || lpc55::bootloader::Bootloader::try_find(vid, pid, uuid);
 
