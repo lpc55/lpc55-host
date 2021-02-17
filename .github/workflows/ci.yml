@@ -81,6 +81,10 @@ jobs:
           args: --release --target=${{ matrix.target }} --verbose
           use-cross: ${{ matrix.cross }}
 
+      - name: Run tests
+        run:
+          cargo test --test test-cli
+
       # - uses: actions/upload-artifact@v2
       #   with:
       #     name: ${{ matrix.release_name }}
