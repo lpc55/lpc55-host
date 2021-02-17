@@ -25,7 +25,7 @@ rot-fingerprint = "C7EE3124 DC87EAAE 5A6F7FCC B6C2E458 706835C9 9D5D7082 4EFFAC0
 [factory-settings.boot-configuration]
 failure-port  = 1
 failure-pin = 21
-speed = "96MHz"
+speed = "48MHz"
 mode = "Usb"
 
 [factory-settings.secure-boot-configuration]
