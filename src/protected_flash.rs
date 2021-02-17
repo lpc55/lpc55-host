@@ -499,9 +499,9 @@ fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: Factory
 #[repr(u8)]
 pub enum BootSpeed {
     Nxp = 0,
-    #[serde(rename = "48Mhz")]
+    #[serde(rename = "48MHz")]
     Fro48 = 1,
-    #[serde(rename = "96Mhz")]
+    #[serde(rename = "96MHz")]
     Fro96 = 2,
     Reserved = 3,
 }
@@ -571,6 +571,7 @@ impl From<IspMode> for u8 {
     }
 }
 
+#[serde(rename_all = "kebab-case")]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct BootConfiguration {
     #[serde(default)]
@@ -591,7 +592,7 @@ impl From<u32> for BootConfiguration {
     fn from(word: u32) -> Self {
         Self {
             failure_port: ((word >> 24) & 0b11) as u8,
-            failure_pin: ((word >> 26) & 0b11111) as u8,
+            failure_pin: ((word >> 27) & 0b11111) as u8,
             speed: BootSpeed::from(((word >> 7) & 0b11) as u8),
             mode: IspMode::from(((word >> 4) & 0b111) as u8),
         }
@@ -603,9 +604,9 @@ impl From<BootConfiguration> for u32 {
         let mut word = 0u32;
 
         word |= ((cfg.failure_port & 0b11) as u32) << 24;
-        word |= ((cfg.failure_pin & 0b11111) as u32) << 26;
+        word |= ((cfg.failure_pin & 0b11111) as u32) << 27;
         word |= (cfg.speed as u8 as u32) << 7;
-        word |= (u8::from(cfg.mode) as u32) << 3;
+        word |= (u8::from(cfg.mode) as u32) << 4;
 
         word
 
@@ -680,6 +681,7 @@ impl From<u32> for TrustzoneMode {
     }
 }
 
+#[serde(rename_all = "kebab-case")]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct SecureBootConfiguration {
     #[serde(default)]
