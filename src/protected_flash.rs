@@ -497,12 +497,14 @@ fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: Factory
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[repr(u8)]
+/// Purposely swapped 48MHz and 96MHz values from what they are in
+/// reference manual (Rev. 2.1).  These are the correct values.
 pub enum BootSpeed {
     Nxp = 0,
-    #[serde(rename = "48MHz")]
-    Fro48 = 1,
     #[serde(rename = "96MHz")]
-    Fro96 = 2,
+    Fro96 = 1,
+    #[serde(rename = "48MHz")]
+    Fro48 = 2,
     Reserved = 3,
 }
 
