@@ -6,6 +6,7 @@ use tempfile::tempdir;
 extern crate hex;
 
 use assert_cmd::prelude::*; 
+use predicates::prelude::*;
 
 #[test]
 fn test_factory_generates_correctly() {
@@ -120,4 +121,17 @@ rot-keys-status = ["Enabled", "Enabled", "Enabled", "Enabled"]
 
 }
 
+#[test]
+fn test_rotkh() {
+
+    let mut cmd = Command::cargo_bin("lpc55").unwrap();
+    cmd
+        .arg("fingerprint-certificates")
+        .arg("./example-cfgs/example-cfg.toml");
+
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("D826E2FD 44F5C254 BC58C62E BF96A938 95C19DC2 25810C95 C8B9E6FD 9F7CC9CB"));
+
+}
 
