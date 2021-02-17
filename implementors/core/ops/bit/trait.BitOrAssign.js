@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["lpc55"] = [{"text":"impl BitOrAssign&lt;PrinceSubregion&gt; for PrinceSubregion","synthetic":false,"types":[]},{"text":"impl BitOrAssign&lt;AvailablePeripherals&gt; for AvailablePeripherals","synthetic":false,"types":[]},{"text":"impl BitOrAssign&lt;AvailableCommands&gt; for AvailableCommands","synthetic":false,"types":[]}];
+implementors["lpc55"] = [{"text":"impl BitOrAssign&lt;AvailableCommands&gt; for AvailableCommands","synthetic":false,"types":[]},{"text":"impl BitOrAssign&lt;AvailablePeripherals&gt; for AvailablePeripherals","synthetic":false,"types":[]},{"text":"impl BitOrAssign&lt;PrinceSubregion&gt; for PrinceSubregion","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

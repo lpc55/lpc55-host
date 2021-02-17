@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src\protected_flash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>protected_flash.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/protected_flash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>protected_flash.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../lpc55/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../lpc55/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1383,6 +1383,8 @@
 <span id="1380">1380</span>
 <span id="1381">1381</span>
 <span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The protected flash area (PFR) as Rust types</span>
 <span class="doccomment">//!</span>
@@ -1567,7 +1569,6 @@
     <span class="ident">CustomerData</span>: <span class="ident">FactorySettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">FactorySettingsVendorUsage</span>,
 {
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">factory_settings</span>: <span class="ident">FactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
 }
 
@@ -1580,7 +1581,6 @@
     <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
 {
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">customer_settings</span>: <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
 }
 
@@ -1885,12 +1885,14 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
+<span class="doccomment">/// Purposely swapped 48MHz and 96MHz values from what they are in</span>
+<span class="doccomment">/// reference manual (Rev. 2.1).  These are the correct values.</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BootSpeed</span> {
     <span class="ident">Nxp</span> <span class="op">=</span> <span class="number">0</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;48Mhz&quot;</span>)]</span>
-    <span class="ident">Fro48</span> <span class="op">=</span> <span class="number">1</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;96Mhz&quot;</span>)]</span>
-    <span class="ident">Fro96</span> <span class="op">=</span> <span class="number">2</span>,
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;96MHz&quot;</span>)]</span>
+    <span class="ident">Fro96</span> <span class="op">=</span> <span class="number">1</span>,
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;48MHz&quot;</span>)]</span>
+    <span class="ident">Fro48</span> <span class="op">=</span> <span class="number">2</span>,
     <span class="ident">Reserved</span> <span class="op">=</span> <span class="number">3</span>,
 }
 
@@ -1959,6 +1961,7 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BootConfiguration</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
@@ -1979,7 +1982,7 @@
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">word</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">failure_port</span>: ((<span class="ident">word</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="op">&amp;</span> <span class="number">0b11</span>) <span class="kw">as</span> <span class="ident">u8</span>,
-            <span class="ident">failure_pin</span>: ((<span class="ident">word</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">26</span>) <span class="op">&amp;</span> <span class="number">0b11111</span>) <span class="kw">as</span> <span class="ident">u8</span>,
+            <span class="ident">failure_pin</span>: ((<span class="ident">word</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">27</span>) <span class="op">&amp;</span> <span class="number">0b11111</span>) <span class="kw">as</span> <span class="ident">u8</span>,
             <span class="ident">speed</span>: <span class="ident">BootSpeed</span>::<span class="ident">from</span>(((<span class="ident">word</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span>) <span class="op">&amp;</span> <span class="number">0b11</span>) <span class="kw">as</span> <span class="ident">u8</span>),
             <span class="ident">mode</span>: <span class="ident">IspMode</span>::<span class="ident">from</span>(((<span class="ident">word</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>) <span class="op">&amp;</span> <span class="number">0b111</span>) <span class="kw">as</span> <span class="ident">u8</span>),
         }
@@ -1991,9 +1994,9 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">word</span> <span class="op">=</span> <span class="number">0u32</span>;
 
         <span class="ident">word</span> <span class="op">|</span><span class="op">=</span> ((<span class="ident">cfg</span>.<span class="ident">failure_port</span> <span class="op">&amp;</span> <span class="number">0b11</span>) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>;
-        <span class="ident">word</span> <span class="op">|</span><span class="op">=</span> ((<span class="ident">cfg</span>.<span class="ident">failure_pin</span> <span class="op">&amp;</span> <span class="number">0b11111</span>) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">26</span>;
+        <span class="ident">word</span> <span class="op">|</span><span class="op">=</span> ((<span class="ident">cfg</span>.<span class="ident">failure_pin</span> <span class="op">&amp;</span> <span class="number">0b11111</span>) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">27</span>;
         <span class="ident">word</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">cfg</span>.<span class="ident">speed</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
-        <span class="ident">word</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">u8</span>::<span class="ident">from</span>(<span class="ident">cfg</span>.<span class="ident">mode</span>) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>;
+        <span class="ident">word</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">u8</span>::<span class="ident">from</span>(<span class="ident">cfg</span>.<span class="ident">mode</span>) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
 
         <span class="ident">word</span>
 
@@ -2068,6 +2071,7 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SecureBootConfiguration</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>

@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["PfrKeystoreUpdateOptions",""],["Property",""]],"struct":[["AvailableCommands",""],["AvailablePeripherals",""],["GetProperties",""],["IrqNotificationPin",""],["Properties",""]]});
