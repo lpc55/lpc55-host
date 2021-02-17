@@ -299,7 +299,7 @@ impl BootCommand {
             CheckSecureFirmwareVersion { version } => {
                 cmd.tag = BootTag::CheckFirmwareVersion as u8;
                 // according to nxp/spsdk
-                cmd.address = 2;
+                cmd.address = 0;
                 cmd.count = *version;
                 Vec::from(cmd.to_bytes().as_ref())
             }
