@@ -61,7 +61,7 @@ where
     pub usb_id: UsbId,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub debug_settings: DebugSecurityPolicies,
+    pub debug_settings: DebugSecurity,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub vendor_usage: VendorUsage,
@@ -142,7 +142,7 @@ where
     // PIN = "pinned" or fixed
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub debug_settings: DebugSecurityPolicies,
+    pub debug_settings: DebugSecurity,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub enable_fault_analysis_mode: bool,
@@ -406,7 +406,7 @@ where
         cursor.write_all(&self.usb_id.pid.to_le_bytes())?;
         cursor.write_all(&[0u8; 4])?;
 
-        let debug_settings: [u32; 2] = self.debug_settings.into();
+        let debug_settings: [u32; 2] = Into::<DebugSecurityPolicies>::into(self.debug_settings).into();
         cursor.write_all(&debug_settings[0].to_le_bytes())?;
         cursor.write_all(&debug_settings[1].to_le_bytes())?;
 
@@ -475,7 +475,7 @@ fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: Factory
     let factory = FactorySettings {
         boot_configuration: BootConfiguration::from(boot_cfg),
         usb_id: UsbId::from(usb_id),
-        debug_settings: DebugSecurityPolicies::from([cc_socu_default, cc_socu_pin]),
+        debug_settings: DebugSecurityPolicies::from([cc_socu_default, cc_socu_pin]).into(),
         vendor_usage: VendorUsage::from(vendor_usage),
         secure_boot_configuration: SecureBootConfiguration::from(secure_boot_cfg),
         prince_configuration: PrinceConfiguration::from(prince_cfg),
@@ -1051,9 +1051,12 @@ impl From<u32> for RotKeysStatus {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd,Serialize)]
-pub enum DebugSecurityBlanketPolicy {
+pub enum DebugSecurity {
     AllDisabled,
     AllEnabled,
+    Custom (
+        DebugSecurityPolicies,
+    )
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd,Serialize)]
@@ -1061,6 +1064,12 @@ pub enum DebugSecurityPolicy {
     EnableWithDap,
     Disabled,
     Enabled,
+}
+
+impl Default for DebugSecurity {
+    fn default() -> Self {
+        Self::AllDisabled
+    }
 }
 
 impl Default for DebugSecurityPolicy {
@@ -1099,7 +1108,6 @@ impl From<[bool; 2]> for DebugSecurityPolicy {
 }
 
 #[serde(rename_all = "kebab-case")]
-#[serde(from = "DebugSecurityBlanketPolicy")]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct DebugSecurityPolicies {
     #[serde(default)]
@@ -1146,16 +1154,24 @@ pub struct DebugSecurityPolicies {
     pub check_uuid: bool,
 }
 
-impl From<DebugSecurityBlanketPolicy> for DebugSecurityPolicies {
-    fn from(value: DebugSecurityBlanketPolicy) -> Self {
+impl From<DebugSecurity> for DebugSecurityPolicies {
+    fn from(value: DebugSecurity) -> Self {
         match value {
             // Fixed, Disabled
-            DebugSecurityBlanketPolicy::AllDisabled =>
+            DebugSecurity::AllDisabled =>
                 [0xffffu32, 0x0000].into(),
             // Not fixed, Enabled
-            DebugSecurityBlanketPolicy::AllEnabled =>
+            DebugSecurity::AllEnabled =>
                 [0x0000u32, 0xffff].into(),
+            DebugSecurity::Custom ( policies ) =>
+                policies,
         }
+    }
+}
+
+impl From<DebugSecurityPolicies> for DebugSecurity {
+    fn from(value: DebugSecurityPolicies) -> Self {
+        return DebugSecurity::Custom(value);
     }
 }
 
@@ -1275,7 +1291,7 @@ where
         cursor.write_all(&u32::from(self.rot_keys_status).to_le_bytes())?;
         cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
 
-        let debug_settings: [u32; 2] = self.debug_settings.into();
+        let debug_settings: [u32; 2] = Into::<DebugSecurityPolicies>::into(self.debug_settings).into();
         cursor.write_all(&debug_settings[0].to_le_bytes())?;
         cursor.write_all(&debug_settings[1].to_le_bytes())?;
 
@@ -1364,7 +1380,7 @@ fn parse_customer_page<CustomerData: CustomerSettingsCustomerData, VendorUsage: 
         image_key_revocation_id: MonotonicCounter::from(image_key_revocation_id),
         vendor_usage: VendorUsage::from(vendor_usage),
         rot_keys_status: RotKeysStatus::from(rot_keys_status),
-        debug_settings: DebugSecurityPolicies::from([dcfg_cc_socu_ns_default, dcfg_cc_socu_ns_pin]),
+        debug_settings: DebugSecurityPolicies::from([dcfg_cc_socu_ns_default, dcfg_cc_socu_ns_pin]).into(),
         enable_fault_analysis_mode: enable_fa != 0,
         factory_prog_in_progress: FactorySettingsProgInProgress(factory_prog_in_progress),
         prince_ivs: [

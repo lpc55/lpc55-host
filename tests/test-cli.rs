@@ -132,6 +132,39 @@ debug-settings = "AllDisabled"
 }
 
 #[test]
+fn test_custom_debug_policy() {
+    let dir = tempdir().unwrap();
+
+    let cfgfile_path = dir.path().join("cfg.toml");
+    let mut cfgfile = File::create(cfgfile_path.clone()).unwrap();
+
+    let binfile_path = dir.path().join("customer.bin");
+
+    // Needs to all be inline due to serde bug
+    // https://github.com/alexcrichton/toml-rs/issues/225
+    writeln!(cfgfile, r#"
+[factory-settings]
+debug-settings = {{Custom = {{nonsecure-noninvasive = "Disabled", secure-invasive = "EnableWithDap", jtag-tap = "Enabled"}}}}
+"#).unwrap();
+
+    let mut cmd = Command::cargo_bin("lpc55").unwrap();
+    cmd
+        .arg("configure")
+        .arg("factory-settings")
+        .arg("-o")
+        .arg(binfile_path.clone())
+        .arg(cfgfile_path);
+
+    cmd.assert()
+        .success();
+
+    let data = fs::read(binfile_path).expect("Unable to read output customer file");
+
+    // debug policies
+    assert_eq!(data[0x10.. 0x18], [0x11, 0x00, 0xee, 0xff, 0x10, 0x00, 0xef, 0xff]);
+}
+
+#[test]
 fn test_rotkh() {
 
     let mut cmd = Command::cargo_bin("lpc55").unwrap();
