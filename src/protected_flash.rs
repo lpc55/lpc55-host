@@ -406,9 +406,7 @@ where
         cursor.write_all(&self.usb_id.pid.to_le_bytes())?;
         cursor.write_all(&[0u8; 4])?;
 
-        // TODO: check/fix
-        // let debug_settings: [u32; 2] = self.debug_settings.into();
-        let debug_settings: [u32; 2] = [0; 2];
+        let debug_settings: [u32; 2] = self.debug_settings.into();
         cursor.write_all(&debug_settings[0].to_le_bytes())?;
         cursor.write_all(&debug_settings[1].to_le_bytes())?;
 
@@ -1053,6 +1051,12 @@ impl From<u32> for RotKeysStatus {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd,Serialize)]
+pub enum DebugSecurityBlanketPolicy {
+    AllDisabled,
+    AllEnabled,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd,Serialize)]
 pub enum DebugSecurityPolicy {
     EnableWithDap,
     Disabled,
@@ -1094,6 +1098,8 @@ impl From<[bool; 2]> for DebugSecurityPolicy {
     }
 }
 
+#[serde(rename_all = "kebab-case")]
+#[serde(from = "DebugSecurityBlanketPolicy")]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct DebugSecurityPolicies {
     #[serde(default)]
@@ -1120,6 +1126,11 @@ pub struct DebugSecurityPolicies {
     #[serde(skip_serializing_if = "is_default")]
     pub jtag_tap: DebugSecurityPolicy,
 
+    /// Flash mass erase command
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub flash_mass_erase_command: DebugSecurityPolicy,
+
     /// ISP boot command
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -1133,6 +1144,19 @@ pub struct DebugSecurityPolicies {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub check_uuid: bool,
+}
+
+impl From<DebugSecurityBlanketPolicy> for DebugSecurityPolicies {
+    fn from(value: DebugSecurityBlanketPolicy) -> Self {
+        match value {
+            // Fixed, Disabled
+            DebugSecurityBlanketPolicy::AllDisabled =>
+                [0xffffu32, 0x0000].into(),
+            // Not fixed, Enabled
+            DebugSecurityBlanketPolicy::AllEnabled =>
+                [0x0000u32, 0xffff].into(),
+        }
+    }
 }
 
 impl From<[u32; 2]> for DebugSecurityPolicies {
@@ -1170,6 +1194,10 @@ impl From<[u32; 2]> for DebugSecurityPolicies {
             fault_analysis_command: DebugSecurityPolicy::from([
                 ((fix >> 7) & 1) != 0,
                 ((set >> 7) & 1) != 0,
+            ]),
+            flash_mass_erase_command: DebugSecurityPolicy::from([
+                ((fix >> 8) & 1) != 0,
+                ((set >> 8) & 1) != 0,
             ]),
             cm33_noninvasive: DebugSecurityPolicy::from([
                 ((fix >> 9) & 1) != 0,
@@ -1209,14 +1237,17 @@ impl From<DebugSecurityPolicies> for [u32; 2] {
         fixed |= policies.fault_analysis_command.fixed_bit() << 7;
         enabled |= policies.fault_analysis_command.enabled_bit() << 7;
 
+        fixed |= policies.flash_mass_erase_command.fixed_bit() << 8;
+        enabled |= policies.flash_mass_erase_command.enabled_bit() << 8;
+
         fixed |= policies.cm33_noninvasive.fixed_bit() << 9;
         enabled |= policies.cm33_noninvasive.enabled_bit() << 9;
 
         fixed |= (policies.check_uuid as u32) << 15;
 
         // "Inverse value of [15:0]"
-        fixed |= !(fixed << 16);
-        enabled |= !(fixed << 16);
+        fixed |= ((!fixed) & 0xffff) << 16;
+        enabled |= ((!enabled) & 0xffff) << 16;
 
         [fixed, enabled]
     }
@@ -1244,9 +1275,7 @@ where
         cursor.write_all(&u32::from(self.rot_keys_status).to_le_bytes())?;
         cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
 
-        // TODO: check/fix
-        // let debug_settings: [u32; 2] = self.debug_settings.into();
-        let debug_settings: [u32; 2] = [0; 2];
+        let debug_settings: [u32; 2] = self.debug_settings.into();
         cursor.write_all(&debug_settings[0].to_le_bytes())?;
         cursor.write_all(&debug_settings[1].to_le_bytes())?;
 

@@ -21,6 +21,7 @@ fn test_factory_generates_correctly() {
 [factory-settings]
 usb-id = {{ vid = 0x1209, pid = 0xb000 }}
 rot-fingerprint = "C7EE3124 DC87EAAE 5A6F7FCC B6C2E458 706835C9 9D5D7082 4EFFAC0F 12A5A875"
+debug-settings = "AllDisabled"
 
 [factory-settings.boot-configuration]
 failure-port  = 1
@@ -58,7 +59,13 @@ dice-computation-disabled = true
     assert_eq!(data[8..12], [0x09, 0x12, 0x00, 0xb0]);
 
     // nothing
-    assert_eq!(data[0x0c.. 0x1c], [0x00u8; 0x1c - 0x0c]);
+    assert_eq!(data[0x0c.. 0x10], [0x00u8; 4]);
+
+    // debug policies
+    assert_eq!(data[0x10.. 0x18], [0xff, 0x83, 0x00, 0x7c, 0x00, 0x00, 0xff, 0xff]);
+
+    // nothing
+    assert_eq!(data[0x18.. 0x1c], [0x00u8; 0x1c - 0x18]);
 
     // secure boot cfg
     assert_eq!(data[0x1c..0x20], [0xc0, 0x00, 0x00, 0xc0]);
@@ -91,6 +98,7 @@ customer-version = 0x030201
 nonsecure-firmware-version = 0x060504
 secure-firmware-version = 0x090807
 rot-keys-status = ["Enabled", "Enabled", "Enabled", "Enabled"]
+debug-settings = "AllDisabled"
 "#).unwrap();
 
     let mut cmd = Command::cargo_bin("lpc55").unwrap();
@@ -116,9 +124,11 @@ rot-keys-status = ["Enabled", "Enabled", "Enabled", "Enabled"]
     // revocations
     assert_eq!(data[0x18 .. 0x1c], [0x55, 0, 0, 0]);
     // nothing
-    assert_eq!(data[0x1c..0x200], [0u8; 0x200 - 0x1c]);
-
-
+    assert_eq!(data[0x1c..0x20], [0u8; 4]);
+    // debug policies
+    assert_eq!(data[0x20.. 0x28], [0xff, 0x83, 0x00, 0x7c, 0x00, 0x00, 0xff, 0xff]);
+    // nothing
+    assert_eq!(data[0x28..0x200], [0u8; 0x200 - 0x28]);
 }
 
 #[test]
