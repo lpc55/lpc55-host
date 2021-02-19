@@ -1156,13 +1156,38 @@ pub struct DebugSecurityPolicies {
 
 impl From<DebugSecurity> for DebugSecurityPolicies {
     fn from(value: DebugSecurity) -> Self {
+        use DebugSecurityPolicy::*;
         match value {
             // Fixed, Disabled
-            DebugSecurity::AllDisabled =>
-                [0xffffu32, 0x0000].into(),
-            // Not fixed, Enabled
-            DebugSecurity::AllEnabled =>
-                [0x0000u32, 0xffff].into(),
+            DebugSecurity::AllDisabled => DebugSecurityPolicies {
+                nonsecure_noninvasive: Disabled,
+                nonsecure_invasive: Disabled,
+                secure_noninvasive: Disabled,
+                secure_invasive: Disabled,
+                cm33_invasive: Disabled,
+                cm33_noninvasive: Disabled,
+                jtag_tap: Disabled,
+                flash_mass_erase_command: Disabled,
+                isp_boot_command: Disabled,
+                fault_analysis_command: Disabled,
+                check_uuid: true,
+            },
+
+            // Fixed, Enabled
+            DebugSecurity::AllEnabled => DebugSecurityPolicies {
+                nonsecure_noninvasive: Enabled,
+                nonsecure_invasive: Enabled,
+                secure_noninvasive: Enabled,
+                secure_invasive: Enabled,
+                cm33_invasive: Enabled,
+                cm33_noninvasive: Enabled,
+                jtag_tap: Enabled,
+                flash_mass_erase_command: Enabled,
+                isp_boot_command: Enabled,
+                fault_analysis_command: Enabled,
+                check_uuid: false,
+            },
+
             DebugSecurity::Custom ( policies ) =>
                 policies,
         }
