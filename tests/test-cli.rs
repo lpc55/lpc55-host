@@ -165,6 +165,45 @@ debug-settings = {{Custom = {{nonsecure-noninvasive = "Disabled", secure-invasiv
 }
 
 #[test]
+fn test_sha256_seal () {
+    let dir = tempdir().unwrap();
+
+    let cfgfile_path = dir.path().join("cfg.toml");
+    let mut cfgfile = File::create(cfgfile_path.clone()).unwrap();
+
+    let binfile_path = dir.path().join("factory.bin");
+
+    // Needs to all be inline due to serde bug
+    // https://github.com/alexcrichton/toml-rs/issues/225
+    writeln!(cfgfile, r#"
+seal-factory-settings = true
+[factory-settings]
+usb-id = {{ vid = 0x1209, pid = 0xb000 }}
+rot-fingerprint = "C7EE3124 DC87EAAE 5A6F7FCC B6C2E458 706835C9 9D5D7082 4EFFAC0F 12A5A875"
+debug-settings = "AllDisabled"
+"#).unwrap();
+
+    let mut cmd = Command::cargo_bin("lpc55").unwrap();
+    cmd
+        .arg("configure")
+        .arg("factory-settings")
+        .arg("-o")
+        .arg(binfile_path.clone())
+        .arg(cfgfile_path);
+
+    cmd.assert()
+        .success();
+
+    let data = fs::read(binfile_path).expect("Unable to read output factory file");
+
+    // sha256
+    assert_eq!(
+        data[480 .. 512], 
+        hex::decode("11c38ce9fa006c6fda5f894c5ab679bd0a6dc01dfac2dc3e25a7670bd1e1752d").unwrap()
+    );
+}
+
+#[test]
 fn test_rotkh() {
 
     let mut cmd = Command::cargo_bin("lpc55").unwrap();
