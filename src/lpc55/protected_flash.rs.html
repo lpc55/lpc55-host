@@ -1385,6 +1385,76 @@
 <span id="1382">1382</span>
 <span id="1383">1383</span>
 <span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
+<span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
+<span id="1397">1397</span>
+<span id="1398">1398</span>
+<span id="1399">1399</span>
+<span id="1400">1400</span>
+<span id="1401">1401</span>
+<span id="1402">1402</span>
+<span id="1403">1403</span>
+<span id="1404">1404</span>
+<span id="1405">1405</span>
+<span id="1406">1406</span>
+<span id="1407">1407</span>
+<span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
+<span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The protected flash area (PFR) as Rust types</span>
 <span class="doccomment">//!</span>
@@ -1449,7 +1519,7 @@
     <span class="kw">pub</span> <span class="ident">usb_id</span>: <span class="ident">UsbId</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>,
+    <span class="kw">pub</span> <span class="ident">debug_settings</span>: <span class="ident">DebugSecurity</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>,
@@ -1530,7 +1600,7 @@
     <span class="comment">// PIN = &quot;pinned&quot; or fixed</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>,
+    <span class="kw">pub</span> <span class="ident">debug_settings</span>: <span class="ident">DebugSecurity</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">enable_fault_analysis_mode</span>: <span class="ident">bool</span>,
@@ -1794,9 +1864,7 @@
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">usb_id</span>.<span class="ident">pid</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span>[<span class="number">0u8</span>; <span class="number">4</span>])<span class="question-mark">?</span>;
 
-        <span class="comment">// TODO: check/fix</span>
-        <span class="comment">// let debug_settings: [u32; 2] = self.debug_settings.into();</span>
-        <span class="kw">let</span> <span class="ident">debug_settings</span>: [<span class="ident">u32</span>; <span class="number">2</span>] <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
+        <span class="kw">let</span> <span class="ident">debug_settings</span>: [<span class="ident">u32</span>; <span class="number">2</span>] <span class="op">=</span> <span class="ident">Into</span>::<span class="op">&lt;</span><span class="ident">DebugSecurityPolicies</span><span class="op">&gt;</span>::<span class="ident">into</span>(<span class="self">self</span>.<span class="ident">debug_settings</span>).<span class="ident">into</span>();
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">debug_settings</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">debug_settings</span>[<span class="number">1</span>].<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
 
@@ -1865,7 +1933,7 @@
     <span class="kw">let</span> <span class="ident">factory</span> <span class="op">=</span> <span class="ident">FactorySettings</span> {
         <span class="ident">boot_configuration</span>: <span class="ident">BootConfiguration</span>::<span class="ident">from</span>(<span class="ident">boot_cfg</span>),
         <span class="ident">usb_id</span>: <span class="ident">UsbId</span>::<span class="ident">from</span>(<span class="ident">usb_id</span>),
-        <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>::<span class="ident">from</span>([<span class="ident">cc_socu_default</span>, <span class="ident">cc_socu_pin</span>]),
+        <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>::<span class="ident">from</span>([<span class="ident">cc_socu_default</span>, <span class="ident">cc_socu_pin</span>]).<span class="ident">into</span>(),
         <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>::<span class="ident">from</span>(<span class="ident">vendor_usage</span>),
         <span class="ident">secure_boot_configuration</span>: <span class="ident">SecureBootConfiguration</span>::<span class="ident">from</span>(<span class="ident">secure_boot_cfg</span>),
         <span class="ident">prince_configuration</span>: <span class="ident">PrinceConfiguration</span>::<span class="ident">from</span>(<span class="ident">prince_cfg</span>),
@@ -2441,10 +2509,25 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>,<span class="ident">Serialize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugSecurity</span> {
+    <span class="ident">AllDisabled</span>,
+    <span class="ident">AllEnabled</span>,
+    <span class="ident">Custom</span> (
+        <span class="ident">DebugSecurityPolicies</span>,
+    )
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>,<span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugSecurityPolicy</span> {
     <span class="ident">EnableWithDap</span>,
     <span class="ident">Disabled</span>,
     <span class="ident">Enabled</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugSecurity</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">AllDisabled</span>
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugSecurityPolicy</span> {
@@ -2482,6 +2565,7 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugSecurityPolicies</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
@@ -2508,6 +2592,11 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">jtag_tap</span>: <span class="ident">DebugSecurityPolicy</span>,
 
+    <span class="doccomment">/// Flash mass erase command</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">flash_mass_erase_command</span>: <span class="ident">DebugSecurityPolicy</span>,
+
     <span class="doccomment">/// ISP boot command</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
@@ -2521,6 +2610,52 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">check_uuid</span>: <span class="ident">bool</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSecurity</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSecurityPolicies</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DebugSecurity</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">use</span> <span class="ident">DebugSecurityPolicy</span>::<span class="kw-2">*</span>;
+        <span class="kw">match</span> <span class="ident">value</span> {
+            <span class="comment">// Fixed, Disabled</span>
+            <span class="ident">DebugSecurity</span>::<span class="ident">AllDisabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DebugSecurityPolicies</span> {
+                <span class="ident">nonsecure_noninvasive</span>: <span class="ident">Disabled</span>,
+                <span class="ident">nonsecure_invasive</span>: <span class="ident">Disabled</span>,
+                <span class="ident">secure_noninvasive</span>: <span class="ident">Disabled</span>,
+                <span class="ident">secure_invasive</span>: <span class="ident">Disabled</span>,
+                <span class="ident">cm33_invasive</span>: <span class="ident">Disabled</span>,
+                <span class="ident">cm33_noninvasive</span>: <span class="ident">Disabled</span>,
+                <span class="ident">jtag_tap</span>: <span class="ident">Disabled</span>,
+                <span class="ident">flash_mass_erase_command</span>: <span class="ident">Disabled</span>,
+                <span class="ident">isp_boot_command</span>: <span class="ident">Disabled</span>,
+                <span class="ident">fault_analysis_command</span>: <span class="ident">Disabled</span>,
+                <span class="ident">check_uuid</span>: <span class="bool-val">true</span>,
+            },
+
+            <span class="comment">// Fixed, Enabled</span>
+            <span class="ident">DebugSecurity</span>::<span class="ident">AllEnabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DebugSecurityPolicies</span> {
+                <span class="ident">nonsecure_noninvasive</span>: <span class="ident">Enabled</span>,
+                <span class="ident">nonsecure_invasive</span>: <span class="ident">Enabled</span>,
+                <span class="ident">secure_noninvasive</span>: <span class="ident">Enabled</span>,
+                <span class="ident">secure_invasive</span>: <span class="ident">Enabled</span>,
+                <span class="ident">cm33_invasive</span>: <span class="ident">Enabled</span>,
+                <span class="ident">cm33_noninvasive</span>: <span class="ident">Enabled</span>,
+                <span class="ident">jtag_tap</span>: <span class="ident">Enabled</span>,
+                <span class="ident">flash_mass_erase_command</span>: <span class="ident">Enabled</span>,
+                <span class="ident">isp_boot_command</span>: <span class="ident">Enabled</span>,
+                <span class="ident">fault_analysis_command</span>: <span class="ident">Enabled</span>,
+                <span class="ident">check_uuid</span>: <span class="bool-val">false</span>,
+            },
+
+            <span class="ident">DebugSecurity</span>::<span class="ident">Custom</span> ( <span class="ident">policies</span> ) <span class="op">=</span><span class="op">&gt;</span>
+                <span class="ident">policies</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSecurityPolicies</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSecurity</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DebugSecurityPolicies</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">return</span> <span class="ident">DebugSecurity</span>::<span class="ident">Custom</span>(<span class="ident">value</span>);
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSecurityPolicies</span> {
@@ -2558,6 +2693,10 @@
             <span class="ident">fault_analysis_command</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
+            ]),
+            <span class="ident">flash_mass_erase_command</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+                ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
+                ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
             <span class="ident">cm33_noninvasive</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">9</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
@@ -2597,14 +2736,17 @@
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">fault_analysis_command</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
         <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">fault_analysis_command</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
 
+        <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">flash_mass_erase_command</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>;
+        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">flash_mass_erase_command</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>;
+
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">cm33_noninvasive</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">9</span>;
         <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">cm33_noninvasive</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">9</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">policies</span>.<span class="ident">check_uuid</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">15</span>;
 
         <span class="comment">// &quot;Inverse value of [15:0]&quot;</span>
-        <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="op">!</span>(<span class="ident">fixed</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>);
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="op">!</span>(<span class="ident">fixed</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>);
+        <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> ((<span class="op">!</span><span class="ident">fixed</span>) <span class="op">&amp;</span> <span class="number">0xffff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>;
+        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> ((<span class="op">!</span><span class="ident">enabled</span>) <span class="op">&amp;</span> <span class="number">0xffff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>;
 
         [<span class="ident">fixed</span>, <span class="ident">enabled</span>]
     }
@@ -2632,9 +2774,7 @@
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">u32</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">rot_keys_status</span>).<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">vendor_usage</span>.<span class="ident">into</span>().<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
 
-        <span class="comment">// TODO: check/fix</span>
-        <span class="comment">// let debug_settings: [u32; 2] = self.debug_settings.into();</span>
-        <span class="kw">let</span> <span class="ident">debug_settings</span>: [<span class="ident">u32</span>; <span class="number">2</span>] <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
+        <span class="kw">let</span> <span class="ident">debug_settings</span>: [<span class="ident">u32</span>; <span class="number">2</span>] <span class="op">=</span> <span class="ident">Into</span>::<span class="op">&lt;</span><span class="ident">DebugSecurityPolicies</span><span class="op">&gt;</span>::<span class="ident">into</span>(<span class="self">self</span>.<span class="ident">debug_settings</span>).<span class="ident">into</span>();
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">debug_settings</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">debug_settings</span>[<span class="number">1</span>].<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
 
@@ -2723,7 +2863,7 @@
         <span class="ident">image_key_revocation_id</span>: <span class="ident">MonotonicCounter</span>::<span class="ident">from</span>(<span class="ident">image_key_revocation_id</span>),
         <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>::<span class="ident">from</span>(<span class="ident">vendor_usage</span>),
         <span class="ident">rot_keys_status</span>: <span class="ident">RotKeysStatus</span>::<span class="ident">from</span>(<span class="ident">rot_keys_status</span>),
-        <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>::<span class="ident">from</span>([<span class="ident">dcfg_cc_socu_ns_default</span>, <span class="ident">dcfg_cc_socu_ns_pin</span>]),
+        <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>::<span class="ident">from</span>([<span class="ident">dcfg_cc_socu_ns_default</span>, <span class="ident">dcfg_cc_socu_ns_pin</span>]).<span class="ident">into</span>(),
         <span class="ident">enable_fault_analysis_mode</span>: <span class="ident">enable_fa</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
         <span class="ident">factory_prog_in_progress</span>: <span class="ident">FactorySettingsProgInProgress</span>(<span class="ident">factory_prog_in_progress</span>),
         <span class="ident">prince_ivs</span>: [
