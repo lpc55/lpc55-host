@@ -4,7 +4,7 @@ use core::convert::TryFrom;
 use std::io::{self, Write as _};
 use std::fs;
 
-use anyhow::{anyhow, Context as _};
+use anyhow::{anyhow};
 use delog::hex_str;
 use log::{info, trace};
 use uuid::Uuid;
@@ -41,11 +41,17 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         2 => log::set_max_level(log::LevelFilter::Debug),
         _ => log::set_max_level(log::LevelFilter::Trace),
     };
+    
+    let pid = match args.value_of("PID") {
+        Some(pid) => Some(u16::from_str_radix(pid.trim_start_matches("0x"), 16).expect("Could not parse PID")),
+        _ => None
+    };
 
-    let vid = u16::from_str_radix(args.value_of("VID").ok_or(anyhow!("Need a VID"))?.trim_start_matches("0x"), 16)
-        .with_context(|| format!("Failed to parse VID"))?;
-    let pid = u16::from_str_radix(args.value_of("PID").ok_or(anyhow!("Need a PID"))?.trim_start_matches("0x"), 16)
-        .with_context(|| format!("Failed to parse PID"))?;
+    let vid = match args.value_of("VID") {
+        Some(vid) => Some(u16::from_str_radix(vid.trim_start_matches("0x"), 16).expect("Could not parse VID")),
+        _ => None
+    };
+
     let uuid: Option<Uuid> = match args.value_of("UUID").map(Uuid::parse_str) {
         // isn't there a combinator for this? o.o
         Some(Ok(uuid)) => Some(uuid),
@@ -54,8 +60,6 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
     };
 
     let bootloader = || Bootloader::try_find(vid, pid, uuid).ok_or(anyhow!("Could not attach to a bootloader"));
-
-    trace!("using vid = {} pid = {}", vid, pid);
 
     if let Some(command) = args.subcommand_matches("http") {
         let bootloader = bootloader()?;
@@ -104,10 +108,16 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 }
                 None => return Err(anyhow::anyhow!("no extension detected in path {:?}", &config_path)),
             };
-            let settings = wrapped_settings.factory_settings;
 
-            info!("settings: {:#?}", &settings);
-            let settings = Vec::from(settings.to_bytes()?.as_ref());
+            info!("settings: {:#?}", &wrapped_settings.factory_settings);
+
+            let settings = if wrapped_settings.seal_factory_settings {
+                let mut factory_settings = wrapped_settings.factory_settings;
+                Vec::from(factory_settings.to_bytes_setting_hash()?.as_ref())
+            } else {
+                Vec::from(wrapped_settings.factory_settings.to_bytes()?.as_ref())
+            };
+
             trace!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
 
 
@@ -141,10 +151,16 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 }
                 None => return Err(anyhow::anyhow!("no extension detected in path {:?}", &config_path)),
             };
-            let settings = wrapped_settings.customer_settings;
 
-            info!("settings: {:?}", &settings);
-            let settings = Vec::from(settings.to_bytes()?.as_ref());
+            info!("settings: {:#?}", &wrapped_settings.customer_settings);
+
+            let settings = if wrapped_settings.seal_customer_settings {
+                let mut customer_settings = wrapped_settings.customer_settings;
+                Vec::from(customer_settings.to_bytes_setting_hash()?.as_ref())
+            } else {
+                Vec::from(wrapped_settings.customer_settings.to_bytes()?.as_ref())
+            };
+
             info!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
 
             if subcommand.value_of("OUTPUT").is_none() {

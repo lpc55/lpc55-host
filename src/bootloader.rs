@@ -62,7 +62,7 @@ impl Bootloader {
     ///
     /// TODO: Open question is whether this is a good idea.
     /// For instance, `write-flash` on the wrong device could wreak havoc.
-    pub fn try_new(vid: u16, pid: u16) -> Option<Self> {
+    pub fn try_new(vid: Option<u16>, pid: Option<u16>) -> Option<Self> {
         Self::try_find(vid, pid, None)
         // // Bootloader is not Copy, so we can't filter
         // let mut bootloaders = Self::list();
@@ -72,16 +72,21 @@ impl Bootloader {
     }
 
     /// Attempt to find a ROM bootloader with the given UUID (and VID/PID pair).
-    pub fn try_find(vid: u16, pid: u16, uuid: Option<Uuid>) -> Option<Self> {
+    pub fn try_find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> Option<Self> {
         // Bootloader is not Copy, so we can't filter
         let mut bootloaders = Self::list();
         let index = bootloaders.iter()
-            .position(|bootloader| bootloader.vid == vid && bootloader.pid == pid && {
-                if let Some(uuid) = uuid {
-                    bootloader.uuid == uuid.as_u128()
-                } else {
-                    true
+            .position(|bootloader| {
+                let mut predicate = true;
+                if vid.is_some() && pid.is_some() {
+                    predicate = bootloader.vid == vid.unwrap() && bootloader.pid == pid.unwrap();
                 }
+                if predicate {
+                    if let Some(uuid) = uuid {
+                        predicate = bootloader.uuid == uuid.as_u128();
+                    }
+                }
+                predicate
             });
         index.map(|i| bootloaders.remove(i))
     }
@@ -223,6 +228,6 @@ impl Bootloader {
 fn test_all_properties() {
     // let (vid, pid) = (0x1fc9, 0x0021);
     let (vid, pid) = (0x1209, 0xb000);
-    let bootloader = Bootloader::try_new(vid, pid).unwrap();
+    let bootloader = Bootloader::try_new(Some(vid), Some(pid)).unwrap();
     insta::assert_debug_snapshot!(bootloader.all_properties());
 }
