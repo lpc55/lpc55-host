@@ -182,6 +182,10 @@ where
     VendorUsage: FactorySettingsVendorUsage,
 {
     pub factory_settings: FactorySettings<CustomerData, VendorUsage>,
+
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub seal_factory_settings: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -194,6 +198,10 @@ where
     VendorUsage: CustomerSettingsVendorUsage,
 {
     pub customer_settings: CustomerSettings<CustomerData, VendorUsage>,
+
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub seal_customer_settings: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -1061,9 +1069,14 @@ pub enum DebugSecurity {
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd,Serialize)]
 pub enum DebugSecurityPolicy {
-    EnableWithDap,
+    /// Permanently disable the policy
     Disabled,
+    /// Permanently Enabled the policy
     Enabled,
+    /// Enabled the policy, but it could be changed by authenticated debugger
+    StartEnabled,
+    /// Disable the policy, but it could be changed by authenticated debugger
+    StartDisabled,
 }
 
 impl Default for DebugSecurity {
@@ -1074,7 +1087,7 @@ impl Default for DebugSecurity {
 
 impl Default for DebugSecurityPolicy {
     fn default() -> Self {
-        Self::EnableWithDap
+        Self::StartDisabled
     }
 }
 
@@ -1082,14 +1095,14 @@ impl DebugSecurityPolicy {
     fn fixed_bit(&self) -> u32 {
         use DebugSecurityPolicy::*;
         match *self {
-            EnableWithDap => 0,
+            StartDisabled | StartEnabled => 0,
             _ => 1,
         }
     }
     fn enabled_bit(&self) -> u32 {
         use DebugSecurityPolicy::*;
         match *self {
-            Enabled => 1,
+            Enabled | StartEnabled => 1,
             _ => 0,
         }
     }
@@ -1100,7 +1113,8 @@ impl From<[bool; 2]> for DebugSecurityPolicy {
         let [fix, set] = bits;
         use DebugSecurityPolicy::*;
         match (fix, set) {
-            (false, _) => EnableWithDap,
+            (false, false) => StartDisabled,
+            (false, true) => StartEnabled,
             (true, false) => Disabled,
             (true, true) => Enabled,
         }
