@@ -41,18 +41,18 @@ pub fn app() -> clap::App<'static, 'static> {
 
         .arg(Arg::with_name("VID")
              .long("vid")
-             .default_value("0x1fc9")
              .help("VID of bootloader (hex)")
              // even without this, `cmd -v subcommand` passes -v flag to subcommand's matches
              // the difference is that now the parser allows user to `cmd subcommand -v`
              .global(true)
+             .takes_value(true)
         )
 
         .arg(Arg::with_name("PID")
              .long("pid")
-             .default_value("0x0021")
              .help("PID of bootloader (hex)")
              .global(true)
+             .takes_value(true)
         )
 
         .arg(Arg::with_name("UUID")
