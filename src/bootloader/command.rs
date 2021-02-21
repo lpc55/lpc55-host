@@ -5,13 +5,16 @@ use serde::{Deserialize, Serialize};
 use super::property::Property;
 
 
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[serde(tag = "cmd")]
 pub enum Command {
     EraseFlashAll,
     EraseFlash { address: usize, length: usize },
     ReadMemory { address: usize, length: usize },
     WriteMemory { address: usize, data: Vec<u8> },
+    WriteMemoryWords { address: usize, words: Vec<u32> },
     FillMemory,
+    ConfigureMemory { address: usize },
     FlashSecurityDisable,
     // there is actually a second parameter, Memory ID
     // 0 = internal flash
@@ -80,8 +83,20 @@ impl Command {
             (_, Tag::EraseFlashAll) => DataPhase::None,
             (_, Tag::GetProperty) => DataPhase::None,
             (_, Tag::Reset) => DataPhase::None,
+            (_, Tag::ConfigureMemory) => DataPhase::None,
 
             (Command::WriteMemory { address: _, data }, _) => DataPhase::CommandData(data.clone()),
+            (Command::WriteMemoryWords { address: _, words }, _) => {
+               use std::io::Write;
+               let mut bytes = Vec::with_capacity(words.len() * 4);
+               let cursor = &mut bytes;
+
+               for i in 0 .. words.len() {
+                   cursor.write_all(&words[i].to_le_bytes()).unwrap();
+               }
+
+                DataPhase::CommandData(bytes)
+            },
             (Command::ReceiveSbFile { data }, _) => DataPhase::CommandData(data.clone()),
 
             (Command::Keystore(KeystoreOperation::Enroll), _) => DataPhase::None,
@@ -114,6 +129,12 @@ impl Command {
             }
             WriteMemory { address, data } => {
                 vec![address as u32, data.len() as u32, 0]
+            }
+            WriteMemoryWords { address, words } => {
+                vec![address as u32, (words.len() * 4) as u32, 0]
+            }
+            ConfigureMemory { address } => {
+                vec![0, address as u32]
             }
             ReceiveSbFile { data } => {
                 vec![data.len() as _]
@@ -158,6 +179,7 @@ impl Command {
             EraseFlash { address: _, length: _ } => Tag::EraseFlash,
             ReadMemory { address: _, length: _ } => Tag::ReadMemory,
             WriteMemory { address: _, data: _ } => Tag::WriteMemory,
+            WriteMemoryWords { address: _, words: _} => Tag::WriteMemory,
             FillMemory => Tag::FillMemory,
             FlashSecurityDisable => Tag::FlashSecurityDisable,
             GetProperty(_) => Tag::GetProperty,
@@ -165,6 +187,7 @@ impl Command {
             Call => Tag::Call,
             Reset => Tag::Reset,
             FlashReadResource => Tag::FlashReadResource,
+            ConfigureMemory { address: _ } => Tag::ConfigureMemory,
             Keystore(_) => Tag::Keystore,
         }
     }
@@ -485,7 +508,8 @@ impl TryFrom<&str> for Key {
 }
 
 #[repr(u8)]
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[serde(tag = "sub-cmd")]
 // naming taken from docs, could also be called Subcommand, or even Command
 /// This is the interface definition to a somewhat limited bootloader API,
 /// that then operates on the actual PFR data and PUF periphreal.
@@ -502,7 +526,9 @@ pub enum KeystoreOperation {
     Enroll,
     SetKey { key: Key, data: Vec<u8> },
     GenerateKey { key: Key, len: u32 },
+    #[serde(rename_all = "kebab-case")]
     WriteNonVolatile { memory_id: u32 },
+    #[serde(rename_all = "kebab-case")]
     ReadNonVolatile { memory_id: u32 },
     WriteKeystore,
     ReadKeystore,

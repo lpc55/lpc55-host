@@ -146,6 +146,7 @@ impl Protocol {
                     Reset |
                     EraseFlash { address: _, length: _ } |
                     EraseFlashAll |
+                    ConfigureMemory { .. } |
                     Keystore(command::KeystoreOperation::Enroll) |
                     Keystore(command::KeystoreOperation::GenerateKey { key: _, len: _ }) |
                     Keystore(command::KeystoreOperation::WriteNonVolatile { memory_id: _ }) |
@@ -167,14 +168,14 @@ impl Protocol {
             }
 
             // case 2: command data phases
-            (command, _tag, command::DataPhase::CommandData(_)) => {
+            (command, _tag, command::DataPhase::CommandData(data)) => {
                 let packet = ResponsePacket::try_from(initial_response)?;
 
                 // for SetKey, LHS is true, whereas for WriteMemory, it is not (unexpectedly?)
                 // assert_eq!(packet.has_data, command.data_phase().has_command_data());
                 assert!(packet.status.is_none());
                 match command.clone() {
-                    command::Command::Keystore(command::KeystoreOperation::SetKey { key: _, data }) => {
+                    command::Command::Keystore(command::KeystoreOperation::SetKey { key: _, data: _ }) => {
                         // todo: can we use bigger chunks?
                         for chunk in data.chunks(32) {
                             // // TODO: somewhere in here, should "peek" a read to see if device sent
@@ -215,7 +216,7 @@ impl Protocol {
 
                         Ok(command::Response::Generic)
                     }
-                    command::Command::WriteMemory { address: _, data } => {
+                    command::Command::WriteMemory { address: _, data: _ } | command::Command::WriteMemoryWords { .. } => {
                         for chunk in data.chunks(32) {
                             let mut data_packet = vec![command::ReportId::CommandData as u8, 0, chunk.len() as u8, 0];
                             data_packet.extend_from_slice(chunk);

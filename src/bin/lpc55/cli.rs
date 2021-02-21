@@ -126,6 +126,16 @@ pub fn app() -> clap::App<'static, 'static> {
             )
         )
 
+        .subcommand(SubCommand::with_name("provision")
+            .version(crate_version!())
+            .long_version(LONG_VERSION.as_str())
+            .about("Run a sequence of bootloader commands defined in the config file.")
+            .arg(Arg::with_name("CONFIG")
+                    .help("Configuration file containing settings")
+                    .required(true)
+            )
+        )
+
         .subcommand(SubCommand::with_name("reboot")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
