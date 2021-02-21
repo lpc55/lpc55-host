@@ -331,6 +331,22 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         return Ok(());
     }
 
+    if let Some(command) = args.subcommand_matches("provision") {
+
+        let config_filename = command.value_of("CONFIG").unwrap();
+        let config = lpc55::bootloader::provision::Config::try_from(config_filename)?;
+
+        let bootloader = bootloader()?;
+        for cmd in config.provisions {
+            println!("cmd: {:?}", cmd);
+            bootloader.run_command(cmd)?;
+        }
+
+        return Ok(());
+    }
+
+
+
     if let Some(command) = args.subcommand_matches("fingerprint-certificates") {
         use lpc55::pki::{Certificates, Pki};
         let config_filename = command.value_of("CONFIG").unwrap();

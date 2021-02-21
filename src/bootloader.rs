@@ -14,6 +14,7 @@ pub mod error;
 pub mod property;
 pub use property::{GetProperties, Property, Properties};
 pub mod protocol;
+pub mod provision;
 use protocol::Protocol;
 
 
@@ -220,6 +221,10 @@ impl Bootloader {
 
     pub fn all_properties(&self) -> Properties {
         self.properties().all()
+    }
+
+    pub fn run_command(&self, cmd: Command) -> std::result::Result<command::Response, protocol::Error> {
+        self.protocol.call(&cmd)
     }
 }
 

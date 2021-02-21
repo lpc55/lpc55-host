@@ -3,3 +3,4 @@ Cargo.lock
 **/*.bin
 /scratch
 ref/
+src/bootloader/snapshots/

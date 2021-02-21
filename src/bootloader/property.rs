@@ -35,7 +35,7 @@ pub struct Properties {
 }
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum Property {
     CurrentVersion = 0x1,
     AvailablePeripherals = 0x2,
