@@ -1415,7 +1415,7 @@ fn parse_customer_page<CustomerData: CustomerSettingsCustomerData, VendorUsage: 
         image_key_revocation_id: MonotonicCounter::from(image_key_revocation_id),
         vendor_usage: VendorUsage::from(vendor_usage),
         rot_keys_status: RotKeysStatus::from(rot_keys_status),
-        debug_settings: DebugSecurityPolicies::from([dcfg_cc_socu_ns_default, dcfg_cc_socu_ns_pin]).into(),
+        debug_settings: DebugSecurityPolicies::from([dcfg_cc_socu_ns_pin, dcfg_cc_socu_ns_default]).into(),
         enable_fault_analysis_mode: enable_fa != 0,
         factory_prog_in_progress: FactorySettingsProgInProgress(factory_prog_in_progress),
         prince_ivs: [
