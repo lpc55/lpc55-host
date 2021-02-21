@@ -96,7 +96,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         if let Some(subcommand) = subcommand.subcommand_matches("factory-settings") {
             let config_path = std::path::Path::new(subcommand.value_of("CONFIG").unwrap());
             let settings = fs::read_to_string(&config_path)?;
-            let wrapped_settings: lpc55::protected_flash::WrappedFactorySettings = match config_path.extension() {
+            let mut wrapped_settings: lpc55::protected_flash::WrappedFactorySettings = match config_path.extension() {
                 Some(extension) => match extension {
                     os_str if os_str == "yaml" => {
                         serde_yaml::from_str(&settings)?
@@ -111,12 +111,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
             info!("settings: {:#?}", &wrapped_settings.factory_settings);
 
-            let settings = if wrapped_settings.seal_factory_settings {
-                let mut factory_settings = wrapped_settings.factory_settings;
-                Vec::from(factory_settings.to_bytes_setting_hash()?.as_ref())
-            } else {
-                Vec::from(wrapped_settings.factory_settings.to_bytes()?.as_ref())
-            };
+            let settings = Vec::from(wrapped_settings.factory_settings.to_bytes()?.as_ref());
 
             trace!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
 
@@ -139,7 +134,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         if let Some(subcommand) = subcommand.subcommand_matches("customer-settings") {
             let config_path = std::path::Path::new(subcommand.value_of("CONFIG").unwrap());
             let settings = fs::read_to_string(&config_path)?;
-            let wrapped_settings: lpc55::protected_flash::WrappedCustomerSettings = match config_path.extension() {
+            let mut wrapped_settings: lpc55::protected_flash::WrappedCustomerSettings = match config_path.extension() {
                 Some(extension) => match extension {
                     os_str if os_str == "yaml" => {
                         serde_yaml::from_str(&settings)?
@@ -154,12 +149,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
             info!("settings: {:#?}", &wrapped_settings.customer_settings);
 
-            let settings = if wrapped_settings.seal_customer_settings {
-                let mut customer_settings = wrapped_settings.customer_settings;
-                Vec::from(customer_settings.to_bytes_setting_hash()?.as_ref())
-            } else {
-                Vec::from(wrapped_settings.customer_settings.to_bytes()?.as_ref())
-            };
+            let settings = Vec::from(wrapped_settings.customer_settings.to_bytes()?.as_ref());
 
             info!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
 

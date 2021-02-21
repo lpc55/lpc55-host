@@ -176,11 +176,11 @@ fn test_sha256_seal () {
     // Needs to all be inline due to serde bug
     // https://github.com/alexcrichton/toml-rs/issues/225
     writeln!(cfgfile, r#"
-seal-factory-settings = true
 [factory-settings]
 usb-id = {{ vid = 0x1209, pid = 0xb000 }}
 rot-fingerprint = "C7EE3124 DC87EAAE 5A6F7FCC B6C2E458 706835C9 9D5D7082 4EFFAC0F 12A5A875"
 debug-settings = "AllDisabled"
+seal = true
 "#).unwrap();
 
     let mut cmd = Command::cargo_bin("lpc55").unwrap();

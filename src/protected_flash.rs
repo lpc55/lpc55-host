@@ -97,6 +97,11 @@ where
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
     pub sha256_hash: Sha256Hash,
+
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    /// Setting this to true will calculate the SHA256 automatically for `sha256_hash`.
+    pub seal: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -164,6 +169,11 @@ where
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
     pub sha256_hash: Sha256Hash,
+
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    /// Setting this to true will calculate the SHA256 automatically for `sha256_hash`.
+    pub seal: bool,
 }
 
 impl CustomerSettings {
@@ -182,10 +192,6 @@ where
     VendorUsage: FactorySettingsVendorUsage,
 {
     pub factory_settings: FactorySettings<CustomerData, VendorUsage>,
-
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub seal_factory_settings: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -198,10 +204,6 @@ where
     VendorUsage: CustomerSettingsVendorUsage,
 {
     pub customer_settings: CustomerSettings<CustomerData, VendorUsage>,
-
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub seal_customer_settings: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -404,7 +406,7 @@ where
     CustomerData: FactorySettingsCustomerData,
     VendorUsage: FactorySettingsVendorUsage,
 {
-    pub fn to_bytes(&self) -> anyhow::Result<[u8; 512]> {
+    pub fn to_bytes(&mut self) -> anyhow::Result<[u8; 512]> {
         let mut buf = [0u8; 512];
         let mut cursor = buf.as_mut();
 
@@ -429,23 +431,19 @@ where
         cursor.write_all(&[0u8; 144])?;
         cursor.write_all(self.customer_data.as_ref())?;
         assert_eq!(cursor.len(), 32);
+        
+        if self.seal {
+            info!("Sealing factory page!");
+
+            let mut hasher = sha2::Sha256::new();
+            hasher.update(&buf[0..480]);
+            self.sha256_hash = Sha256Hash(hasher.finalize().try_into().unwrap());
+
+            buf[480..512].as_mut().write_all(&self.sha256_hash.0).ok();
+        }
 
         Ok(buf)
     }
-
-    pub fn to_bytes_setting_hash(&mut self) -> anyhow::Result<[u8; 512]> {
-        let mut buf = self.to_bytes()?;
-
-        let mut hasher = sha2::Sha256::new();
-        hasher.update(&buf[..480]);
-        self.sha256_hash = Sha256Hash(hasher.finalize().try_into().unwrap());
-
-        let mut cursor = buf[480..].as_mut();
-        cursor.write_all(&self.sha256_hash.0).ok();
-        assert!(cursor.is_empty());
-        Ok(buf)
-    }
-
 }
 
 fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: FactorySettingsVendorUsage>(input: &[u8])
@@ -495,6 +493,7 @@ fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: Factory
         rot_fingerprint: Sha256Hash(rot_fingerprint.try_into().unwrap()),
         customer_data: CustomerData::from(customer_data.try_into().unwrap()),
         sha256_hash: Sha256Hash(sha256_hash.try_into().unwrap()),
+        seal: false,
     };
 
     Ok((input, factory))
@@ -1313,7 +1312,7 @@ where
     CustomerData: CustomerSettingsCustomerData,
     VendorUsage: CustomerSettingsVendorUsage,
 {
-    pub fn to_bytes(&self) -> anyhow::Result<[u8; 512]> {
+    pub fn to_bytes(&mut self) -> anyhow::Result<[u8; 512]> {
 
         let mut buf = [0u8; 512];
         let mut cursor = buf.as_mut();
@@ -1357,19 +1356,16 @@ where
 
         assert_eq!(cursor.len(), 32);
 
-        Ok(buf)
-    }
+        if self.seal {
+            info!("Sealing customer page!");
 
-    pub fn to_bytes_setting_hash(&mut self) -> anyhow::Result<[u8; 512]> {
-        let mut buf = self.to_bytes()?;
+            let mut hasher = sha2::Sha256::new();
+            hasher.update(&buf[0..480]);
+            self.sha256_hash = Sha256Hash(hasher.finalize().try_into().unwrap());
 
-        let mut hasher = sha2::Sha256::new();
-        hasher.update(&buf[..480]);
-        self.sha256_hash = Sha256Hash(hasher.finalize().try_into().unwrap());
+            buf[480..512].as_mut().write_all(&self.sha256_hash.0).ok();
+        }
 
-        let mut cursor = buf[480..].as_mut();
-        cursor.write_all(&self.sha256_hash.0).ok();
-        assert!(cursor.is_empty());
         Ok(buf)
     }
 
@@ -1429,6 +1425,7 @@ fn parse_customer_page<CustomerData: CustomerSettingsCustomerData, VendorUsage: 
         ],
         customer_data: CustomerData::from(customer_data.try_into().unwrap()),
         sha256_hash: Sha256Hash(sha256_hash.try_into().unwrap()),
+        seal: false,
     };
 
     Ok((input, page))
