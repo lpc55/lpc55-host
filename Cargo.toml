@@ -65,6 +65,8 @@ lazy_static = "1.4.0"
 default = ["cli"]
 cli = ["clap", "http"]
 http = ["tiny_http"]
+# Enable tests that require a mcuboot device attached
+with-device = []
 
 [patch.crates-io]
 # uriparse = { path = "../uriparse-rs" }

@@ -266,9 +266,10 @@ impl GetProperties<'_> {
 
 #[cfg(test)]
 mod test {
+    #[cfg(all(feature = "with-device", test))]
     use super::*;
 
-    #[test]
+    #[cfg(all(feature = "with-device", test))]
     fn test_available_commands() {
         assert_eq!(AvailableCommands::ERASE_FLASH_ALL.bits, (1 << 2));
     }

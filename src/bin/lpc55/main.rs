@@ -43,12 +43,12 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
     };
     
     let pid = match args.value_of("PID") {
-        Some(pid) => Some(u16::from_str_radix(pid.trim_start_matches("0x"), 16).expect("Could not parse PID")),
+        Some(pid) => Some(u16::from_str_radix(pid.trim_start_matches("0x"), 16).map_err(|_| anyhow!("Could not parse PID"))?),
         _ => None
     };
 
     let vid = match args.value_of("VID") {
-        Some(vid) => Some(u16::from_str_radix(vid.trim_start_matches("0x"), 16).expect("Could not parse VID")),
+        Some(vid) => Some(u16::from_str_radix(vid.trim_start_matches("0x"), 16).map_err(|_| anyhow!("Could not parse VID"))?),
         _ => None
     };
 

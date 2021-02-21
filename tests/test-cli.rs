@@ -144,7 +144,7 @@ fn test_custom_debug_policy() {
     // https://github.com/alexcrichton/toml-rs/issues/225
     writeln!(cfgfile, r#"
 [factory-settings]
-debug-settings = {{Custom = {{nonsecure-noninvasive = "Disabled", secure-invasive = "StartDisabled", jtag-tap = "Enabled"}}}}
+debug-settings = {{ Custom = {{ nonsecure-noninvasive = "Disabled", secure-invasive = "StartDisabled", jtag-tap = "Enabled" }} }}
 "#).unwrap();
 
     let mut cmd = Command::cargo_bin("lpc55").unwrap();
