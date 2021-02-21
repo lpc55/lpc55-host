@@ -526,15 +526,18 @@ impl From<&KeystoreOperation> for u32 {
 
 #[cfg(test)]
 mod test {
+    #[cfg(all(feature = "with-device", test))]
     use super::*;
 
-    #[test]
+    // #[test]
+    #[cfg(all(feature = "with-device", test))]
     fn command_packet() {
         // 7 0 0 2  1 0 0 0  0 0 0 0
         insta::assert_debug_snapshot!(Command::GetProperty(Property::CurrentVersion).command_packet());
     }
 
-    #[test]
+    // #[test]
+    #[cfg(all(feature = "with-device", test))]
     fn hid_packet() {
         // 1 0 C 0  7 0 0 2  1 0 0 0  0 0 0 0
         insta::assert_debug_snapshot!(Command::GetProperty(Property::CurrentVersion).hid_packet());

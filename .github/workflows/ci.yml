@@ -83,7 +83,7 @@ jobs:
 
       - name: Run tests
         run:
-          cargo test --test test-cli
+          cargo test
 
       # - uses: actions/upload-artifact@v2
       #   with:

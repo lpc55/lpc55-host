@@ -223,8 +223,7 @@ impl Bootloader {
     }
 }
 
-#[cfg(test)]
-#[test]
+#[cfg(all(feature = "with-device", test))]
 fn test_all_properties() {
     // let (vid, pid) = (0x1fc9, 0x0021);
     let (vid, pid) = (0x1209, 0xb000);
