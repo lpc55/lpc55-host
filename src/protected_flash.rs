@@ -59,6 +59,10 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub usb_id: UsbId,
+    // UM 11126
+    // 51.7.1: DCFG_CC = device configuration for credential constraints
+    // 51.7.7: SOCU = System-on-Chip Usage
+    // PIN = "pinned" or fixed
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub debug_settings: DebugSecurity,
@@ -141,13 +145,12 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub rot_keys_status: RotKeysStatus,
-    // UM 11126
-    // 51.7.1: DCFG_CC = device configuration for credential constraints
-    // 51.7.7: SOCU = System-on-Chip Usage
-    // PIN = "pinned" or fixed
+
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    #[serde(skip_deserializing)]
     pub debug_settings: DebugSecurity,
+
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub enable_fault_analysis_mode: bool,
@@ -481,7 +484,7 @@ fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: Factory
     let factory = FactorySettings {
         boot_configuration: BootConfiguration::from(boot_cfg),
         usb_id: UsbId::from(usb_id),
-        debug_settings: DebugSecurityPolicies::from([cc_socu_default, cc_socu_pin]).into(),
+        debug_settings: DebugSecurityPolicies::from([cc_socu_pin, cc_socu_default]).into(),
         vendor_usage: VendorUsage::from(vendor_usage),
         secure_boot_configuration: SecureBootConfiguration::from(secure_boot_cfg),
         prince_configuration: PrinceConfiguration::from(prince_cfg),
@@ -929,6 +932,22 @@ impl core::convert::TryFrom<&[u8]> for CustomerSettingsArea {
     }
 }
 
+impl<CustomerData, VendorUsage> CustomerSettingsArea<CustomerData, VendorUsage>
+where
+    CustomerData: CustomerSettingsCustomerData + Clone,
+    VendorUsage: CustomerSettingsVendorUsage + Clone,
+{
+    /// Returns either the ping or pong page, whichever has the highest version.
+    pub fn most_recent(&self) -> CustomerSettings<CustomerData, VendorUsage> {
+        if self.ping.customer_version > self.pong.customer_version {
+            self.ping.clone()
+        } else {
+            self.pong.clone()
+        }
+    }
+}
+
+
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Header(u32);
 
@@ -1329,9 +1348,11 @@ where
         cursor.write_all(&u32::from(self.rot_keys_status).to_le_bytes())?;
         cursor.write_all(&self.vendor_usage.into().to_le_bytes())?;
 
-        let debug_settings: [u32; 2] = Into::<DebugSecurityPolicies>::into(self.debug_settings).into();
-        cursor.write_all(&debug_settings[0].to_le_bytes())?;
-        cursor.write_all(&debug_settings[1].to_le_bytes())?;
+        // Debug settings.
+        // Should never externally set the debug policy bits in customer page.
+        // These bits should only be changed from secure API within firmware.
+        cursor.write_all(&0u32.to_le_bytes())?;
+        cursor.write_all(&0u32.to_le_bytes())?;
 
         let enable_fa_mode: u32 = match self.enable_fault_analysis_mode {
             true => 0xC33C_A55A,
