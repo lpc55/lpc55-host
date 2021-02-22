@@ -122,7 +122,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             } else {
                 let output_name = subcommand.value_of("OUTPUT").unwrap();
                 fs::write(&output_name, &settings).expect("Unable to write file");
-                println!("outputing to file..");
+                println!("outputing to {}", output_name);
             }
         }
 
@@ -134,7 +134,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         if let Some(subcommand) = subcommand.subcommand_matches("customer-settings") {
             let config_path = std::path::Path::new(subcommand.value_of("CONFIG").unwrap());
             let settings = fs::read_to_string(&config_path)?;
-            let mut wrapped_settings: lpc55::protected_flash::WrappedCustomerSettings = match config_path.extension() {
+            let wrapped_settings: lpc55::protected_flash::WrappedCustomerSettings = match config_path.extension() {
                 Some(extension) => match extension {
                     os_str if os_str == "yaml" => {
                         serde_yaml::from_str(&settings)?
@@ -147,19 +147,50 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 None => return Err(anyhow::anyhow!("no extension detected in path {:?}", &config_path)),
             };
 
+            let mut settings = wrapped_settings.customer_settings;
             info!("settings: {:#?}", &wrapped_settings.customer_settings);
-
-            let settings = Vec::from(wrapped_settings.customer_settings.to_bytes()?.as_ref());
-
-            info!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
 
             if subcommand.value_of("OUTPUT").is_none() {
                 let bootloader = bootloader()?;
-                bootloader.write_memory(lpc55::protected_flash::CUSTOMER_SETTINGS_SCRATCH_ADDRESS, settings);
+
+                let current_pfr_raw = bootloader.read_memory(0x9_DE00, 512*7);
+                let current_pfr = lpc55::protected_flash::ProtectedFlash::try_from(&current_pfr_raw[..]).unwrap();
+                let latest_pfr = current_pfr.customer.most_recent();
+                
+                if subcommand.is_present("auto-increment") {
+                    info!("auto incrementing");
+                    settings.customer_version = latest_pfr.customer_version;
+                    settings.customer_version.increment();
+                }
+
+                let mut settings = Vec::from(settings.to_bytes()?.as_ref());
+
+                if subcommand.is_present("no-overwrite") {
+                    info!("preserving firmware, prince-iv, and reserved fields.");
+
+                    // Do not overwrite firmware versions 
+                    for i in 8 .. 16 {
+                        settings[i] = current_pfr_raw[i];
+                    }
+                    // Do not overwrite any of the PRINCE IV's or reserved areas.
+                    for i in 48 .. 256 {
+                        settings[i] = current_pfr_raw[i];
+                    }
+                }
+
+                trace!("writing pfr: {}", hex_str!(&settings));
+
+                bootloader.write_memory(
+                    lpc55::protected_flash::CUSTOMER_SETTINGS_SCRATCH_ADDRESS,
+                    settings,
+                );
             } else {
                 let output_name = subcommand.value_of("OUTPUT").unwrap();
-                fs::write(&output_name, &settings).expect("Unable to write file");
-                println!("outputing to file..");
+                fs::write(
+                    &output_name,
+                    Vec::from(settings.to_bytes()?.as_ref())
+                ).expect("Unable to write file");
+                println!("outputing to {}", output_name);
             }
         }
 
