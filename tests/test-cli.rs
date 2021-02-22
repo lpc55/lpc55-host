@@ -98,7 +98,6 @@ customer-version = 0x030201
 nonsecure-firmware-version = 0x060504
 secure-firmware-version = 0x090807
 rot-keys-status = ["Enabled", "Enabled", "Enabled", "Enabled"]
-debug-settings = "AllDisabled"
 "#).unwrap();
 
     let mut cmd = Command::cargo_bin("lpc55").unwrap();
@@ -126,7 +125,7 @@ debug-settings = "AllDisabled"
     // nothing
     assert_eq!(data[0x1c..0x20], [0u8; 4]);
     // debug policies
-    assert_eq!(data[0x20.. 0x28], [0xff, 0x83, 0x00, 0x7c, 0x00, 0x00, 0xff, 0xff]);
+    assert_eq!(data[0x20.. 0x28], [0u8; 8]);
     // nothing
     assert_eq!(data[0x28..0x200], [0u8; 0x200 - 0x28]);
 }
