@@ -100,7 +100,7 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
-    pub sha256_hash: Sha256Hash,
+    sha256_hash: Sha256Hash,
 
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -149,7 +149,7 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(skip_deserializing)]
-    pub debug_settings: DebugSecurity,
+    debug_settings: DebugSecurity,
 
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -171,7 +171,7 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(serialize_with = "hex_serialize")]
-    pub sha256_hash: Sha256Hash,
+    sha256_hash: Sha256Hash,
 
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -1027,6 +1027,10 @@ impl MonotonicCounter {
     pub fn increment(&mut self) {
         self.0 += 1;
     }
+
+    pub fn read(&self) -> u32 {
+        self.0
+    }
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -1331,6 +1335,10 @@ where
     CustomerData: CustomerSettingsCustomerData,
     VendorUsage: CustomerSettingsVendorUsage,
 {
+    pub fn get_debug_settings(&self) -> DebugSecurityPolicies {
+        self.debug_settings.clone().into()
+    }
+
     pub fn to_bytes(&mut self) -> anyhow::Result<[u8; 512]> {
 
         let mut buf = [0u8; 512];

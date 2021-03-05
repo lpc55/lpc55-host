@@ -103,8 +103,8 @@ impl Command {
             (Command::Keystore(KeystoreOperation::ReadKeystore), _) => DataPhase::ResponseData,
             (Command::Keystore(KeystoreOperation::SetKey { key: _, data }), _) => DataPhase::CommandData(data.clone()),
             (Command::Keystore(KeystoreOperation::GenerateKey { key: _, len: _ }), _) => DataPhase::None,
-            (Command::Keystore(KeystoreOperation::WriteNonVolatile { memory_id: _ }), _) => DataPhase::None,
-            (Command::Keystore(KeystoreOperation::ReadNonVolatile { memory_id: _ }), _) => DataPhase::None,
+            (Command::Keystore(KeystoreOperation::WriteNonVolatile), _) => DataPhase::None,
+            (Command::Keystore(KeystoreOperation::ReadNonVolatile), _) => DataPhase::None,
 
             _ => todo!()
         }
@@ -157,11 +157,11 @@ impl Command {
                     GenerateKey { key, len } => {
                         vec![u32::from(&operation), key as u32, len]
                     }
-                    WriteNonVolatile { memory_id } => {
-                        vec![u32::from(&operation), memory_id]
+                    WriteNonVolatile => {
+                        vec![u32::from(&operation), 0]
                     }
-                    ReadNonVolatile { memory_id } => {
-                        vec![u32::from(&operation), memory_id]
+                    ReadNonVolatile => {
+                        vec![u32::from(&operation), 0]
                     }
                     _ => todo!()
 
@@ -526,10 +526,8 @@ pub enum KeystoreOperation {
     Enroll,
     SetKey { key: Key, data: Vec<u8> },
     GenerateKey { key: Key, len: u32 },
-    #[serde(rename_all = "kebab-case")]
-    WriteNonVolatile { memory_id: u32 },
-    #[serde(rename_all = "kebab-case")]
-    ReadNonVolatile { memory_id: u32 },
+    WriteNonVolatile,
+    ReadNonVolatile,
     WriteKeystore,
     ReadKeystore,
 }
@@ -541,8 +539,8 @@ impl From<&KeystoreOperation> for u32 {
             Enroll => 0,
             SetKey { key: _, data: _ } => 1,
             GenerateKey { key: _, len: _ } => 2,
-            WriteNonVolatile { memory_id: _ } => 3,
-            ReadNonVolatile { memory_id: _ } => 4,
+            WriteNonVolatile => 3,
+            ReadNonVolatile => 4,
             WriteKeystore => 5,
             ReadKeystore => 6,
         }
