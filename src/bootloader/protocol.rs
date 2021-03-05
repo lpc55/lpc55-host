@@ -149,8 +149,8 @@ impl Protocol {
                     ConfigureMemory { .. } |
                     Keystore(command::KeystoreOperation::Enroll) |
                     Keystore(command::KeystoreOperation::GenerateKey { key: _, len: _ }) |
-                    Keystore(command::KeystoreOperation::WriteNonVolatile { memory_id: _ }) |
-                    Keystore(command::KeystoreOperation::ReadNonVolatile { memory_id: _ }) => {
+                    Keystore(command::KeystoreOperation::WriteNonVolatile) |
+                    Keystore(command::KeystoreOperation::ReadNonVolatile) => {
                         assert_eq!(packet.tag, command::ResponseTag::Generic);
                         // general property of generic responses: 2 parameters, status and mirrored command header
                         assert_eq!(packet.parameters.len(), 1);

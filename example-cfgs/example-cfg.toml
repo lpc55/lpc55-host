@@ -132,7 +132,6 @@ len = 16
 [[provisions]]
 cmd = "Keystore"
 sub-cmd= "WriteNonVolatile"
-memory-id = 0
 
 [[provisions]]
 cmd = "WriteMemoryWords"

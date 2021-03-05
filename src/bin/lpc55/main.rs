@@ -6,7 +6,7 @@ use std::fs;
 
 use anyhow::{anyhow};
 use delog::hex_str;
-use log::{info, trace};
+use log::{info, warn, trace};
 use uuid::Uuid;
 
 use lpc55::bootloader::{Bootloader, command};
@@ -157,7 +157,12 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 let current_pfr = lpc55::protected_flash::ProtectedFlash::try_from(&current_pfr_raw[..]).unwrap();
                 let latest_pfr = current_pfr.customer.most_recent();
                 
-                if subcommand.is_present("auto-increment") {
+                if ! subcommand.is_present("dont-increment") {
+                    
+                    if settings.customer_version.read() != 0 {
+                        warn!("Ignoring customer version {} from settings file.", settings.customer_version.read());
+                    }
+
                     info!("auto incrementing");
                     settings.customer_version = latest_pfr.customer_version;
                     settings.customer_version.increment();
@@ -165,7 +170,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
                 let mut settings = Vec::from(settings.to_bytes()?.as_ref());
 
-                if subcommand.is_present("no-overwrite") {
+                if ! subcommand.is_present("overwrite") {
                     info!("preserving firmware, prince-iv, and reserved fields.");
 
                     // Do not overwrite firmware versions 
@@ -254,7 +259,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             let bootloader = bootloader()?;
 
             let command = command::Command::Keystore(
-                command::KeystoreOperation::WriteNonVolatile { memory_id: 0 }
+                command::KeystoreOperation::WriteNonVolatile
             );
 
             bootloader.protocol.call(&command).expect("success");
@@ -265,7 +270,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             let bootloader = bootloader()?;
 
             let command = command::Command::Keystore(
-                command::KeystoreOperation::ReadNonVolatile { memory_id: 0 }
+                command::KeystoreOperation::ReadNonVolatile
             );
 
             bootloader.protocol.call(&command).expect("success");
