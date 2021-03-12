@@ -229,7 +229,7 @@ impl Bootloader {
 }
 
 #[cfg(all(feature = "with-device", test))]
-fn test_all_properties() {
+fn all_properties() {
     // let (vid, pid) = (0x1fc9, 0x0021);
     let (vid, pid) = (0x1209, 0xb000);
     let bootloader = Bootloader::try_new(Some(vid), Some(pid)).unwrap();

@@ -270,7 +270,7 @@ mod test {
     use super::*;
 
     #[cfg(all(feature = "with-device", test))]
-    fn test_available_commands() {
+    fn available_commands() {
         assert_eq!(AvailableCommands::ERASE_FLASH_ALL.bits, (1 << 2));
     }
 

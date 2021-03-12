@@ -981,7 +981,7 @@ fn aes_unwrap(key: [u8; 32], wrapped: &[u8]) -> Vec<u8> {
 }
 
 #[cfg(test)]
-mod test_aes_keywrap {
+mod aes_keywrap {
     use super::*;
 
     #[test]
@@ -997,7 +997,7 @@ mod test_aes_keywrap {
     }
 
     #[test]
-    fn test_vectors_rfc_3394() {
+    fn vectors_rfc_3394() {
         // 256 bit key with...
         let kek = hex::decode("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F")
             .unwrap();

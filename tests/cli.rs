@@ -1,15 +1,15 @@
 use std::fs::{self,File};
 use std::io::Write;
-use std::process::Command; 
+use std::process::Command;
 
 use tempfile::tempdir;
 extern crate hex;
 
-use assert_cmd::prelude::*; 
+use assert_cmd::prelude::*;
 use predicates::prelude::*;
 
 #[test]
-fn test_factory_generates_correctly() {
+fn factory_generates_correctly() {
     let dir = tempdir().unwrap();
 
     let cfgfile_path = dir.path().join("cfg.toml");
@@ -75,7 +75,7 @@ dice-computation-disabled = true
 
     // rotkh
     assert_eq!(
-        data[0x50 .. 0x70], 
+        data[0x50 .. 0x70],
         hex::decode("C7EE3124DC87EAAE5A6F7FCCB6C2E458706835C99D5D70824EFFAC0F12A5A875").unwrap()
     );
 
@@ -84,7 +84,7 @@ dice-computation-disabled = true
 }
 
 #[test]
-fn test_customer_generates_correctly() {
+fn customer_generates_correctly() {
     let dir = tempdir().unwrap();
 
     let cfgfile_path = dir.path().join("cfg.toml");
@@ -131,7 +131,7 @@ rot-keys-status = ["Enabled", "Enabled", "Enabled", "Enabled"]
 }
 
 #[test]
-fn test_custom_debug_policy() {
+fn custom_debug_policy() {
     let dir = tempdir().unwrap();
 
     let cfgfile_path = dir.path().join("cfg.toml");
@@ -164,7 +164,7 @@ debug-settings = {{ Custom = {{ nonsecure-noninvasive = "Disabled", secure-invas
 }
 
 #[test]
-fn test_sha256_seal () {
+fn sha256_seal () {
     let dir = tempdir().unwrap();
 
     let cfgfile_path = dir.path().join("cfg.toml");
@@ -197,13 +197,13 @@ seal = true
 
     // sha256
     assert_eq!(
-        data[480 .. 512], 
+        data[480 .. 512],
         hex::decode("11c38ce9fa006c6fda5f894c5ab679bd0a6dc01dfac2dc3e25a7670bd1e1752d").unwrap()
     );
 }
 
 #[test]
-fn test_rotkh() {
+fn rotkh() {
 
     let mut cmd = Command::cargo_bin("lpc55").unwrap();
     cmd
