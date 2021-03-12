@@ -429,6 +429,7 @@
 <span id="426">426</span>
 <span id="427">427</span>
 <span id="428">428</span>
+<span id="429">429</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// https://www.nxp.com/docs/en/reference-manual/MCUBOOTRM.pdf</span>
 <span class="comment">//</span>
@@ -578,10 +579,11 @@
                     <span class="ident">Reset</span> <span class="op">|</span>
                     <span class="ident">EraseFlash</span> { <span class="ident">address</span>: <span class="kw">_</span>, <span class="ident">length</span>: <span class="kw">_</span> } <span class="op">|</span>
                     <span class="ident">EraseFlashAll</span> <span class="op">|</span>
+                    <span class="ident">ConfigureMemory</span> { .. } <span class="op">|</span>
                     <span class="ident">Keystore</span>(<span class="ident">command</span>::<span class="ident">KeystoreOperation</span>::<span class="ident">Enroll</span>) <span class="op">|</span>
                     <span class="ident">Keystore</span>(<span class="ident">command</span>::<span class="ident">KeystoreOperation</span>::<span class="ident">GenerateKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">len</span>: <span class="kw">_</span> }) <span class="op">|</span>
-                    <span class="ident">Keystore</span>(<span class="ident">command</span>::<span class="ident">KeystoreOperation</span>::<span class="ident">WriteNonVolatile</span> { <span class="ident">memory_id</span>: <span class="kw">_</span> }) <span class="op">|</span>
-                    <span class="ident">Keystore</span>(<span class="ident">command</span>::<span class="ident">KeystoreOperation</span>::<span class="ident">ReadNonVolatile</span> { <span class="ident">memory_id</span>: <span class="kw">_</span> }) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Keystore</span>(<span class="ident">command</span>::<span class="ident">KeystoreOperation</span>::<span class="ident">WriteNonVolatile</span>) <span class="op">|</span>
+                    <span class="ident">Keystore</span>(<span class="ident">command</span>::<span class="ident">KeystoreOperation</span>::<span class="ident">ReadNonVolatile</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">packet</span>.<span class="ident">tag</span>, <span class="ident">command</span>::<span class="ident">ResponseTag</span>::<span class="ident">Generic</span>);
                         <span class="comment">// general property of generic responses: 2 parameters, status and mirrored command header</span>
                         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>.<span class="ident">len</span>(), <span class="number">1</span>);
@@ -599,14 +601,14 @@
             }
 
             <span class="comment">// case 2: command data phases</span>
-            (<span class="ident">command</span>, <span class="ident">_tag</span>, <span class="ident">command</span>::<span class="ident">DataPhase</span>::<span class="ident">CommandData</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="ident">command</span>, <span class="ident">_tag</span>, <span class="ident">command</span>::<span class="ident">DataPhase</span>::<span class="ident">CommandData</span>(<span class="ident">data</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">ResponsePacket</span>::<span class="ident">try_from</span>(<span class="ident">initial_response</span>)<span class="question-mark">?</span>;
 
                 <span class="comment">// for SetKey, LHS is true, whereas for WriteMemory, it is not (unexpectedly?)</span>
                 <span class="comment">// assert_eq!(packet.has_data, command.data_phase().has_command_data());</span>
                 <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">packet</span>.<span class="ident">status</span>.<span class="ident">is_none</span>());
                 <span class="kw">match</span> <span class="ident">command</span>.<span class="ident">clone</span>() {
-                    <span class="ident">command</span>::<span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">command</span>::<span class="ident">KeystoreOperation</span>::<span class="ident">SetKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">data</span> }) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">command</span>::<span class="ident">Command</span>::<span class="ident">Keystore</span>(<span class="ident">command</span>::<span class="ident">KeystoreOperation</span>::<span class="ident">SetKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">data</span>: <span class="kw">_</span> }) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// todo: can we use bigger chunks?</span>
                         <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">chunks</span>(<span class="number">32</span>) {
                             <span class="comment">// // TODO: somewhere in here, should &quot;peek&quot; a read to see if device sent</span>
@@ -647,7 +649,7 @@
 
                         <span class="prelude-val">Ok</span>(<span class="ident">command</span>::<span class="ident">Response</span>::<span class="ident">Generic</span>)
                     }
-                    <span class="ident">command</span>::<span class="ident">Command</span>::<span class="ident">WriteMemory</span> { <span class="ident">address</span>: <span class="kw">_</span>, <span class="ident">data</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">command</span>::<span class="ident">Command</span>::<span class="ident">WriteMemory</span> { <span class="ident">address</span>: <span class="kw">_</span>, <span class="ident">data</span>: <span class="kw">_</span> } <span class="op">|</span> <span class="ident">command</span>::<span class="ident">Command</span>::<span class="ident">WriteMemoryWords</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">chunks</span>(<span class="number">32</span>) {
                             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_packet</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">command</span>::<span class="ident">ReportId</span>::<span class="ident">CommandData</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="number">0</span>, <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u8</span>, <span class="number">0</span>];
                             <span class="ident">data_packet</span>.<span class="ident">extend_from_slice</span>(<span class="ident">chunk</span>);

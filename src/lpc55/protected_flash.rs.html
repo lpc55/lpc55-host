@@ -1455,6 +1455,46 @@
 <span id="1452">1452</span>
 <span id="1453">1453</span>
 <span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
+<span id="1457">1457</span>
+<span id="1458">1458</span>
+<span id="1459">1459</span>
+<span id="1460">1460</span>
+<span id="1461">1461</span>
+<span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
+<span id="1474">1474</span>
+<span id="1475">1475</span>
+<span id="1476">1476</span>
+<span id="1477">1477</span>
+<span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The protected flash area (PFR) as Rust types</span>
 <span class="doccomment">//!</span>
@@ -1517,6 +1557,10 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">usb_id</span>: <span class="ident">UsbId</span>,
+    <span class="comment">// UM 11126</span>
+    <span class="comment">// 51.7.1: DCFG_CC = device configuration for credential constraints</span>
+    <span class="comment">// 51.7.7: SOCU = System-on-Chip Usage</span>
+    <span class="comment">// PIN = &quot;pinned&quot; or fixed</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">debug_settings</span>: <span class="ident">DebugSecurity</span>,
@@ -1554,7 +1598,12 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">serialize_with</span> <span class="op">=</span> <span class="string">&quot;hex_serialize&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">sha256_hash</span>: <span class="ident">Sha256Hash</span>,
+    <span class="ident">sha256_hash</span>: <span class="ident">Sha256Hash</span>,
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
+    <span class="doccomment">/// Setting this to true will calculate the SHA256 automatically for `sha256_hash`.</span>
+    <span class="kw">pub</span> <span class="ident">seal</span>: <span class="ident">bool</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
@@ -1594,13 +1643,12 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">rot_keys_status</span>: <span class="ident">RotKeysStatus</span>,
-    <span class="comment">// UM 11126</span>
-    <span class="comment">// 51.7.1: DCFG_CC = device configuration for credential constraints</span>
-    <span class="comment">// 51.7.7: SOCU = System-on-Chip Usage</span>
-    <span class="comment">// PIN = &quot;pinned&quot; or fixed</span>
+
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">debug_settings</span>: <span class="ident">DebugSecurity</span>,
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_deserializing</span>)]</span>
+    <span class="ident">debug_settings</span>: <span class="ident">DebugSecurity</span>,
+
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">enable_fault_analysis_mode</span>: <span class="ident">bool</span>,
@@ -1621,7 +1669,12 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">serialize_with</span> <span class="op">=</span> <span class="string">&quot;hex_serialize&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">sha256_hash</span>: <span class="ident">Sha256Hash</span>,
+    <span class="ident">sha256_hash</span>: <span class="ident">Sha256Hash</span>,
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
+    <span class="doccomment">/// Setting this to true will calculate the SHA256 automatically for `sha256_hash`.</span>
+    <span class="kw">pub</span> <span class="ident">seal</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CustomerSettings</span> {
@@ -1854,7 +1907,7 @@
     <span class="ident">CustomerData</span>: <span class="ident">FactorySettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">FactorySettingsVendorUsage</span>,
 {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">512</span>]<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">512</span>]<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">512</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">as_mut</span>();
 
@@ -1880,22 +1933,18 @@
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="self">self</span>.<span class="ident">customer_data</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">len</span>(), <span class="number">32</span>);
 
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">seal</span> {
+            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Sealing factory page!&quot;</span>);
+
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">sha2</span>::<span class="ident">Sha256</span>::<span class="ident">new</span>();
+            <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="number">0</span>..<span class="number">480</span>]);
+            <span class="self">self</span>.<span class="ident">sha256_hash</span> <span class="op">=</span> <span class="ident">Sha256Hash</span>(<span class="ident">hasher</span>.<span class="ident">finalize</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
+
+            <span class="ident">buf</span>[<span class="number">480</span>..<span class="number">512</span>].<span class="ident">as_mut</span>().<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sha256_hash</span>.<span class="number">0</span>).<span class="ident">ok</span>();
+        }
+
         <span class="prelude-val">Ok</span>(<span class="ident">buf</span>)
     }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes_setting_hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">512</span>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_bytes</span>()<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">sha2</span>::<span class="ident">Sha256</span>::<span class="ident">new</span>();
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="number">480</span>]);
-        <span class="self">self</span>.<span class="ident">sha256_hash</span> <span class="op">=</span> <span class="ident">Sha256Hash</span>(<span class="ident">hasher</span>.<span class="ident">finalize</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">buf</span>[<span class="number">480</span>..].<span class="ident">as_mut</span>();
-        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sha256_hash</span>.<span class="number">0</span>).<span class="ident">ok</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">is_empty</span>());
-        <span class="prelude-val">Ok</span>(<span class="ident">buf</span>)
-    }
-
 }
 
 <span class="kw">fn</span> <span class="ident">parse_factory</span><span class="op">&lt;</span><span class="ident">CustomerData</span>: <span class="ident">FactorySettingsCustomerData</span>, <span class="ident">VendorUsage</span>: <span class="ident">FactorySettingsVendorUsage</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>])
@@ -1933,7 +1982,7 @@
     <span class="kw">let</span> <span class="ident">factory</span> <span class="op">=</span> <span class="ident">FactorySettings</span> {
         <span class="ident">boot_configuration</span>: <span class="ident">BootConfiguration</span>::<span class="ident">from</span>(<span class="ident">boot_cfg</span>),
         <span class="ident">usb_id</span>: <span class="ident">UsbId</span>::<span class="ident">from</span>(<span class="ident">usb_id</span>),
-        <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>::<span class="ident">from</span>([<span class="ident">cc_socu_default</span>, <span class="ident">cc_socu_pin</span>]).<span class="ident">into</span>(),
+        <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>::<span class="ident">from</span>([<span class="ident">cc_socu_pin</span>, <span class="ident">cc_socu_default</span>]).<span class="ident">into</span>(),
         <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>::<span class="ident">from</span>(<span class="ident">vendor_usage</span>),
         <span class="ident">secure_boot_configuration</span>: <span class="ident">SecureBootConfiguration</span>::<span class="ident">from</span>(<span class="ident">secure_boot_cfg</span>),
         <span class="ident">prince_configuration</span>: <span class="ident">PrinceConfiguration</span>::<span class="ident">from</span>(<span class="ident">prince_cfg</span>),
@@ -1945,6 +1994,7 @@
         <span class="ident">rot_fingerprint</span>: <span class="ident">Sha256Hash</span>(<span class="ident">rot_fingerprint</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
         <span class="ident">customer_data</span>: <span class="ident">CustomerData</span>::<span class="ident">from</span>(<span class="ident">customer_data</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
         <span class="ident">sha256_hash</span>: <span class="ident">Sha256Hash</span>(<span class="ident">sha256_hash</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+        <span class="ident">seal</span>: <span class="bool-val">false</span>,
     };
 
     <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">factory</span>))
@@ -2380,6 +2430,22 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span> <span class="ident">CustomerSettingsArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span> <span class="op">+</span> <span class="ident">Clone</span>,
+{
+    <span class="doccomment">/// Returns either the ping or pong page, whichever has the highest version.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">most_recent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ping</span>.<span class="ident">customer_version</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">pong</span>.<span class="ident">customer_version</span> {
+            <span class="self">self</span>.<span class="ident">ping</span>.<span class="ident">clone</span>()
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">pong</span>.<span class="ident">clone</span>()
+        }
+    }
+}
+
+
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Header</span>(<span class="ident">u32</span>);
 
@@ -2459,6 +2525,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">increment</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
     }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+        <span class="self">self</span>.<span class="number">0</span>
+    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
@@ -2519,9 +2589,14 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>,<span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugSecurityPolicy</span> {
-    <span class="ident">EnableWithDap</span>,
+    <span class="doccomment">/// Permanently disable the policy</span>
     <span class="ident">Disabled</span>,
+    <span class="doccomment">/// Permanently Enabled the policy</span>
     <span class="ident">Enabled</span>,
+    <span class="doccomment">/// Enabled the policy, but it could be changed by authenticated debugger</span>
+    <span class="ident">StartEnabled</span>,
+    <span class="doccomment">/// Disable the policy, but it could be changed by authenticated debugger</span>
+    <span class="ident">StartDisabled</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugSecurity</span> {
@@ -2532,7 +2607,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugSecurityPolicy</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">EnableWithDap</span>
+        <span class="self">Self</span>::<span class="ident">StartDisabled</span>
     }
 }
 
@@ -2540,14 +2615,14 @@
     <span class="kw">fn</span> <span class="ident">fixed_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">use</span> <span class="ident">DebugSecurityPolicy</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">EnableWithDap</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">StartDisabled</span> <span class="op">|</span> <span class="ident">StartEnabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
         }
     }
     <span class="kw">fn</span> <span class="ident">enabled_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">use</span> <span class="ident">DebugSecurityPolicy</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Enabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="ident">Enabled</span> <span class="op">|</span> <span class="ident">StartEnabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
         }
     }
@@ -2558,7 +2633,8 @@
         <span class="kw">let</span> [<span class="ident">fix</span>, <span class="ident">set</span>] <span class="op">=</span> <span class="ident">bits</span>;
         <span class="kw">use</span> <span class="ident">DebugSecurityPolicy</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> (<span class="ident">fix</span>, <span class="ident">set</span>) {
-            (<span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EnableWithDap</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartDisabled</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartEnabled</span>,
             (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Disabled</span>,
             (<span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Enabled</span>,
         }
@@ -2757,7 +2833,11 @@
     <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
 {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">512</span>]<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DebugSecurityPolicies</span> {
+        <span class="self">self</span>.<span class="ident">debug_settings</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">512</span>]<span class="op">&gt;</span> {
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">512</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">as_mut</span>();
@@ -2774,9 +2854,11 @@
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">u32</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">rot_keys_status</span>).<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">vendor_usage</span>.<span class="ident">into</span>().<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">debug_settings</span>: [<span class="ident">u32</span>; <span class="number">2</span>] <span class="op">=</span> <span class="ident">Into</span>::<span class="op">&lt;</span><span class="ident">DebugSecurityPolicies</span><span class="op">&gt;</span>::<span class="ident">into</span>(<span class="self">self</span>.<span class="ident">debug_settings</span>).<span class="ident">into</span>();
-        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">debug_settings</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
-        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">debug_settings</span>[<span class="number">1</span>].<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
+        <span class="comment">// Debug settings.</span>
+        <span class="comment">// Should never externally set the debug policy bits in customer page.</span>
+        <span class="comment">// These bits should only be changed from secure API within firmware.</span>
+        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="number">0u32</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="number">0u32</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">enable_fa_mode</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">enable_fault_analysis_mode</span> {
             <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0xC33C_A55A</span>,
@@ -2801,19 +2883,16 @@
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">len</span>(), <span class="number">32</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident">buf</span>)
-    }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">seal</span> {
+            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Sealing customer page!&quot;</span>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes_setting_hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">512</span>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_bytes</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">sha2</span>::<span class="ident">Sha256</span>::<span class="ident">new</span>();
+            <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="number">0</span>..<span class="number">480</span>]);
+            <span class="self">self</span>.<span class="ident">sha256_hash</span> <span class="op">=</span> <span class="ident">Sha256Hash</span>(<span class="ident">hasher</span>.<span class="ident">finalize</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">sha2</span>::<span class="ident">Sha256</span>::<span class="ident">new</span>();
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="number">480</span>]);
-        <span class="self">self</span>.<span class="ident">sha256_hash</span> <span class="op">=</span> <span class="ident">Sha256Hash</span>(<span class="ident">hasher</span>.<span class="ident">finalize</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
+            <span class="ident">buf</span>[<span class="number">480</span>..<span class="number">512</span>].<span class="ident">as_mut</span>().<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sha256_hash</span>.<span class="number">0</span>).<span class="ident">ok</span>();
+        }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">buf</span>[<span class="number">480</span>..].<span class="ident">as_mut</span>();
-        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sha256_hash</span>.<span class="number">0</span>).<span class="ident">ok</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">is_empty</span>());
         <span class="prelude-val">Ok</span>(<span class="ident">buf</span>)
     }
 
@@ -2863,7 +2942,7 @@
         <span class="ident">image_key_revocation_id</span>: <span class="ident">MonotonicCounter</span>::<span class="ident">from</span>(<span class="ident">image_key_revocation_id</span>),
         <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>::<span class="ident">from</span>(<span class="ident">vendor_usage</span>),
         <span class="ident">rot_keys_status</span>: <span class="ident">RotKeysStatus</span>::<span class="ident">from</span>(<span class="ident">rot_keys_status</span>),
-        <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>::<span class="ident">from</span>([<span class="ident">dcfg_cc_socu_ns_default</span>, <span class="ident">dcfg_cc_socu_ns_pin</span>]).<span class="ident">into</span>(),
+        <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>::<span class="ident">from</span>([<span class="ident">dcfg_cc_socu_ns_pin</span>, <span class="ident">dcfg_cc_socu_ns_default</span>]).<span class="ident">into</span>(),
         <span class="ident">enable_fault_analysis_mode</span>: <span class="ident">enable_fa</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
         <span class="ident">factory_prog_in_progress</span>: <span class="ident">FactorySettingsProgInProgress</span>(<span class="ident">factory_prog_in_progress</span>),
         <span class="ident">prince_ivs</span>: [
@@ -2873,6 +2952,7 @@
         ],
         <span class="ident">customer_data</span>: <span class="ident">CustomerData</span>::<span class="ident">from</span>(<span class="ident">customer_data</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
         <span class="ident">sha256_hash</span>: <span class="ident">Sha256Hash</span>(<span class="ident">sha256_hash</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+        <span class="ident">seal</span>: <span class="bool-val">false</span>,
     };
 
     <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">page</span>))
