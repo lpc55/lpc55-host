@@ -470,7 +470,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;with-device&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">fn</span> <span class="ident">test_all_properties</span>() {
+<span class="kw">fn</span> <span class="ident">all_properties</span>() {
     <span class="comment">// let (vid, pid) = (0x1fc9, 0x0021);</span>
     <span class="kw">let</span> (<span class="ident">vid</span>, <span class="ident">pid</span>) <span class="op">=</span> (<span class="number">0x1209</span>, <span class="number">0xb000</span>);
     <span class="kw">let</span> <span class="ident">bootloader</span> <span class="op">=</span> <span class="ident">Bootloader</span>::<span class="ident">try_new</span>(<span class="prelude-val">Some</span>(<span class="ident">vid</span>), <span class="prelude-val">Some</span>(<span class="ident">pid</span>)).<span class="ident">unwrap</span>();

@@ -2279,7 +2279,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test_aes_keywrap</span> {
+<span class="kw">mod</span> <span class="ident">aes_keywrap</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2295,7 +2295,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_vectors_rfc_3394</span>() {
+    <span class="kw">fn</span> <span class="ident">vectors_rfc_3394</span>() {
         <span class="comment">// 256 bit key with...</span>
         <span class="kw">let</span> <span class="ident">kek</span> <span class="op">=</span> <span class="ident">hex</span>::<span class="ident">decode</span>(<span class="string">&quot;000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F&quot;</span>)
             .<span class="ident">unwrap</span>();

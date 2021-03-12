@@ -551,7 +551,7 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;with-device&quot;</span>, <span class="ident">test</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">test_available_commands</span>() {
+    <span class="kw">fn</span> <span class="ident">available_commands</span>() {
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AvailableCommands</span>::<span class="ident">ERASE_FLASH_ALL</span>.<span class="ident">bits</span>, (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>));
     }
 
