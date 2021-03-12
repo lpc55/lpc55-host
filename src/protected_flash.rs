@@ -434,7 +434,7 @@ where
         cursor.write_all(&[0u8; 144])?;
         cursor.write_all(self.customer_data.as_ref())?;
         assert_eq!(cursor.len(), 32);
-        
+
         if self.seal {
             info!("Sealing factory page!");
 
@@ -1335,7 +1335,7 @@ where
     CustomerData: CustomerSettingsCustomerData,
     VendorUsage: CustomerSettingsVendorUsage,
 {
-    pub fn get_debug_settings(&self) -> DebugSecurityPolicies {
+    pub fn debug_settings(&self) -> DebugSecurityPolicies {
         self.debug_settings.clone().into()
     }
 
