@@ -1,0 +1,35 @@
+[package]
+name = "pylpc55"
+version = "0.1.0"
+authors = ["Nicolas Stalder <n@stalder.io>"]
+edition = "2018"
+
+[lib]
+name = "lpc55"
+crate-type = ["cdylib"]
+
+[dependencies.lpc55]
+path = ".."
+
+[dependencies.pyo3]
+version = "0.13"
+features = ["extension-module"]
+
+[package.metadata.maturin]
+classifier = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Rust",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Software Development :: Libraries :: Python Modules"
+]
+maintainer = "Nicolas Stalder"
+maintainer-email = "n@stalder.io"
+requires-python = ">=3.8"
+project-url = { homepage = "https://github.com/lpc55/lpc55-host/" }
