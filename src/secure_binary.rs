@@ -61,7 +61,6 @@ use command::{BootCommand, BootCommandDescriptor};
 /// - ...
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
-#[serde(deny_unknown_fields)]
 pub struct Config {
     pub firmware: Firmware,
     pub pki: Pki,
