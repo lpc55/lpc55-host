@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["TABLE",""]],"fn":[["crc32","Soooo.... This \"uses\" the \"Ethernet CRC algorithm\" values, but it doesn't really do CRC32."],["crc32_2",""],["hmac",""],["nxp_aes_ctr_cipher","NXP's AES-CTR cipher."],["sha256",""]]});
+initSidebarItems({"constant":[["TABLE",""]],"fn":[["crc32","Soooo…. This “uses” the “Ethernet CRC algorithm” values, but it doesn’t really do CRC32."],["crc32_2",""],["hmac",""],["nxp_aes_ctr_cipher","NXP’s AES-CTR cipher."],["sha256",""]]});
