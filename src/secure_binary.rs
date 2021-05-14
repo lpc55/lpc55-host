@@ -901,7 +901,7 @@ fn aes_wrap(key: [u8; 32], data: &[u8]) -> Vec<u8> {
         todo!();
     }
     assert!(data.len() % 8 == 0);
-    use aes::{BlockCipher, NewBlockCipher};
+    use aes::{BlockCipher, BlockEncrypt, NewBlockCipher};
     use aes::cipher::generic_array::GenericArray;
     let aes = aes::Aes256::new(&key.into());
     let n = (data.len() as u64) / 8;
@@ -945,7 +945,7 @@ fn aes_unwrap(key: [u8; 32], wrapped: &[u8]) -> Vec<u8> {
     }
     assert!(wrapped.len() % 8 == 0);
     assert!(!wrapped.is_empty());
-    use aes::{BlockCipher, NewBlockCipher};
+    use aes::{BlockCipher, BlockDecrypt, NewBlockCipher};
     use aes::cipher::generic_array::GenericArray;
     let aes = aes::Aes256::new(&key.into());
     let n = (wrapped.len() as u64) / 8 - 1;

@@ -15,7 +15,7 @@ pub fn hmac(mac_key: [u8; 32], data: &[u8]) -> [u8; 32] {
 
     type HmacSha256 = Hmac<Sha256>;
 
-    let mut mac = HmacSha256::new_varkey(&mac_key).unwrap();
+    let mut mac = HmacSha256::new_from_slice(&mac_key).unwrap();
     mac.update(data);
     let result = mac.finalize();
 
@@ -29,8 +29,8 @@ pub fn hmac(mac_key: [u8; 32], data: &[u8]) -> [u8; 32] {
 ///
 pub fn nxp_aes_ctr_cipher(ciphertext: &[u8], dek: [u8; 32], nonce: [u32; 4], offset_blocks: u32) -> Vec<u8> {
     type Aes256Ctr = ctr::Ctr32BE<aes::Aes256>;
-    use ctr::cipher::SyncStreamCipher;
-    use ctr::cipher::stream::NewStreamCipher;
+    use ctr::cipher::StreamCipher;
+    use ctr::cipher::NewCipher;
 
     let mut plaintext = Vec::from(ciphertext);
     assert_eq!(plaintext.len() % 16, 0);

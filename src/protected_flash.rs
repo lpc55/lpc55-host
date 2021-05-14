@@ -581,8 +581,8 @@ impl From<IspMode> for u8 {
     }
 }
 
-#[serde(rename_all = "kebab-case")]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct BootConfiguration {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -691,8 +691,8 @@ impl From<u32> for TrustzoneMode {
     }
 }
 
-#[serde(rename_all = "kebab-case")]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct SecureBootConfiguration {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -1143,8 +1143,8 @@ impl From<[bool; 2]> for DebugSecurityPolicy {
     }
 }
 
-#[serde(rename_all = "kebab-case")]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct DebugSecurityPolicies {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
