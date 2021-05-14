@@ -12,8 +12,10 @@ pub enum Command {
     EraseFlash { address: usize, length: usize },
     ReadMemory { address: usize, length: usize },
     WriteMemory { address: usize, data: Vec<u8> },
+    /// Converts the words to little-endian, then delegates to `WriteMemory`
     WriteMemoryWords { address: usize, words: Vec<u32> },
     FillMemory,
+    /// cf. <https://www.nxp.com/docs/en/application-note/AN12527.pdf>
     ConfigureMemory { address: usize },
     FlashSecurityDisable,
     // there is actually a second parameter, Memory ID
