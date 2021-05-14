@@ -571,6 +571,8 @@
 <span id="568">568</span>
 <span id="569">569</span>
 <span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
 
@@ -586,8 +588,10 @@
     <span class="ident">EraseFlash</span> { <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">length</span>: <span class="ident">usize</span> },
     <span class="ident">ReadMemory</span> { <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">length</span>: <span class="ident">usize</span> },
     <span class="ident">WriteMemory</span> { <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> },
+    <span class="doccomment">/// Converts the words to little-endian, then delegates to `WriteMemory`</span>
     <span class="ident">WriteMemoryWords</span> { <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">words</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> },
     <span class="ident">FillMemory</span>,
+    <span class="doccomment">/// cf. &lt;https://www.nxp.com/docs/en/application-note/AN12527.pdf&gt;</span>
     <span class="ident">ConfigureMemory</span> { <span class="ident">address</span>: <span class="ident">usize</span> },
     <span class="ident">FlashSecurityDisable</span>,
     <span class="comment">// there is actually a second parameter, Memory ID</span>
