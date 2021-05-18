@@ -198,7 +198,7 @@ impl SigningKey {
                 assert_eq!(rv, 0);
                 let n = attributes[0].get_biginteger().unwrap();
                 let e = attributes[1].get_biginteger().unwrap();
-                assert_eq!(n.bits(), 2048);
+                assert!(n.bits() > 2012 && n.bits() <= 2048);
                 // dbg!(n.to_str_radix(10));
                 assert_eq!(e.to_str_radix(10), "65537");
 
