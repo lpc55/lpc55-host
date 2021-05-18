@@ -51,7 +51,7 @@ use signature::Signature as _;
 
 pub mod command;
 
-use command::{BootCommand, BootCommandDescriptor};
+use command::{BootCommand, BootCommandDescriptor, BootPseudoCommandDescriptor};
 
 /// Main configuration file format for chip configuration and secure/signed firmware
 /// image/container generation.
@@ -77,7 +77,10 @@ pub struct Config {
     pub customer_settings: CustomerSettings,
 
     /// Commands for the SB file
-    pub commands: Vec<BootCommandDescriptor>
+    pub commands: Vec<BootCommandDescriptor>,
+
+    /// High Commands lpc55-host will convert into normal commands
+    pub pseudo_commands: Vec<BootPseudoCommandDescriptor>
 }
 
 impl TryFrom<&'_ str> for Config {
@@ -346,6 +349,41 @@ impl UnsignedSb21File {
         let mut commands: Vec<BootCommand> = Vec::new();
         for command_descriptor in config.commands.iter() {
             commands.push(command_descriptor.try_into()?);
+        }
+
+        for pseudo_command_descriptor in config.pseudo_commands.iter() {
+            match pseudo_command_descriptor {
+                BootPseudoCommandDescriptor::UploadSignedImage => {
+
+                    let signed_image = fs::read(&config.firmware.signed_image)?;
+                    let mut signed_image_size = signed_image.len() as u32;
+                    // Pad size to make 512 aligned
+                    if (signed_image_size % 512) != 0 {
+                        signed_image_size += 512 - (signed_image_size % 512);
+                    }
+                    
+                    info!("Adding: EraseRegion {}, {}", 0, signed_image_size);
+                    commands.push(BootCommand::EraseRegion {
+                        address: 0,
+                        bytes: signed_image_size,
+                    });
+                    
+                    // Skip first 512 bytes to protect from power loss
+                    info!("Adding: Load {}, {} bytes", 512, signed_image[512..].len());
+                    commands.push(BootCommand::Load {
+                        address: 512,
+                        data: Vec::from(&signed_image[512..])
+                    });
+
+                    // Write the 512 bytes that we skipped, last.
+                    info!("Adding: Load {}, {} bytes", 0, signed_image[..512].len());
+                    commands.push(BootCommand::Load {
+                        address: 0,
+                        data: Vec::from(&signed_image[..512])
+                    });
+
+                }
+            }
         }
 
         let return_value = Self {

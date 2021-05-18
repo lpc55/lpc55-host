@@ -174,6 +174,20 @@ pub enum BootCommandDescriptor {
     },
 }
 
+/// High level commands that lpc55 will convert safely into commands used to define SB2.1 files
+///
+/// ### Example
+/// ```ignore
+/// [[pseudo-commands]]
+/// cmd = "UploadSignedImage"
+/// ```
+///
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "cmd")]
+pub enum BootPseudoCommandDescriptor {
+    UploadSignedImage,
+}
+
 impl<'a> TryFrom<&'a BootCommandDescriptor> for BootCommand {
     type Error = anyhow::Error;
 
