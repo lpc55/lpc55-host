@@ -299,7 +299,7 @@ pub fn app() -> clap::App<'static, 'static> {
             .long_version(LONG_VERSION.as_str())
             .about("send SB2.1 file to target")
             .arg(Arg::with_name("SB-FILE")
-                 .help("Configuration file")
+                 .help(".sb2 file")
                  .required(true))
         )
 
@@ -319,6 +319,11 @@ pub fn app() -> clap::App<'static, 'static> {
             .arg(Arg::with_name("CONFIG")
                  .help("Configuration file")
                  .required(true))
+            .arg(Arg::with_name("image")
+                 .help("Replaces config.firmware.image entry")
+                 .long("image")
+                 .value_name("image")
+            )
         )
 
         .subcommand(SubCommand::with_name("assemble-sb")
@@ -328,6 +333,11 @@ pub fn app() -> clap::App<'static, 'static> {
             .arg(Arg::with_name("CONFIG")
                  .help("Configuration file")
                  .required(true))
+            .arg(Arg::with_name("signed-image")
+                 .help("Replaces config.firmware.signed_image entry")
+                 .long("signed-image")
+                 .value_name("signed-image")
+            )
         )
 
         .subcommand(SubCommand::with_name("sb")

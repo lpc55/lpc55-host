@@ -354,32 +354,38 @@ impl UnsignedSb21File {
                     match sequence {
 
                         BootCommandSequenceDescription::UploadSignedImage => {
-                            let signed_image = fs::read(&config.firmware.signed_image)?;
-                            let mut signed_image_size = signed_image.len() as u32;
+                            let mut image = fs::read(&config.firmware.signed_image)?;
+                            let unpadded_image_size = image.len();
 
                             // Pad size to make 512 aligned
-                            if (signed_image_size % 512) != 0 {
-                                signed_image_size += 512 - (signed_image_size % 512);
+                            let block_overshoot = unpadded_image_size % 512;
+                            if block_overshoot != 0 {
+                                let padding = 512 - block_overshoot;
+                                image.resize(unpadded_image_size  + padding, 0);
                             }
 
-                            info!("Adding: EraseRegion {}, {}", 0, signed_image_size);
+                            let (first_block, remainder) = image.split_at(512);
+
+                            info!("Adding: EraseRegion {}, {}", 0, image.len());
                             commands.push(BootCommand::EraseRegion {
                                 address: 0,
-                                bytes: signed_image_size,
+                                bytes: image.len() as u32,
                             });
 
-                            // Skip first 512 bytes to protect from power loss
-                            info!("Adding: Load {}, {} bytes", 512, signed_image[512..].len());
-                            commands.push(BootCommand::Load {
-                                address: 512,
-                                data: Vec::from(&signed_image[512..])
-                            });
+                            if !remainder.is_empty() {
+                                // Skip first 512 bytes to protect from power loss
+                                info!("Adding: Load {}, {} bytes", 512, remainder.len());
+                                commands.push(BootCommand::Load {
+                                    address: 512,
+                                    data: Vec::from(remainder),
+                                });
+                            }
 
                             // Write the 512 bytes that we skipped, last.
-                            info!("Adding: Load {}, {} bytes", 0, signed_image[..512].len());
+                            info!("Adding: Load {}, {} bytes", 0, 512);
                             commands.push(BootCommand::Load {
                                 address: 0,
-                                data: Vec::from(&signed_image[..512])
+                                data: Vec::from(first_block),
                             });
                         }
                     }
