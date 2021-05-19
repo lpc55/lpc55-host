@@ -1332,6 +1332,7 @@
 <span id="1329">1329</span>
 <span id="1330">1330</span>
 <span id="1331">1331</span>
+<span id="1332">1332</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Generator and parser for signed firmware and SB (secure binary) files</span>
 <span class="doccomment">//!</span>
@@ -1386,7 +1387,7 @@
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">command</span>;
 
-<span class="kw">use</span> <span class="ident">command</span>::{<span class="ident">BootCommand</span>, <span class="ident">BootCommandDescriptor</span>, <span class="ident">BootPseudoCommandDescriptor</span>};
+<span class="kw">use</span> <span class="ident">command</span>::{<span class="ident">BootCommand</span>, <span class="ident">BootCommandDescription</span>, <span class="ident">SingleBootCommandDescription</span>, <span class="ident">BootCommandSequenceDescription</span>};
 
 <span class="doccomment">/// Main configuration file format for chip configuration and secure/signed firmware</span>
 <span class="doccomment">/// image/container generation.</span>
@@ -1411,11 +1412,8 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">customer_settings</span>: <span class="ident">CustomerSettings</span>,
 
-    <span class="doccomment">/// Commands for the SB file</span>
-    <span class="kw">pub</span> <span class="ident">commands</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BootCommandDescriptor</span><span class="op">&gt;</span>,
-
-    <span class="doccomment">/// High Commands lpc55-host will convert into normal commands</span>
-    <span class="kw">pub</span> <span class="ident">pseudo_commands</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BootPseudoCommandDescriptor</span><span class="op">&gt;</span>
+    <span class="doccomment">/// Commands and command sequences for the SB file</span>
+    <span class="kw">pub</span> <span class="ident">commands</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BootCommandDescription</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Config</span> {
@@ -1682,41 +1680,45 @@
         <span class="kw">let</span> <span class="ident">keyblob</span> <span class="op">=</span> <span class="ident">Keyblob</span> { <span class="ident">dek</span>: <span class="ident">config</span>.<span class="ident">reproducibility</span>.<span class="ident">dek</span>, <span class="ident">mac</span>: <span class="ident">config</span>.<span class="ident">reproducibility</span>.<span class="ident">mac</span> };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commands</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BootCommand</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-        <span class="kw">for</span> <span class="ident">command_descriptor</span> <span class="kw">in</span> <span class="ident">config</span>.<span class="ident">commands</span>.<span class="ident">iter</span>() {
-            <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">command_descriptor</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>);
-        }
+        <span class="kw">for</span> <span class="ident">command_or_sequence</span> <span class="kw">in</span> <span class="ident">config</span>.<span class="ident">commands</span>.<span class="ident">iter</span>() {
+            <span class="kw">match</span> <span class="ident">command_or_sequence</span> {
 
-        <span class="kw">for</span> <span class="ident">pseudo_command_descriptor</span> <span class="kw">in</span> <span class="ident">config</span>.<span class="ident">pseudo_commands</span>.<span class="ident">iter</span>() {
-            <span class="kw">match</span> <span class="ident">pseudo_command_descriptor</span> {
-                <span class="ident">BootPseudoCommandDescriptor</span>::<span class="ident">UploadSignedImage</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">BootCommandDescription</span>::<span class="ident">Single</span>(<span class="ident">command</span>) <span class="op">=</span><span class="op">&gt;</span>
+                    <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">command</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>),
 
-                    <span class="kw">let</span> <span class="ident">signed_image</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">firmware</span>.<span class="ident">signed_image</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signed_image_size</span> <span class="op">=</span> <span class="ident">signed_image</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
-                    <span class="comment">// Pad size to make 512 aligned</span>
-                    <span class="kw">if</span> (<span class="ident">signed_image_size</span> <span class="op">%</span> <span class="number">512</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                        <span class="ident">signed_image_size</span> <span class="op">+</span><span class="op">=</span> <span class="number">512</span> <span class="op">-</span> (<span class="ident">signed_image_size</span> <span class="op">%</span> <span class="number">512</span>);
+                <span class="ident">BootCommandDescription</span>::<span class="ident">Sequence</span>(<span class="ident">sequence</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">match</span> <span class="ident">sequence</span> {
+
+                        <span class="ident">BootCommandSequenceDescription</span>::<span class="ident">UploadSignedImage</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">let</span> <span class="ident">signed_image</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">firmware</span>.<span class="ident">signed_image</span>)<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signed_image_size</span> <span class="op">=</span> <span class="ident">signed_image</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+
+                            <span class="comment">// Pad size to make 512 aligned</span>
+                            <span class="kw">if</span> (<span class="ident">signed_image_size</span> <span class="op">%</span> <span class="number">512</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                                <span class="ident">signed_image_size</span> <span class="op">+</span><span class="op">=</span> <span class="number">512</span> <span class="op">-</span> (<span class="ident">signed_image_size</span> <span class="op">%</span> <span class="number">512</span>);
+                            }
+
+                            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding: EraseRegion {}, {}&quot;</span>, <span class="number">0</span>, <span class="ident">signed_image_size</span>);
+                            <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">BootCommand</span>::<span class="ident">EraseRegion</span> {
+                                <span class="ident">address</span>: <span class="number">0</span>,
+                                <span class="ident">bytes</span>: <span class="ident">signed_image_size</span>,
+                            });
+
+                            <span class="comment">// Skip first 512 bytes to protect from power loss</span>
+                            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding: Load {}, {} bytes&quot;</span>, <span class="number">512</span>, <span class="ident">signed_image</span>[<span class="number">512</span>..].<span class="ident">len</span>());
+                            <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">BootCommand</span>::<span class="ident">Load</span> {
+                                <span class="ident">address</span>: <span class="number">512</span>,
+                                <span class="ident">data</span>: <span class="ident">Vec</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">signed_image</span>[<span class="number">512</span>..])
+                            });
+
+                            <span class="comment">// Write the 512 bytes that we skipped, last.</span>
+                            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding: Load {}, {} bytes&quot;</span>, <span class="number">0</span>, <span class="ident">signed_image</span>[..<span class="number">512</span>].<span class="ident">len</span>());
+                            <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">BootCommand</span>::<span class="ident">Load</span> {
+                                <span class="ident">address</span>: <span class="number">0</span>,
+                                <span class="ident">data</span>: <span class="ident">Vec</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">signed_image</span>[..<span class="number">512</span>])
+                            });
+                        }
                     }
-                    
-                    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding: EraseRegion {}, {}&quot;</span>, <span class="number">0</span>, <span class="ident">signed_image_size</span>);
-                    <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">BootCommand</span>::<span class="ident">EraseRegion</span> {
-                        <span class="ident">address</span>: <span class="number">0</span>,
-                        <span class="ident">bytes</span>: <span class="ident">signed_image_size</span>,
-                    });
-                    
-                    <span class="comment">// Skip first 512 bytes to protect from power loss</span>
-                    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding: Load {}, {} bytes&quot;</span>, <span class="number">512</span>, <span class="ident">signed_image</span>[<span class="number">512</span>..].<span class="ident">len</span>());
-                    <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">BootCommand</span>::<span class="ident">Load</span> {
-                        <span class="ident">address</span>: <span class="number">512</span>,
-                        <span class="ident">data</span>: <span class="ident">Vec</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">signed_image</span>[<span class="number">512</span>..])
-                    });
-
-                    <span class="comment">// Write the 512 bytes that we skipped, last.</span>
-                    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding: Load {}, {} bytes&quot;</span>, <span class="number">0</span>, <span class="ident">signed_image</span>[..<span class="number">512</span>].<span class="ident">len</span>());
-                    <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">BootCommand</span>::<span class="ident">Load</span> {
-                        <span class="ident">address</span>: <span class="number">0</span>,
-                        <span class="ident">data</span>: <span class="ident">Vec</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">signed_image</span>[..<span class="number">512</span>])
-                    });
-
                 }
             }
         }
