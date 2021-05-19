@@ -1501,6 +1501,22 @@
 <span id="1498">1498</span>
 <span id="1499">1499</span>
 <span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The protected flash area (PFR) as Rust types</span>
 <span class="doccomment">//!</span>
@@ -2588,6 +2604,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugSecurity</span> {
     <span class="ident">AllDisabled</span>,
     <span class="ident">AllEnabled</span>,
+    <span class="ident">AllStartEnabled</span>,
     <span class="ident">Custom</span> (
         <span class="ident">DebugSecurityPolicies</span>,
     )
@@ -2610,7 +2627,7 @@
     <span class="doccomment">/// turn off debugging on an otherwise empty key, unless explicitly</span>
     <span class="doccomment">/// configured to be turned off.</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">AllEnabled</span>
+        <span class="self">Self</span>::<span class="ident">AllStartEnabled</span>
     }
 }
 
@@ -2619,7 +2636,7 @@
     <span class="doccomment">/// turn off debugging on an otherwise empty key, unless explicitly</span>
     <span class="doccomment">/// configured to be turned off.</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">Enabled</span>
+        <span class="self">Self</span>::<span class="ident">StartEnabled</span>
     }
 }
 
@@ -2731,6 +2748,21 @@
                 <span class="ident">flash_mass_erase_command</span>: <span class="ident">Enabled</span>,
                 <span class="ident">isp_boot_command</span>: <span class="ident">Enabled</span>,
                 <span class="ident">fault_analysis_command</span>: <span class="ident">Enabled</span>,
+                <span class="ident">check_uuid</span>: <span class="bool-val">false</span>,
+            },
+
+            <span class="comment">// Fixed, Enabled</span>
+            <span class="ident">DebugSecurity</span>::<span class="ident">AllStartEnabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DebugSecurityPolicies</span> {
+                <span class="ident">nonsecure_noninvasive</span>: <span class="ident">StartEnabled</span>,
+                <span class="ident">nonsecure_invasive</span>: <span class="ident">StartEnabled</span>,
+                <span class="ident">secure_noninvasive</span>: <span class="ident">StartEnabled</span>,
+                <span class="ident">secure_invasive</span>: <span class="ident">StartEnabled</span>,
+                <span class="ident">cm33_invasive</span>: <span class="ident">StartEnabled</span>,
+                <span class="ident">cm33_noninvasive</span>: <span class="ident">StartEnabled</span>,
+                <span class="ident">jtag_tap</span>: <span class="ident">StartEnabled</span>,
+                <span class="ident">flash_mass_erase_command</span>: <span class="ident">StartEnabled</span>,
+                <span class="ident">isp_boot_command</span>: <span class="ident">StartEnabled</span>,
+                <span class="ident">fault_analysis_command</span>: <span class="ident">StartEnabled</span>,
                 <span class="ident">check_uuid</span>: <span class="bool-val">false</span>,
             },
 
