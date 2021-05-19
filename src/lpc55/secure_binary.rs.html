@@ -1339,10 +1339,6 @@
 <span id="1336">1336</span>
 <span id="1337">1337</span>
 <span id="1338">1338</span>
-<span id="1339">1339</span>
-<span id="1340">1340</span>
-<span id="1341">1341</span>
-<span id="1342">1342</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Generator and parser for signed firmware and SB (secure binary) files</span>
 <span class="doccomment">//!</span>
@@ -1397,7 +1393,7 @@
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">command</span>;
 
-<span class="kw">use</span> <span class="ident">command</span>::{<span class="ident">BootCommand</span>, <span class="ident">BootCommandDescription</span>, <span class="ident">Image</span>, <span class="ident">SingleBootCommandDescription</span>, <span class="ident">BootCommandSequenceDescription</span>};
+<span class="kw">use</span> <span class="ident">command</span>::{<span class="ident">BootCommand</span>, <span class="ident">BootCommandDescription</span>, <span class="ident">SingleBootCommandDescription</span>, <span class="ident">BootCommandSequenceDescription</span>};
 
 <span class="doccomment">/// Main configuration file format for chip configuration and secure/signed firmware</span>
 <span class="doccomment">/// image/container generation.</span>
@@ -1699,27 +1695,23 @@
                 <span class="ident">BootCommandDescription</span>::<span class="ident">Sequence</span>(<span class="ident">sequence</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">match</span> <span class="ident">sequence</span> {
 
-                        <span class="ident">BootCommandSequenceDescription</span>::<span class="ident">UploadImage</span> { <span class="ident">image</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">image</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read</span>(<span class="kw">match</span> <span class="ident">image</span> {
-                                <span class="ident">Image</span>::<span class="ident">Plain</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">firmware</span>.<span class="ident">image</span>,
-                                <span class="ident">Image</span>::<span class="ident">Signed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">firmware</span>.<span class="ident">signed_image</span>,
-                                <span class="ident">Image</span>::<span class="ident">SecureBoot</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">firmware</span>.<span class="ident">secure_boot_image</span>,
-                            })<span class="question-mark">?</span>;
-
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">image_size</span> <span class="op">=</span> <span class="ident">image</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+                        <span class="ident">BootCommandSequenceDescription</span>::<span class="ident">UploadSignedImage</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">image</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">firmware</span>.<span class="ident">signed_image</span>)<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">unpadded_image_size</span> <span class="op">=</span> <span class="ident">image</span>.<span class="ident">len</span>();
 
                             <span class="comment">// Pad size to make 512 aligned</span>
-                            <span class="kw">if</span> (<span class="ident">image_size</span> <span class="op">%</span> <span class="number">512</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                                <span class="ident">image_size</span> <span class="op">+</span><span class="op">=</span> <span class="number">512</span> <span class="op">-</span> (<span class="ident">image_size</span> <span class="op">%</span> <span class="number">512</span>);
-                                <span class="ident">image</span>.<span class="ident">resize</span>(<span class="ident">image_size</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="number">0</span>);
+                            <span class="kw">let</span> <span class="ident">block_overshoot</span> <span class="op">=</span> <span class="ident">unpadded_image_size</span> <span class="op">%</span> <span class="number">512</span>;
+                            <span class="kw">if</span> <span class="ident">block_overshoot</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                                <span class="kw">let</span> <span class="ident">padding</span> <span class="op">=</span> <span class="number">512</span> <span class="op">-</span> <span class="ident">block_overshoot</span>;
+                                <span class="ident">image</span>.<span class="ident">resize</span>(<span class="ident">unpadded_image_size</span>  <span class="op">+</span> <span class="ident">padding</span>, <span class="number">0</span>);
                             }
 
                             <span class="kw">let</span> (<span class="ident">first_block</span>, <span class="ident">remainder</span>) <span class="op">=</span> <span class="ident">image</span>.<span class="ident">split_at</span>(<span class="number">512</span>);
 
-                            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding: EraseRegion {}, {}&quot;</span>, <span class="number">0</span>, <span class="ident">image_size</span>);
+                            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding: EraseRegion {}, {}&quot;</span>, <span class="number">0</span>, <span class="ident">image</span>.<span class="ident">len</span>());
                             <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">BootCommand</span>::<span class="ident">EraseRegion</span> {
                                 <span class="ident">address</span>: <span class="number">0</span>,
-                                <span class="ident">bytes</span>: <span class="ident">image_size</span>,
+                                <span class="ident">bytes</span>: <span class="ident">image</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
                             });
 
                             <span class="kw">if</span> <span class="op">!</span><span class="ident">remainder</span>.<span class="ident">is_empty</span>() {
