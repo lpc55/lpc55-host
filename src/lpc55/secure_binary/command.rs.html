@@ -422,6 +422,19 @@
 <span id="419">419</span>
 <span id="420">420</span>
 <span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
@@ -599,21 +612,34 @@
     },
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Image</span> {
+    <span class="doccomment">/// `config.firmware.image`</span>
+    <span class="ident">Plain</span>,
+    <span class="doccomment">/// `config.firmware.signed_image`</span>
+    <span class="ident">Signed</span>,
+    <span class="doccomment">/// `config.firmware.secure_boot_image`</span>
+    <span class="ident">SecureBoot</span>,
+}
+
 <span class="doccomment">/// High level commands that lpc55 will convert safely into commands used to define SB2.1 files</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ### Example</span>
 <span class="doccomment">/// ```ignore</span>
 <span class="doccomment">/// [[commands]]</span>
-<span class="doccomment">/// seq = &quot;UploadSignedImage&quot;</span>
+<span class="doccomment">/// seq = &quot;UploadImage&quot;</span>
+<span class="doccomment">/// image = &quot;Signed&quot;</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;seq&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BootCommandSequenceDescription</span> {
-    <span class="doccomment">/// Takes the file specified in `config.firmware.signed_image`,</span>
+    <span class="doccomment">/// Takes the filename specified in image from `config.firmware`,</span>
     <span class="doccomment">/// pads to 512B if necessary, erases flash, then uploads securely</span>
     <span class="doccomment">/// (all but first block, only then the first block).</span>
-    <span class="ident">UploadSignedImage</span>,
+    <span class="ident">UploadImage</span> {
+        <span class="ident">image</span>: <span class="ident">Image</span>,
+    },
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
