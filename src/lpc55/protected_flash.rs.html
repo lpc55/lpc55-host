@@ -1495,6 +1495,12 @@
 <span id="1492">1492</span>
 <span id="1493">1493</span>
 <span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The protected flash area (PFR) as Rust types</span>
 <span class="doccomment">//!</span>
@@ -2600,12 +2606,18 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugSecurity</span> {
+    <span class="doccomment">/// Set to enabled, so that `lpc55 factory-settings` does not</span>
+    <span class="doccomment">/// turn off debugging on an otherwise empty key, unless explicitly</span>
+    <span class="doccomment">/// configured to be turned off.</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">AllEnabled</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugSecurityPolicy</span> {
+    <span class="doccomment">/// Set to enabled, so that `lpc55 factory-settings` does not</span>
+    <span class="doccomment">/// turn off debugging on an otherwise empty key, unless explicitly</span>
+    <span class="doccomment">/// configured to be turned off.</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Enabled</span>
     }
