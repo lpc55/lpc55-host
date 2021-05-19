@@ -1084,6 +1084,7 @@ impl From<u32> for RotKeysStatus {
 pub enum DebugSecurity {
     AllDisabled,
     AllEnabled,
+    AllStartEnabled,
     Custom (
         DebugSecurityPolicies,
     )
@@ -1102,14 +1103,20 @@ pub enum DebugSecurityPolicy {
 }
 
 impl Default for DebugSecurity {
+    /// Set to enabled, so that `lpc55 factory-settings` does not
+    /// turn off debugging on an otherwise empty key, unless explicitly
+    /// configured to be turned off.
     fn default() -> Self {
-        Self::AllDisabled
+        Self::AllStartEnabled
     }
 }
 
 impl Default for DebugSecurityPolicy {
+    /// Set to enabled, so that `lpc55 factory-settings` does not
+    /// turn off debugging on an otherwise empty key, unless explicitly
+    /// configured to be turned off.
     fn default() -> Self {
-        Self::StartDisabled
+        Self::StartEnabled
     }
 }
 
@@ -1221,6 +1228,21 @@ impl From<DebugSecurity> for DebugSecurityPolicies {
                 flash_mass_erase_command: Enabled,
                 isp_boot_command: Enabled,
                 fault_analysis_command: Enabled,
+                check_uuid: false,
+            },
+
+            // Fixed, Enabled
+            DebugSecurity::AllStartEnabled => DebugSecurityPolicies {
+                nonsecure_noninvasive: StartEnabled,
+                nonsecure_invasive: StartEnabled,
+                secure_noninvasive: StartEnabled,
+                secure_invasive: StartEnabled,
+                cm33_invasive: StartEnabled,
+                cm33_noninvasive: StartEnabled,
+                jtag_tap: StartEnabled,
+                flash_mass_erase_command: StartEnabled,
+                isp_boot_command: StartEnabled,
+                fault_analysis_command: StartEnabled,
                 check_uuid: false,
             },
 
