@@ -41,7 +41,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         2 => log::set_max_level(log::LevelFilter::Debug),
         _ => log::set_max_level(log::LevelFilter::Trace),
     };
-    
+
     let pid = match args.value_of("PID") {
         Some(pid) => Some(u16::from_str_radix(pid.trim_start_matches("0x"), 16).map_err(|_| anyhow!("Could not parse PID"))?),
         _ => None
@@ -156,9 +156,9 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 let current_pfr_raw = bootloader.read_memory(0x9_DE00, 512*7);
                 let current_pfr = lpc55::protected_flash::ProtectedFlash::try_from(&current_pfr_raw[..]).unwrap();
                 let latest_pfr = current_pfr.customer.most_recent();
-                
+
                 if ! subcommand.is_present("dont-increment") {
-                    
+
                     if settings.customer_version.read() != 0 {
                         warn!("Ignoring customer version {} from settings file.", settings.customer_version.read());
                     }
@@ -173,7 +173,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                 if ! subcommand.is_present("overwrite") {
                     info!("preserving firmware, prince-iv, and reserved fields.");
 
-                    // Do not overwrite firmware versions 
+                    // Do not overwrite firmware versions
                     for i in 8 .. 16 {
                         settings[i] = current_pfr_raw[i];
                     }
@@ -398,7 +398,11 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             signed_binary::ImageSigningRequest,
         };
         let config_filename = command.value_of("CONFIG").unwrap();
-        let config = Config::try_from(config_filename)?;
+        let mut config = Config::try_from(config_filename)?;
+        if let Some(image) = command.value_of("image") {
+            config.firmware.image = image.to_string();
+        }
+
         // let _signed_image = lpc55::signed_binary::sign(&config)?;
         let signing_request = ImageSigningRequest::try_from(&config)?;
         let signed_image = signing_request.sign();
@@ -415,7 +419,10 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
     if let Some(command) = args.subcommand_matches("assemble-sb") {
         use lpc55::secure_binary::{SignedSb21File, UnsignedSb21File};
         let config_filename = command.value_of("CONFIG").unwrap();
-        let config = lpc55::secure_binary::Config::try_from(config_filename)?;
+        let mut config = lpc55::secure_binary::Config::try_from(config_filename)?;
+        if let Some(signed_image) = command.value_of("signed-image") {
+            config.firmware.signed_image = signed_image.to_string();
+        }
         let unsigned_image = UnsignedSb21File::try_assemble_from(&config)?;
         let signing_key = lpc55::pki::SigningKey::try_from_uri(config.pki.signing_key.as_ref())?;
         // dbg!(&signing_key);

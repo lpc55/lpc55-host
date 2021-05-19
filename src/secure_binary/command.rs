@@ -179,13 +179,14 @@ pub enum SingleBootCommandDescription {
 /// ### Example
 /// ```ignore
 /// [[commands]]
-/// seq = "UploadSignedImage"
+/// seq = "UploadImage"
+/// image = "Signed"
 /// ```
 ///
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(tag = "seq")]
 pub enum BootCommandSequenceDescription {
-    /// Takes the file specified in `config.firmware.signed_image`,
+    /// Takes the filename specified in image from `config.firmware`,
     /// pads to 512B if necessary, erases flash, then uploads securely
     /// (all but first block, only then the first block).
     UploadSignedImage,
