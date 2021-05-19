@@ -322,20 +322,22 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         let address = clap::value_t!(command.value_of("ADDRESS"), usize).unwrap();
         check_align(address)?;
         let data = fs::read(command.value_of("INPUT").unwrap()).unwrap();
-        let length = data.len();
-        check_align(length)?;
+        check_align(data.len())?;
         bootloader.write_memory(address, data);
         return Ok(());
     }
 
     if let Some(command) = args.subcommand_matches("write-flash") {
         let bootloader = bootloader()?;
-        let address = clap::value_t!(command.value_of("ADDRESS"), usize).unwrap();
+        let address = clap::value_t!(command.value_of("ADDRESS"), usize)?;
         check_align(address)?;
-        let data = fs::read(command.value_of("INPUT").unwrap()).unwrap();
+        let mut data = fs::read(command.value_of("INPUT").unwrap())?;
         let length = data.len();
-        check_align(length)?;
-        bootloader.erase_flash(address, length);
+        let overshoot = length % 512;
+        if overshoot > 0 {
+            data.resize(length + (512 - overshoot), 0);
+        }
+        bootloader.erase_flash(address, data.len());
         bootloader.write_memory(address, data);
         return Ok(());
     }
