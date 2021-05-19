@@ -134,7 +134,7 @@ impl RawBootCommand {
 /// ```
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(tag = "cmd")]
-pub enum BootCommandDescriptor {
+pub enum SingleBootCommandDescription {
     /// Maps to `BootCommand::EraseRegion`, but `start` and `end` are given in bytes.
     Erase { start: u32, end: u32 },
     /// Load (part) of the data reference in `source` to flash.
@@ -178,22 +178,32 @@ pub enum BootCommandDescriptor {
 ///
 /// ### Example
 /// ```ignore
-/// [[pseudo-commands]]
-/// cmd = "UploadSignedImage"
+/// [[commands]]
+/// seq = "UploadSignedImage"
 /// ```
 ///
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-#[serde(tag = "cmd")]
-pub enum BootPseudoCommandDescriptor {
+#[serde(tag = "seq")]
+pub enum BootCommandSequenceDescription {
+    /// Takes the file specified in `config.firmware.signed_image`,
+    /// pads to 512B if necessary, erases flash, then uploads securely
+    /// (all but first block, only then the first block).
     UploadSignedImage,
 }
 
-impl<'a> TryFrom<&'a BootCommandDescriptor> for BootCommand {
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum BootCommandDescription {
+    Single(SingleBootCommandDescription),
+    Sequence(BootCommandSequenceDescription),
+}
+
+impl<'a> TryFrom<&'a SingleBootCommandDescription> for BootCommand {
     type Error = anyhow::Error;
 
-    fn try_from(cmd: &'a BootCommandDescriptor) -> anyhow::Result<BootCommand> {
+    fn try_from(cmd: &'a SingleBootCommandDescription) -> anyhow::Result<BootCommand> {
 
-        use BootCommandDescriptor::*;
+        use SingleBootCommandDescription::*;
         Ok(match cmd {
             Erase { start, end } => BootCommand::EraseRegion { address: *start, bytes: core::cmp::max(0, *end - *start) },
             Load { file, src, dst, len } => {
