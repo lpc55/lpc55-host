@@ -424,6 +424,10 @@
 <span id="421">421</span>
 <span id="422">422</span>
 <span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -736,8 +740,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSettings</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAccess</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DebugSettings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">return</span> <span class="ident">DebugAccess</span>::<span class="ident">Custom</span>(<span class="ident">value</span>);
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">settings</span>: <span class="ident">DebugSettings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">are_all_default</span>() {
+            <span class="ident">DebugAccess</span>::<span class="ident">Default</span>
+        } <span class="kw">else</span> {
+            <span class="ident">DebugAccess</span>::<span class="ident">Custom</span>(<span class="ident">settings</span>)
+        }
     }
 }
 
