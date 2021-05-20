@@ -39,10 +39,10 @@ pub enum DebugAccess {
 ///   using customer settings (`DCFG_CC_SOCU_NS_PIN`, `DCFG_CC_SOCU_NS_DFLT`)
 /// - As long as the factory page is not sealed, the setting can be changed there.
 /// - To change settings in the customer page, the ping/pong dance must be done.
-/// - The disabled bit ("DFLT") determines which setting is potentially in effect
+/// - The enabled bit ("DFLT") determines which setting is potentially in effect
 /// - The fixed bit ("PIN") determines whether a debugger may activate the potentially
 ///   effective settings (by presenting a Debug Authentication certificate)
-/// - The non-fixed disabled setting is illegal.
+/// - The non-fixed enabled setting is illegal.
 /// - All bits are written in the lower half-word, and must be also written in inverted
 ///   form in the upper half-word.
 /// - Except, it seems, the default / empty setting, where both PIN and DFLT words are all zero.
@@ -94,7 +94,7 @@ impl Default for DebugSetting {
 impl DebugSetting {
     /// Called `PIN` by NXP, e.g in UM 11126, 51.7.14
     ///
-    /// The interpretation is that the setting in the "disabled"
+    /// The interpretation is that the setting in the "enabled"
     /// bit can not be changed by the debugger (i.e. it can
     /// not enabled debugging by providing an appropriate Debug
     /// Credential (DC)).
@@ -116,25 +116,29 @@ impl DebugSetting {
     /// In their words:
     /// "Provides the final access level for those bits that the SOCU_PIN
     /// field indicated are predetermined by device configuration."
-    fn disabled_bit(&self) -> u32 {
+    ///
+    /// It seems that the meaning of this bit is incorrectly used
+    /// for the enabled and disabled states in Table 1064 of that section.
+    fn enabled_bit(&self) -> u32 {
         use DebugSetting::*;
         match *self {
-            Enabled | Default | Authenticate => 0,
-            Disabled | Illegal => 1,
+            Disabled | Default | Authenticate => 0,
+            Enabled | Illegal => 1,
         }
     }
 }
 
 impl From<[bool; 2]> for DebugSetting {
     fn from(bits: [bool; 2]) -> Self {
-        let [fixed, disabled] = bits;
+        let [fixed, enabled] = bits;
         use DebugSetting::*;
         //  UM, 517.1.4, Table 1064
-        match (fixed, disabled) {
-            (true, false) => Enabled,
+        //  It seems that Enabled and Disabled are mixed up / incorrect in the table.
+        match (fixed, enabled) {
+            (true, true) => Enabled,
             (false, false) => Authenticate,
             (false, true) => Illegal,
-            (true, true) => Disabled,
+            (true, false) => Disabled,
         }
     }
 }
@@ -227,69 +231,30 @@ impl DebugSettings {
 impl From<DebugAccess> for DebugSettings {
     fn from(value: DebugAccess) -> Self {
         use DebugSetting::*;
+
+        fn filled_with(setting: DebugSetting, check_uuid: bool) -> DebugSettings {
+            DebugSettings {
+                nonsecure_noninvasive: setting,
+                nonsecure_invasive: setting,
+                secure_noninvasive: setting,
+                secure_invasive: setting,
+                cm33_invasive: setting,
+                cm33_noninvasive: setting,
+                jtag_tap: setting,
+                flash_mass_erase_command: setting,
+                isp_boot_command: setting,
+                fault_analysis_command: setting,
+                check_uuid,
+            }
+        }
         match value {
-            // Default state
-            DebugAccess::Default => DebugSettings {
-                nonsecure_noninvasive: Default,
-                nonsecure_invasive: Default,
-                secure_noninvasive: Default,
-                secure_invasive: Default,
-                cm33_invasive: Default,
-                cm33_noninvasive: Default,
-                jtag_tap: Default,
-                flash_mass_erase_command: Default,
-                isp_boot_command: Default,
-                fault_analysis_command: Default,
-                check_uuid: false,
-            },
 
-            // Fixed, Disabled
-            DebugAccess::Disabled => DebugSettings {
-                nonsecure_noninvasive: Disabled,
-                nonsecure_invasive: Disabled,
-                secure_noninvasive: Disabled,
-                secure_invasive: Disabled,
-                cm33_invasive: Disabled,
-                cm33_noninvasive: Disabled,
-                jtag_tap: Disabled,
-                flash_mass_erase_command: Disabled,
-                isp_boot_command: Disabled,
-                fault_analysis_command: Disabled,
-                check_uuid: true,
-            },
+            DebugAccess::Default => filled_with(Default, false),
+            DebugAccess::Disabled => filled_with(Disabled, true),
+            DebugAccess::Enabled => filled_with(Enabled, false),
+            DebugAccess::Authenticate => filled_with(Authenticate, false),
 
-            // Fixed, Enabled
-            DebugAccess::Enabled => DebugSettings {
-                nonsecure_noninvasive: Enabled,
-                nonsecure_invasive: Enabled,
-                secure_noninvasive: Enabled,
-                secure_invasive: Enabled,
-                cm33_invasive: Enabled,
-                cm33_noninvasive: Enabled,
-                jtag_tap: Enabled,
-                flash_mass_erase_command: Enabled,
-                isp_boot_command: Enabled,
-                fault_analysis_command: Enabled,
-                check_uuid: false,
-            },
-
-            // Not fixed, debugger must authenticate
-            DebugAccess::Authenticate => DebugSettings {
-                nonsecure_noninvasive: Authenticate,
-                nonsecure_invasive: Authenticate,
-                secure_noninvasive: Authenticate,
-                secure_invasive: Authenticate,
-                cm33_invasive: Authenticate,
-                cm33_noninvasive: Authenticate,
-                jtag_tap: Authenticate,
-                flash_mass_erase_command: Authenticate,
-                isp_boot_command: Authenticate,
-                fault_analysis_command: Authenticate,
-                check_uuid: false,
-            },
-
-            DebugAccess::Custom ( settings ) =>
-                settings,
+            DebugAccess::Custom ( settings ) => settings,
         }
     }
 }
@@ -320,47 +285,21 @@ impl From<[u32; 2]> for DebugSettings {
         if (fix, set) == (0, 0) {
             Self::from(DebugAccess::Default)
         } else {
+            let from_bit = |bit: usize| DebugSetting::from([
+                ((fix >> bit) & 1) != 0,
+                ((set >> bit) & 1) != 0,
+            ]);
             Self {
-                nonsecure_noninvasive: DebugSetting::from([
-                    ((fix >> 0) & 1) != 0,
-                    ((set >> 0) & 1) != 0,
-                ]),
-                nonsecure_invasive: DebugSetting::from([
-                    ((fix >> 1) & 1) != 0,
-                    ((set >> 1) & 1) != 0,
-                ]),
-                secure_noninvasive: DebugSetting::from([
-                    ((fix >> 2) & 1) != 0,
-                    ((set >> 2) & 1) != 0,
-                ]),
-                secure_invasive: DebugSetting::from([
-                    ((fix >> 3) & 1) != 0,
-                    ((set >> 3) & 1) != 0,
-                ]),
-                jtag_tap: DebugSetting::from([
-                    ((fix >> 4) & 1) != 0,
-                    ((set >> 4) & 1) != 0,
-                ]),
-                cm33_invasive: DebugSetting::from([
-                    ((fix >> 5) & 1) != 0,
-                    ((set >> 5) & 1) != 0,
-                ]),
-                isp_boot_command: DebugSetting::from([
-                    ((fix >> 6) & 1) != 0,
-                    ((set >> 6) & 1) != 0,
-                ]),
-                fault_analysis_command: DebugSetting::from([
-                    ((fix >> 7) & 1) != 0,
-                    ((set >> 7) & 1) != 0,
-                ]),
-                flash_mass_erase_command: DebugSetting::from([
-                    ((fix >> 8) & 1) != 0,
-                    ((set >> 8) & 1) != 0,
-                ]),
-                cm33_noninvasive: DebugSetting::from([
-                    ((fix >> 9) & 1) != 0,
-                    ((set >> 9) & 1) != 0,
-                ]),
+                nonsecure_noninvasive: from_bit(0),
+                nonsecure_invasive: from_bit(1),
+                secure_noninvasive: from_bit(2),
+                secure_invasive: from_bit(3),
+                jtag_tap: from_bit(4),
+                cm33_invasive: from_bit(5),
+                isp_boot_command: from_bit(6),
+                fault_analysis_command: from_bit(7),
+                flash_mass_erase_command: from_bit(8),
+                cm33_noninvasive: from_bit(9),
                 check_uuid: ((fix >> 15) & 1) != 0,
             }
         }
@@ -377,45 +316,31 @@ impl From<DebugSettings> for [u32; 2] {
         assert!(settings.are_all_non_default());
 
         let mut fixed: u32 = 0;
-        let mut disabled: u32 = 0;
+        let mut enabled: u32 = 0;
 
-        fixed |= settings.nonsecure_noninvasive.fixed_bit() << 0;
-        disabled |= settings.nonsecure_noninvasive.disabled_bit() << 0;
+        let mut set_bits = |setting: DebugSetting, bit: usize| {
+            fixed |= setting.fixed_bit() << bit;
+            enabled |= setting.enabled_bit() << bit;
+        };
 
-        fixed |= settings.nonsecure_invasive.fixed_bit() << 1;
-        disabled |= settings.nonsecure_invasive.disabled_bit() << 1;
-
-        fixed |= settings.secure_noninvasive.fixed_bit() << 2;
-        disabled |= settings.secure_noninvasive.disabled_bit() << 2;
-
-        fixed |= settings.secure_invasive.fixed_bit() << 3;
-        disabled |= settings.secure_invasive.disabled_bit() << 3;
-
-        fixed |= settings.jtag_tap.fixed_bit() << 4;
-        disabled |= settings.jtag_tap.disabled_bit() << 4;
-
-        fixed |= settings.cm33_invasive.fixed_bit() << 5;
-        disabled |= settings.cm33_invasive.disabled_bit() << 5;
-
-        fixed |= settings.isp_boot_command.fixed_bit() << 6;
-        disabled |= settings.isp_boot_command.disabled_bit() << 6;
-
-        fixed |= settings.fault_analysis_command.fixed_bit() << 7;
-        disabled |= settings.fault_analysis_command.disabled_bit() << 7;
-
-        fixed |= settings.flash_mass_erase_command.fixed_bit() << 8;
-        disabled |= settings.flash_mass_erase_command.disabled_bit() << 8;
-
-        fixed |= settings.cm33_noninvasive.fixed_bit() << 9;
-        disabled |= settings.cm33_noninvasive.disabled_bit() << 9;
+        set_bits(settings.nonsecure_noninvasive, 0);
+        set_bits(settings.nonsecure_invasive, 1);
+        set_bits(settings.secure_noninvasive, 2);
+        set_bits(settings.secure_invasive, 3);
+        set_bits(settings.jtag_tap, 4);
+        set_bits(settings.cm33_invasive, 5);
+        set_bits(settings.isp_boot_command, 6);
+        set_bits(settings.fault_analysis_command, 7);
+        set_bits(settings.flash_mass_erase_command, 8);
+        set_bits(settings.cm33_noninvasive, 9);
 
         fixed |= (settings.check_uuid as u32) << 15;
 
         // "Inverse value of [15:0]"
         fixed |= ((!fixed) & 0xffff) << 16;
-        disabled |= ((!disabled) & 0xffff) << 16;
+        enabled |= ((!enabled) & 0xffff) << 16;
 
-        [fixed, disabled]
+        [fixed, enabled]
     }
 }
 
