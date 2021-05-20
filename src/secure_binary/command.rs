@@ -198,12 +198,13 @@ pub enum BootCommandSequenceDescription {
     /// This uses an interpretation and encoding of the `[u16; 3]` Version
     /// as an incrementing `u32` counter. Namely, major version is interpreted
     /// as an era (signaling breaking changes) and restricted to below 1024.
-    /// Minor version is interpreted as days since the millenium (unrestricted
+    /// Minor version is interpreted as days since the twenties (unrestricted
     /// for practical purposes). Patch version is restricted to below 64, and
     /// would rarely be used.
     ///
-    /// So, for instance, `1:20210521` would correspond to `1.7806.0`, and
-    /// map to the counter `(1 << 22) + (7806 << 6) = 4693888`.
+    /// So, for instance, `1:20210520` would correspond to `1.505.0`,
+    /// since `(dt.date(2021, 5, 20) - dt.date(2020, 1, 1)).days = 505`, and
+    /// map to the counter `(1 << 22) + (505 << 6) = 4226624`.
     ///
     /// If the check fails, then the SB2 update stops.
     CheckDerivedFirmwareVersions,
