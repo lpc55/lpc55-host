@@ -21,7 +21,7 @@ fn factory_generates_correctly() {
 [factory-settings]
 usb-id = {{ vid = 0x1209, pid = 0xb000 }}
 rot-fingerprint = "C7EE3124 DC87EAAE 5A6F7FCC B6C2E458 706835C9 9D5D7082 4EFFAC0F 12A5A875"
-debug-settings = "AllDisabled"
+debug-access = "Disabled"
 
 [factory-settings.boot-configuration]
 failure-port  = 1
@@ -143,7 +143,7 @@ fn custom_debug_policy() {
     // https://github.com/alexcrichton/toml-rs/issues/225
     writeln!(cfgfile, r#"
 [factory-settings]
-debug-settings = {{ Custom = {{ nonsecure-noninvasive = "Disabled", secure-invasive = "StartDisabled", jtag-tap = "Enabled" }} }}
+debug-access = {{ Custom = {{ nonsecure-noninvasive = "Disabled", secure-invasive = "Authenticate", jtag-tap = "Enabled" }} }}
 "#).unwrap();
 
     let mut cmd = Command::cargo_bin("lpc55").unwrap();
@@ -178,7 +178,7 @@ fn sha256_seal () {
 [factory-settings]
 usb-id = {{ vid = 0x1209, pid = 0xb000 }}
 rot-fingerprint = "C7EE3124 DC87EAAE 5A6F7FCC B6C2E458 706835C9 9D5D7082 4EFFAC0F 12A5A875"
-debug-settings = "AllDisabled"
+debug-access = "Disabled"
 seal = true
 "#).unwrap();
 
