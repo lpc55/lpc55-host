@@ -1276,7 +1276,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">debug</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">debug</span>::{<span class="ident">DebugAccess</span>, <span class="ident">DebugAccessPolicies</span>, <span class="ident">DebugAccessPolicy</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">debug</span>::{<span class="ident">DebugAccess</span>, <span class="ident">DebugSettings</span>};
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FACTORY_SETTINGS_ADDRESS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0x9_E400</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CUSTOMER_SETTINGS_SCRATCH_ADDRESS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0x9_DE00</span>;
@@ -1321,7 +1321,7 @@
     <span class="comment">// PIN = &quot;pinned&quot; or fixed</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">debug_settings</span>: <span class="ident">DebugAccess</span>,
+    <span class="kw">pub</span> <span class="ident">debug_access</span>: <span class="ident">DebugAccess</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>,
@@ -1406,7 +1406,7 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_deserializing</span>)]</span>
     <span class="doccomment">/// This is non-public as it is not respected when writing customer settings.</span>
-    <span class="ident">debug_settings</span>: <span class="ident">DebugAccess</span>,
+    <span class="ident">debug_access</span>: <span class="ident">DebugAccess</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
@@ -1676,7 +1676,7 @@
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">usb_id</span>.<span class="ident">pid</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span>[<span class="number">0u8</span>; <span class="number">4</span>])<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> [<span class="ident">fixed</span>, <span class="ident">disabled</span>]: [<span class="ident">u32</span>; <span class="number">2</span>] <span class="op">=</span> <span class="ident">DebugAccessPolicies</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">debug_settings</span>).<span class="ident">into</span>();
+        <span class="kw">let</span> [<span class="ident">fixed</span>, <span class="ident">disabled</span>]: [<span class="ident">u32</span>; <span class="number">2</span>] <span class="op">=</span> <span class="ident">DebugSettings</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">debug_access</span>).<span class="ident">into</span>();
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">fixed</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">disabled</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
 
@@ -1741,7 +1741,7 @@
     <span class="kw">let</span> <span class="ident">factory</span> <span class="op">=</span> <span class="ident">FactorySettings</span> {
         <span class="ident">boot_configuration</span>: <span class="ident">BootConfiguration</span>::<span class="ident">from</span>(<span class="ident">boot_cfg</span>),
         <span class="ident">usb_id</span>: <span class="ident">UsbId</span>::<span class="ident">from</span>(<span class="ident">usb_id</span>),
-        <span class="ident">debug_settings</span>: <span class="ident">DebugAccessPolicies</span>::<span class="ident">from</span>([<span class="ident">cc_socu_pin</span>, <span class="ident">cc_socu_default</span>]).<span class="ident">into</span>(),
+        <span class="ident">debug_access</span>: <span class="ident">DebugSettings</span>::<span class="ident">from</span>([<span class="ident">cc_socu_pin</span>, <span class="ident">cc_socu_default</span>]).<span class="ident">into</span>(),
         <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>::<span class="ident">from</span>(<span class="ident">vendor_usage</span>),
         <span class="ident">secure_boot_configuration</span>: <span class="ident">SecureBootConfiguration</span>::<span class="ident">from</span>(<span class="ident">secure_boot_cfg</span>),
         <span class="ident">prince_configuration</span>: <span class="ident">PrinceConfiguration</span>::<span class="ident">from</span>(<span class="ident">prince_cfg</span>),
@@ -2343,8 +2343,8 @@
     <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
 {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DebugAccessPolicies</span> {
-        <span class="self">self</span>.<span class="ident">debug_settings</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DebugSettings</span> {
+        <span class="self">self</span>.<span class="ident">debug_access</span>.<span class="ident">into</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">512</span>]<span class="op">&gt;</span> {
@@ -2452,7 +2452,7 @@
         <span class="ident">image_key_revocation_id</span>: <span class="ident">MonotonicCounter</span>::<span class="ident">from</span>(<span class="ident">image_key_revocation_id</span>),
         <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>::<span class="ident">from</span>(<span class="ident">vendor_usage</span>),
         <span class="ident">rot_keys_status</span>: <span class="ident">RotKeysStatus</span>::<span class="ident">from</span>(<span class="ident">rot_keys_status</span>),
-        <span class="ident">debug_settings</span>: <span class="ident">DebugAccessPolicies</span>::<span class="ident">from</span>([<span class="ident">dcfg_cc_socu_ns_pin</span>, <span class="ident">dcfg_cc_socu_ns_default</span>]).<span class="ident">into</span>(),
+        <span class="ident">debug_access</span>: <span class="ident">DebugSettings</span>::<span class="ident">from</span>([<span class="ident">dcfg_cc_socu_ns_pin</span>, <span class="ident">dcfg_cc_socu_ns_default</span>]).<span class="ident">into</span>(),
         <span class="ident">enable_fault_analysis_mode</span>: <span class="ident">enable_fa</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
         <span class="ident">factory_prog_in_progress</span>: <span class="ident">FactorySettingsProgInProgress</span>(<span class="ident">factory_prog_in_progress</span>),
         <span class="ident">prince_ivs</span>: [
