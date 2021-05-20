@@ -429,6 +429,17 @@
 <span id="426">426</span>
 <span id="427">427</span>
 <span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
@@ -626,8 +637,19 @@
     <span class="doccomment">/// Takes the version specified in `config.firmware.product` and</span>
     <span class="doccomment">/// checks that it is greater than or equal to both the &quot;Secure&quot;</span>
     <span class="doccomment">/// and &quot;Nonsecure&quot; firmware versions in the customer data page on the device.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This uses an interpretation and encoding of the `[u16; 3]` Version</span>
+    <span class="doccomment">/// as an incrementing `u32` counter. Namely, major version is interpreted</span>
+    <span class="doccomment">/// as an era (signaling breaking changes) and restricted to below 1024.</span>
+    <span class="doccomment">/// Minor version is interpreted as days since the millenium (unrestricted</span>
+    <span class="doccomment">/// for practical purposes). Patch version is restricted to below 64, and</span>
+    <span class="doccomment">/// would rarely be used.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// So, for instance, `1:20210521` would correspond to `1.7806.0`, and</span>
+    <span class="doccomment">/// map to the counter `(1 &lt;&lt; 22) + (7806 &lt;&lt; 6) = 4693888`.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// If the check fails, then the SB2 update stops.</span>
-    <span class="ident">CheckFirmwareVersions</span>,
+    <span class="ident">CheckDerivedFirmwareVersions</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>

@@ -1517,6 +1517,76 @@
 <span id="1514">1514</span>
 <span id="1515">1515</span>
 <span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The protected flash area (PFR) as Rust types</span>
 <span class="doccomment">//!</span>
@@ -1585,7 +1655,7 @@
     <span class="comment">// PIN = &quot;pinned&quot; or fixed</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">debug_settings</span>: <span class="ident">DebugSecurity</span>,
+    <span class="kw">pub</span> <span class="ident">debug_settings</span>: <span class="ident">DebugAccess</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>,
@@ -1669,7 +1739,7 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_deserializing</span>)]</span>
-    <span class="ident">debug_settings</span>: <span class="ident">DebugSecurity</span>,
+    <span class="ident">debug_settings</span>: <span class="ident">DebugAccess</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
@@ -1939,9 +2009,9 @@
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">usb_id</span>.<span class="ident">pid</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span>[<span class="number">0u8</span>; <span class="number">4</span>])<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">debug_settings</span>: [<span class="ident">u32</span>; <span class="number">2</span>] <span class="op">=</span> <span class="ident">Into</span>::<span class="op">&lt;</span><span class="ident">DebugSecurityPolicies</span><span class="op">&gt;</span>::<span class="ident">into</span>(<span class="self">self</span>.<span class="ident">debug_settings</span>).<span class="ident">into</span>();
-        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">debug_settings</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
-        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">debug_settings</span>[<span class="number">1</span>].<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
+        <span class="kw">let</span> [<span class="ident">fixed</span>, <span class="ident">disabled</span>]: [<span class="ident">u32</span>; <span class="number">2</span>] <span class="op">=</span> <span class="ident">DebugAccessPolicies</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">debug_settings</span>).<span class="ident">into</span>();
+        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">fixed</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">disabled</span>.<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
 
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">vendor_usage</span>.<span class="ident">into</span>().<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">u32</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">secure_boot_configuration</span>).<span class="ident">to_le_bytes</span>())<span class="question-mark">?</span>;
@@ -2004,7 +2074,7 @@
     <span class="kw">let</span> <span class="ident">factory</span> <span class="op">=</span> <span class="ident">FactorySettings</span> {
         <span class="ident">boot_configuration</span>: <span class="ident">BootConfiguration</span>::<span class="ident">from</span>(<span class="ident">boot_cfg</span>),
         <span class="ident">usb_id</span>: <span class="ident">UsbId</span>::<span class="ident">from</span>(<span class="ident">usb_id</span>),
-        <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>::<span class="ident">from</span>([<span class="ident">cc_socu_pin</span>, <span class="ident">cc_socu_default</span>]).<span class="ident">into</span>(),
+        <span class="ident">debug_settings</span>: <span class="ident">DebugAccessPolicies</span>::<span class="ident">from</span>([<span class="ident">cc_socu_pin</span>, <span class="ident">cc_socu_default</span>]).<span class="ident">into</span>(),
         <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>::<span class="ident">from</span>(<span class="ident">vendor_usage</span>),
         <span class="ident">secure_boot_configuration</span>: <span class="ident">SecureBootConfiguration</span>::<span class="ident">from</span>(<span class="ident">secure_boot_cfg</span>),
         <span class="ident">prince_configuration</span>: <span class="ident">PrinceConfiguration</span>::<span class="ident">from</span>(<span class="ident">prince_cfg</span>),
@@ -2601,115 +2671,163 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>,<span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugSecurity</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugAccess</span> {
     <span class="ident">AllDisabled</span>,
     <span class="ident">AllEnabled</span>,
-    <span class="ident">AllStartEnabled</span>,
+    <span class="ident">AllAuthenticate</span>,
     <span class="ident">Custom</span> (
-        <span class="ident">DebugSecurityPolicies</span>,
+        <span class="ident">DebugAccessPolicies</span>,
     )
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>,<span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugSecurityPolicy</span> {
-    <span class="doccomment">/// Permanently disable the policy</span>
+<span class="doccomment">/// Controls access of debuggers to specific subsystems.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// To understand if access is possible:</span>
+<span class="doccomment">/// - factory + customer setting: Enabled -&gt; yes</span>
+<span class="doccomment">/// - factor + customer set to Enabled or Authenticate -&gt; need a prepared debug certificate</span>
+<span class="doccomment">///   (this is not implemented in this library)</span>
+<span class="doccomment">/// - any setting Illegal =&gt; device may lock up</span>
+<span class="doccomment">/// - any setting Disabled =&gt; access not possible!!</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Peculiarities to be aware of:</span>
+<span class="doccomment">/// - Factory settings (`CC_SOCU_PIN`, `CC_SOCU_DFLT`) can be made stricter, but not relaxed,</span>
+<span class="doccomment">///   using customer settings (`DCFG_CC_SOCU_NS_PIN`, `DCFG_CC_SOCU_NS_DFLT`)</span>
+<span class="doccomment">/// - As long as the factory page is not sealed, the setting can be changed there.</span>
+<span class="doccomment">/// - To change settings in the customer page, the ping/pong dance must be done.</span>
+<span class="doccomment">/// - The disabled bit (&quot;DFLT&quot;) determines which setting is potentially in effect</span>
+<span class="doccomment">/// - The fixed bit (&quot;PIN&quot;) determines whether a debugger may activate the potentially</span>
+<span class="doccomment">///   effective settings (by presenting a Debug Authentication certificate)</span>
+<span class="doccomment">/// - The non-fixed disabled setting is illegal.</span>
+<span class="doccomment">/// - All bits are written in the lower half-word, and must be also written in inverted</span>
+<span class="doccomment">///   form in the upper half-word.</span>
+<span class="doccomment">/// - Except, it seems, the default / empty setting, where both PIN and DFLT words are all zero.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// In this implementation, we disregard customer settings from configuration files,</span>
+<span class="doccomment">/// enforcing that only the firmware changes them.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// TODO: We could also model the factory default, where the entire word is zeros.</span>
+<span class="doccomment">/// This would need some special handling + research.</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugAccessPolicy</span> {
+    <span class="doccomment">/// Disabled at startup, debugging not possible</span>
     <span class="ident">Disabled</span>,
-    <span class="doccomment">/// Permanently Enabled the policy</span>
+    <span class="doccomment">/// Debugging enabled at startup (debugger can&#39;t turn off).</span>
+    <span class="doccomment">/// &quot;Access to the sub-domain is always enabled.&quot;</span>
     <span class="ident">Enabled</span>,
-    <span class="doccomment">/// Enabled the policy, but it could be changed by authenticated debugger</span>
-    <span class="ident">StartEnabled</span>,
-    <span class="doccomment">/// Disable the policy, but it could be changed by authenticated debugger</span>
-    <span class="ident">StartDisabled</span>,
+    <span class="comment">// /// Enabled the policy, but it could be changed by authenticated debugger</span>
+    <span class="doccomment">/// According to UM 11126, 51.7.14, Table 1064:</span>
+    <span class="doccomment">/// &quot;Illegal setting. Part may lock-up if this setting is selected.&quot;</span>
+    <span class="ident">Illegal</span>,
+    <span class="doccomment">/// Debugging disabled at startup, only authenticated debugger can access</span>
+    <span class="ident">Authenticate</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugSecurity</span> {
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugAccess</span> {
     <span class="doccomment">/// Set to enabled, so that `lpc55 factory-settings` does not</span>
     <span class="doccomment">/// turn off debugging on an otherwise empty key, unless explicitly</span>
     <span class="doccomment">/// configured to be turned off.</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">AllStartEnabled</span>
+        <span class="self">Self</span>::<span class="ident">AllEnabled</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugSecurityPolicy</span> {
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugAccessPolicy</span> {
     <span class="doccomment">/// Set to enabled, so that `lpc55 factory-settings` does not</span>
     <span class="doccomment">/// turn off debugging on an otherwise empty key, unless explicitly</span>
     <span class="doccomment">/// configured to be turned off.</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">StartEnabled</span>
+        <span class="self">Self</span>::<span class="ident">Enabled</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">DebugSecurityPolicy</span> {
+<span class="kw">impl</span> <span class="ident">DebugAccessPolicy</span> {
+    <span class="doccomment">/// Called `PIN` by NXP, e.g in UM 11126, 51.7.14</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The interpretation is that the setting in the &quot;disabled&quot;</span>
+    <span class="doccomment">/// bit can not be changed by the debugger (i.e. it can</span>
+    <span class="doccomment">/// not enabled debugging by providing an appropriate Debug</span>
+    <span class="doccomment">/// Credential (DC)).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// In their words:</span>
+    <span class="doccomment">/// &quot;A bitmask that specifies which debug domains are predetermined</span>
+    <span class="doccomment">/// by device configuration.&quot;</span>
     <span class="kw">fn</span> <span class="ident">fixed_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
-        <span class="kw">use</span> <span class="ident">DebugSecurityPolicy</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident">DebugAccessPolicy</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">StartDisabled</span> <span class="op">|</span> <span class="ident">StartEnabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="ident">Authenticate</span> <span class="op">|</span> <span class="ident">Illegal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">Disabled</span> <span class="op">|</span> <span class="ident">Enabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
         }
     }
-    <span class="kw">fn</span> <span class="ident">enabled_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
-        <span class="kw">use</span> <span class="ident">DebugSecurityPolicy</span>::<span class="kw-2">*</span>;
+    <span class="doccomment">/// Called `DFLT` by NXP, e.g in UM 11126, 51.7.14</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The setting that is applied during startup.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// In their words:</span>
+    <span class="doccomment">/// &quot;Provides the final access level for those bits that the SOCU_PIN</span>
+    <span class="doccomment">/// field indicated are predetermined by device configuration.&quot;</span>
+    <span class="kw">fn</span> <span class="ident">disabled_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+        <span class="kw">use</span> <span class="ident">DebugAccessPolicy</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Enabled</span> <span class="op">|</span> <span class="ident">StartEnabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">Enabled</span> <span class="op">|</span> <span class="ident">Authenticate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">Disabled</span> <span class="op">|</span> <span class="ident">Illegal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">bool</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSecurityPolicy</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">bool</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAccessPolicy</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">bits</span>: [<span class="ident">bool</span>; <span class="number">2</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> [<span class="ident">fix</span>, <span class="ident">set</span>] <span class="op">=</span> <span class="ident">bits</span>;
-        <span class="kw">use</span> <span class="ident">DebugSecurityPolicy</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> (<span class="ident">fix</span>, <span class="ident">set</span>) {
-            (<span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartDisabled</span>,
-            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartEnabled</span>,
-            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Disabled</span>,
-            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Enabled</span>,
+        <span class="kw">let</span> [<span class="ident">fixed</span>, <span class="ident">disabled</span>] <span class="op">=</span> <span class="ident">bits</span>;
+        <span class="kw">use</span> <span class="ident">DebugAccessPolicy</span>::<span class="kw-2">*</span>;
+        <span class="comment">//  UM, 517.1.4, Table 1064</span>
+        <span class="kw">match</span> (<span class="ident">fixed</span>, <span class="ident">disabled</span>) {
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Enabled</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Authenticate</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Illegal</span>,
+            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Disabled</span>,
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugSecurityPolicies</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugAccessPolicies</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">nonsecure_noninvasive</span>: <span class="ident">DebugSecurityPolicy</span>,
+    <span class="kw">pub</span> <span class="ident">nonsecure_noninvasive</span>: <span class="ident">DebugAccessPolicy</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">nonsecure_invasive</span>: <span class="ident">DebugSecurityPolicy</span>,
+    <span class="kw">pub</span> <span class="ident">nonsecure_invasive</span>: <span class="ident">DebugAccessPolicy</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">secure_noninvasive</span>: <span class="ident">DebugSecurityPolicy</span>,
+    <span class="kw">pub</span> <span class="ident">secure_noninvasive</span>: <span class="ident">DebugAccessPolicy</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">secure_invasive</span>: <span class="ident">DebugSecurityPolicy</span>,
+    <span class="kw">pub</span> <span class="ident">secure_invasive</span>: <span class="ident">DebugAccessPolicy</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">cm33_invasive</span>: <span class="ident">DebugSecurityPolicy</span>,
+    <span class="kw">pub</span> <span class="ident">cm33_invasive</span>: <span class="ident">DebugAccessPolicy</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">cm33_noninvasive</span>: <span class="ident">DebugSecurityPolicy</span>,
+    <span class="kw">pub</span> <span class="ident">cm33_noninvasive</span>: <span class="ident">DebugAccessPolicy</span>,
 
     <span class="doccomment">/// JTAG test access port</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">jtag_tap</span>: <span class="ident">DebugSecurityPolicy</span>,
+    <span class="kw">pub</span> <span class="ident">jtag_tap</span>: <span class="ident">DebugAccessPolicy</span>,
 
     <span class="doccomment">/// Flash mass erase command</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">flash_mass_erase_command</span>: <span class="ident">DebugSecurityPolicy</span>,
+    <span class="kw">pub</span> <span class="ident">flash_mass_erase_command</span>: <span class="ident">DebugAccessPolicy</span>,
 
     <span class="doccomment">/// ISP boot command</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">isp_boot_command</span>: <span class="ident">DebugSecurityPolicy</span>,
+    <span class="kw">pub</span> <span class="ident">isp_boot_command</span>: <span class="ident">DebugAccessPolicy</span>,
     <span class="doccomment">/// FA (fault analysis) command</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">fault_analysis_command</span>: <span class="ident">DebugSecurityPolicy</span>,
+    <span class="kw">pub</span> <span class="ident">fault_analysis_command</span>: <span class="ident">DebugAccessPolicy</span>,
 
     <span class="doccomment">/// enforce UUID match during debug authentication</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
@@ -2717,12 +2835,30 @@
     <span class="kw">pub</span> <span class="ident">check_uuid</span>: <span class="ident">bool</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSecurity</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSecurityPolicies</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DebugSecurity</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">DebugSecurityPolicy</span>::<span class="kw-2">*</span>;
+<span class="kw">impl</span> <span class="ident">DebugAccessPolicies</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">legal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="op">!</span>[
+            <span class="self">self</span>.<span class="ident">nonsecure_noninvasive</span>,
+            <span class="self">self</span>.<span class="ident">nonsecure_invasive</span>,
+            <span class="self">self</span>.<span class="ident">secure_noninvasive</span>,
+            <span class="self">self</span>.<span class="ident">secure_invasive</span>,
+            <span class="self">self</span>.<span class="ident">cm33_invasive</span>,
+            <span class="self">self</span>.<span class="ident">cm33_noninvasive</span>,
+            <span class="self">self</span>.<span class="ident">jtag_tap</span>,
+            <span class="self">self</span>.<span class="ident">flash_mass_erase_command</span>,
+            <span class="self">self</span>.<span class="ident">isp_boot_command</span>,
+            <span class="self">self</span>.<span class="ident">fault_analysis_command</span>,
+        ].<span class="ident">iter</span>()
+            .<span class="ident">any</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">policy</span><span class="op">|</span> <span class="ident">policy</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DebugAccessPolicy</span>::<span class="ident">Illegal</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugAccess</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAccessPolicies</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DebugAccess</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">use</span> <span class="ident">DebugAccessPolicy</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="ident">value</span> {
             <span class="comment">// Fixed, Disabled</span>
-            <span class="ident">DebugSecurity</span>::<span class="ident">AllDisabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DebugSecurityPolicies</span> {
+            <span class="ident">DebugAccess</span>::<span class="ident">AllDisabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DebugAccessPolicies</span> {
                 <span class="ident">nonsecure_noninvasive</span>: <span class="ident">Disabled</span>,
                 <span class="ident">nonsecure_invasive</span>: <span class="ident">Disabled</span>,
                 <span class="ident">secure_noninvasive</span>: <span class="ident">Disabled</span>,
@@ -2737,7 +2873,7 @@
             },
 
             <span class="comment">// Fixed, Enabled</span>
-            <span class="ident">DebugSecurity</span>::<span class="ident">AllEnabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DebugSecurityPolicies</span> {
+            <span class="ident">DebugAccess</span>::<span class="ident">AllEnabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DebugAccessPolicies</span> {
                 <span class="ident">nonsecure_noninvasive</span>: <span class="ident">Enabled</span>,
                 <span class="ident">nonsecure_invasive</span>: <span class="ident">Enabled</span>,
                 <span class="ident">secure_noninvasive</span>: <span class="ident">Enabled</span>,
@@ -2751,74 +2887,76 @@
                 <span class="ident">check_uuid</span>: <span class="bool-val">false</span>,
             },
 
-            <span class="comment">// Fixed, Enabled</span>
-            <span class="ident">DebugSecurity</span>::<span class="ident">AllStartEnabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DebugSecurityPolicies</span> {
-                <span class="ident">nonsecure_noninvasive</span>: <span class="ident">StartEnabled</span>,
-                <span class="ident">nonsecure_invasive</span>: <span class="ident">StartEnabled</span>,
-                <span class="ident">secure_noninvasive</span>: <span class="ident">StartEnabled</span>,
-                <span class="ident">secure_invasive</span>: <span class="ident">StartEnabled</span>,
-                <span class="ident">cm33_invasive</span>: <span class="ident">StartEnabled</span>,
-                <span class="ident">cm33_noninvasive</span>: <span class="ident">StartEnabled</span>,
-                <span class="ident">jtag_tap</span>: <span class="ident">StartEnabled</span>,
-                <span class="ident">flash_mass_erase_command</span>: <span class="ident">StartEnabled</span>,
-                <span class="ident">isp_boot_command</span>: <span class="ident">StartEnabled</span>,
-                <span class="ident">fault_analysis_command</span>: <span class="ident">StartEnabled</span>,
+            <span class="comment">// Not fixed, debugger must authenticate</span>
+            <span class="ident">DebugAccess</span>::<span class="ident">AllAuthenticate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DebugAccessPolicies</span> {
+                <span class="ident">nonsecure_noninvasive</span>: <span class="ident">Authenticate</span>,
+                <span class="ident">nonsecure_invasive</span>: <span class="ident">Authenticate</span>,
+                <span class="ident">secure_noninvasive</span>: <span class="ident">Authenticate</span>,
+                <span class="ident">secure_invasive</span>: <span class="ident">Authenticate</span>,
+                <span class="ident">cm33_invasive</span>: <span class="ident">Authenticate</span>,
+                <span class="ident">cm33_noninvasive</span>: <span class="ident">Authenticate</span>,
+                <span class="ident">jtag_tap</span>: <span class="ident">Authenticate</span>,
+                <span class="ident">flash_mass_erase_command</span>: <span class="ident">Authenticate</span>,
+                <span class="ident">isp_boot_command</span>: <span class="ident">Authenticate</span>,
+                <span class="ident">fault_analysis_command</span>: <span class="ident">Authenticate</span>,
                 <span class="ident">check_uuid</span>: <span class="bool-val">false</span>,
             },
 
-            <span class="ident">DebugSecurity</span>::<span class="ident">Custom</span> ( <span class="ident">policies</span> ) <span class="op">=</span><span class="op">&gt;</span>
+            <span class="ident">DebugAccess</span>::<span class="ident">Custom</span> ( <span class="ident">policies</span> ) <span class="op">=</span><span class="op">&gt;</span>
                 <span class="ident">policies</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSecurityPolicies</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSecurity</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DebugSecurityPolicies</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">return</span> <span class="ident">DebugSecurity</span>::<span class="ident">Custom</span>(<span class="ident">value</span>);
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugAccessPolicies</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAccess</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DebugAccessPolicies</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">return</span> <span class="ident">DebugAccess</span>::<span class="ident">Custom</span>(<span class="ident">value</span>);
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSecurityPolicies</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAccessPolicies</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: [<span class="ident">u32</span>; <span class="number">2</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="comment">// fix = debugger can&#39;t change = PIN</span>
+        <span class="comment">// set = DFLT</span>
         <span class="kw">let</span> [<span class="ident">fix</span>, <span class="ident">set</span>] <span class="op">=</span> <span class="ident">value</span>;
         <span class="self">Self</span> {
-            <span class="ident">nonsecure_noninvasive</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+            <span class="ident">nonsecure_noninvasive</span>: <span class="ident">DebugAccessPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">0</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">0</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
-            <span class="ident">nonsecure_invasive</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+            <span class="ident">nonsecure_invasive</span>: <span class="ident">DebugAccessPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
-            <span class="ident">secure_noninvasive</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+            <span class="ident">secure_noninvasive</span>: <span class="ident">DebugAccessPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
-            <span class="ident">secure_invasive</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+            <span class="ident">secure_invasive</span>: <span class="ident">DebugAccessPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">3</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">3</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
-            <span class="ident">jtag_tap</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+            <span class="ident">jtag_tap</span>: <span class="ident">DebugAccessPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
-            <span class="ident">cm33_invasive</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+            <span class="ident">cm33_invasive</span>: <span class="ident">DebugAccessPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">5</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">5</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
-            <span class="ident">isp_boot_command</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+            <span class="ident">isp_boot_command</span>: <span class="ident">DebugAccessPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">6</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">6</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
-            <span class="ident">fault_analysis_command</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+            <span class="ident">fault_analysis_command</span>: <span class="ident">DebugAccessPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
-            <span class="ident">flash_mass_erase_command</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+            <span class="ident">flash_mass_erase_command</span>: <span class="ident">DebugAccessPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
-            <span class="ident">cm33_noninvasive</span>: <span class="ident">DebugSecurityPolicy</span>::<span class="ident">from</span>([
+            <span class="ident">cm33_noninvasive</span>: <span class="ident">DebugAccessPolicy</span>::<span class="ident">from</span>([
                 ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">9</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                 ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">9</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             ]),
@@ -2827,48 +2965,50 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSecurityPolicies</span><span class="op">&gt;</span> <span class="kw">for</span> [<span class="ident">u32</span>; <span class="number">2</span>] {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">policies</span>: <span class="ident">DebugSecurityPolicies</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u32</span>; <span class="number">2</span>] {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugAccessPolicies</span><span class="op">&gt;</span> <span class="kw">for</span> [<span class="ident">u32</span>; <span class="number">2</span>] {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">policies</span>: <span class="ident">DebugAccessPolicies</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u32</span>; <span class="number">2</span>] {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fixed</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enabled</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">disabled</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">policies</span>.<span class="ident">legal</span>());
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">nonsecure_noninvasive</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">nonsecure_noninvasive</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">nonsecure_noninvasive</span>.<span class="ident">disabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">nonsecure_invasive</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">nonsecure_invasive</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">nonsecure_invasive</span>.<span class="ident">disabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">secure_noninvasive</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">secure_noninvasive</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">secure_noninvasive</span>.<span class="ident">disabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">secure_invasive</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">secure_invasive</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">secure_invasive</span>.<span class="ident">disabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">jtag_tap</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">jtag_tap</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">jtag_tap</span>.<span class="ident">disabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">cm33_invasive</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">5</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">cm33_invasive</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">5</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">cm33_invasive</span>.<span class="ident">disabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">5</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">isp_boot_command</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">isp_boot_command</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">isp_boot_command</span>.<span class="ident">disabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">fault_analysis_command</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">fault_analysis_command</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">fault_analysis_command</span>.<span class="ident">disabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">flash_mass_erase_command</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">flash_mass_erase_command</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">flash_mass_erase_command</span>.<span class="ident">disabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">cm33_noninvasive</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">9</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">cm33_noninvasive</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">9</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">policies</span>.<span class="ident">cm33_noninvasive</span>.<span class="ident">disabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">9</span>;
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">policies</span>.<span class="ident">check_uuid</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">15</span>;
 
         <span class="comment">// &quot;Inverse value of [15:0]&quot;</span>
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> ((<span class="op">!</span><span class="ident">fixed</span>) <span class="op">&amp;</span> <span class="number">0xffff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> ((<span class="op">!</span><span class="ident">enabled</span>) <span class="op">&amp;</span> <span class="number">0xffff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>;
+        <span class="ident">disabled</span> <span class="op">|</span><span class="op">=</span> ((<span class="op">!</span><span class="ident">disabled</span>) <span class="op">&amp;</span> <span class="number">0xffff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>;
 
-        [<span class="ident">fixed</span>, <span class="ident">enabled</span>]
+        [<span class="ident">fixed</span>, <span class="ident">disabled</span>]
     }
 }
 
@@ -2877,7 +3017,7 @@
     <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
 {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DebugSecurityPolicies</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DebugAccessPolicies</span> {
         <span class="self">self</span>.<span class="ident">debug_settings</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
     }
 
@@ -2986,7 +3126,7 @@
         <span class="ident">image_key_revocation_id</span>: <span class="ident">MonotonicCounter</span>::<span class="ident">from</span>(<span class="ident">image_key_revocation_id</span>),
         <span class="ident">vendor_usage</span>: <span class="ident">VendorUsage</span>::<span class="ident">from</span>(<span class="ident">vendor_usage</span>),
         <span class="ident">rot_keys_status</span>: <span class="ident">RotKeysStatus</span>::<span class="ident">from</span>(<span class="ident">rot_keys_status</span>),
-        <span class="ident">debug_settings</span>: <span class="ident">DebugSecurityPolicies</span>::<span class="ident">from</span>([<span class="ident">dcfg_cc_socu_ns_pin</span>, <span class="ident">dcfg_cc_socu_ns_default</span>]).<span class="ident">into</span>(),
+        <span class="ident">debug_settings</span>: <span class="ident">DebugAccessPolicies</span>::<span class="ident">from</span>([<span class="ident">dcfg_cc_socu_ns_pin</span>, <span class="ident">dcfg_cc_socu_ns_default</span>]).<span class="ident">into</span>(),
         <span class="ident">enable_fault_analysis_mode</span>: <span class="ident">enable_fa</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
         <span class="ident">factory_prog_in_progress</span>: <span class="ident">FactorySettingsProgInProgress</span>(<span class="ident">factory_prog_in_progress</span>),
         <span class="ident">prince_ivs</span>: [

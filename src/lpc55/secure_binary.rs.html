@@ -1358,6 +1358,9 @@
 <span id="1355">1355</span>
 <span id="1356">1356</span>
 <span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Generator and parser for signed firmware and SB (secure binary) files</span>
 <span class="doccomment">//!</span>
@@ -1749,13 +1752,16 @@
                                 <span class="ident">data</span>: <span class="ident">Vec</span>::<span class="ident">from</span>(<span class="ident">first_block</span>),
                             });
                         },
-                        <span class="ident">BootCommandSequenceDescription</span>::<span class="ident">CheckFirmwareVersions</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">BootCommandSequenceDescription</span>::<span class="ident">CheckDerivedFirmwareVersions</span> <span class="op">=</span><span class="op">&gt;</span> {
 
                             <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">firmware</span>.<span class="ident">product</span>;
-                            <span class="kw">if</span> <span class="ident">version</span>.<span class="ident">minor</span> <span class="op">&gt;</span> <span class="number">255</span> <span class="op">|</span><span class="op">|</span> <span class="ident">version</span>.<span class="ident">patch</span> <span class="op">&gt;</span> <span class="number">255</span> {
-                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">anyhow</span>::<span class="macro">anyhow</span><span class="macro">!</span>(<span class="string">&quot;config.firmware.product can at most be 65535.255.255 for VerifyFirmwareVersions&quot;</span>));
+                            <span class="kw">if</span> <span class="ident">version</span>.<span class="ident">major</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1024</span> <span class="op">|</span><span class="op">|</span> <span class="ident">version</span>.<span class="ident">patch</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">64</span> {
+                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">anyhow</span>::<span class="macro">anyhow</span><span class="macro">!</span>(
+                                    <span class="string">&quot;config.firmware.product can at most be 1023.65535.63 for CheckDerivedFirmwareVersions&quot;</span>));
                             }
-                            <span class="kw">let</span> <span class="ident">version_to_check</span>: <span class="ident">u32</span> <span class="op">=</span> ((<span class="ident">version</span>.<span class="ident">major</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>) <span class="op">|</span> ((<span class="ident">version</span>.<span class="ident">minor</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">version</span>.<span class="ident">patch</span> <span class="kw">as</span> <span class="ident">u32</span>;
+                            <span class="kw">let</span> <span class="ident">version_to_check</span>: <span class="ident">u32</span> <span class="op">=</span>
+                                ((<span class="ident">version</span>.<span class="ident">major</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">22</span>) <span class="op">|</span>
+                                ((<span class="ident">version</span>.<span class="ident">minor</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>) <span class="op">|</span> <span class="ident">version</span>.<span class="ident">patch</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
                             <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Checking firmware versions against: {:08x}&quot;</span>, <span class="ident">version_to_check</span>);
 
