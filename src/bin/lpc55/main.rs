@@ -444,10 +444,10 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             let date = NaiveDate::parse_from_str(product_date, "%Y-%m-%d")
                 .or(NaiveDate::parse_from_str(product_date, "%Y%m%d"))
                 .or(NaiveDate::parse_from_str(product_date, "%y%m%d"))?;
-            let days_since_millenium = (date - NaiveDate::from_ymd(2000, 1, 1)).num_days();
-            assert!(days_since_millenium > 0);
-            info!("overriding product.major with date {}, i.e. {}", &date, days_since_millenium);
-            config.firmware.product.minor = days_since_millenium as u16;
+            let days_since_twenties = (date - NaiveDate::from_ymd(2020, 1, 1)).num_days();
+            assert!(days_since_twenties > 0);
+            info!("overriding product.major with date {}, i.e. {}", &date, days_since_twenties);
+            config.firmware.product.minor = days_since_twenties as u16;
         }
         let unsigned_image = UnsignedSb21File::try_assemble_from(&config)?;
         let signing_key = lpc55::pki::SigningKey::try_from_uri(config.pki.signing_key.as_ref())?;

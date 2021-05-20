@@ -365,7 +365,7 @@ pub fn app() -> clap::App<'static, 'static> {
                  .value_name("product-minor")
             )
             .arg(Arg::with_name("product-date")
-                 .help("Product date. Replaces config.firmware.product.minor entry, after converting to days since the millenium, 2000-01-01")
+                 .help("Product date. Replaces config.firmware.product.minor entry, after converting to days since the twenties, 2020-01-01")
                  .long("product-date")
                  .value_name("product-date")
             )

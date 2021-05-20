@@ -391,9 +391,9 @@ impl UnsignedSb21File {
                         BootCommandSequenceDescription::CheckDerivedFirmwareVersions => {
 
                             let version = config.firmware.product;
-                            if version.major >= 1024 || version.patch >= 64 {
+                            if version.major >= 1024 || version.minor > 9999 || version.patch >= 64 {
                                 return Err(anyhow::anyhow!(
-                                    "config.firmware.product can at most be 1023.65535.63 for CheckDerivedFirmwareVersions"));
+                                    "config.firmware.product can at most be 1023.9999.63 for CheckDerivedFirmwareVersions"));
                             }
                             let version_to_check: u32 =
                                 ((version.major as u32) << 22) |
