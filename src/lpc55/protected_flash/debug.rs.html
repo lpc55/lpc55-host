@@ -422,12 +422,6 @@
 <span id="419">419</span>
 <span id="420">420</span>
 <span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -651,21 +645,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        [
-            <span class="self">self</span>.<span class="ident">nonsecure_noninvasive</span>,
-            <span class="self">self</span>.<span class="ident">nonsecure_invasive</span>,
-            <span class="self">self</span>.<span class="ident">secure_noninvasive</span>,
-            <span class="self">self</span>.<span class="ident">secure_invasive</span>,
-            <span class="self">self</span>.<span class="ident">cm33_invasive</span>,
-            <span class="self">self</span>.<span class="ident">cm33_noninvasive</span>,
-            <span class="self">self</span>.<span class="ident">jtag_tap</span>,
-            <span class="self">self</span>.<span class="ident">flash_mass_erase_command</span>,
-            <span class="self">self</span>.<span class="ident">isp_boot_command</span>,
-            <span class="self">self</span>.<span class="ident">fault_analysis_command</span>,
-        ].<span class="ident">iter</span>()
-            .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">setting</span><span class="op">|</span> <span class="ident">setting</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DebugSetting</span>::<span class="ident">Default</span>)
-
-        <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">check_uuid</span> <span class="op">=</span><span class="op">=</span> <span class="bool-val">false</span>
+        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DebugAccess</span>::<span class="ident">Default</span>.<span class="ident">into</span>()
     }
 }
 
@@ -742,10 +722,18 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSettings</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAccess</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">settings</span>: <span class="ident">DebugSettings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">are_all_default</span>() {
-            <span class="ident">DebugAccess</span>::<span class="ident">Default</span>
-        } <span class="kw">else</span> {
-            <span class="ident">DebugAccess</span>::<span class="ident">Custom</span>(<span class="ident">settings</span>)
+            <span class="kw">return</span> <span class="ident">DebugAccess</span>::<span class="ident">Default</span>;
+        };
+        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DebugAccess</span>::<span class="ident">Authenticate</span>.<span class="ident">into</span>() {
+            <span class="kw">return</span> <span class="ident">DebugAccess</span>::<span class="ident">Authenticate</span>;
         }
+        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DebugAccess</span>::<span class="ident">Disabled</span>.<span class="ident">into</span>() {
+            <span class="kw">return</span> <span class="ident">DebugAccess</span>::<span class="ident">Disabled</span>;
+        }
+        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DebugAccess</span>::<span class="ident">Enabled</span>.<span class="ident">into</span>() {
+            <span class="kw">return</span> <span class="ident">DebugAccess</span>::<span class="ident">Enabled</span>;
+        }
+        <span class="ident">DebugAccess</span>::<span class="ident">Custom</span>(<span class="ident">settings</span>)
     }
 }
 
