@@ -440,6 +440,7 @@
 <span id="437">437</span>
 <span id="438">438</span>
 <span id="439">439</span>
+<span id="440">440</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
@@ -641,12 +642,13 @@
     <span class="doccomment">/// This uses an interpretation and encoding of the `[u16; 3]` Version</span>
     <span class="doccomment">/// as an incrementing `u32` counter. Namely, major version is interpreted</span>
     <span class="doccomment">/// as an era (signaling breaking changes) and restricted to below 1024.</span>
-    <span class="doccomment">/// Minor version is interpreted as days since the millenium (unrestricted</span>
+    <span class="doccomment">/// Minor version is interpreted as days since the twenties (unrestricted</span>
     <span class="doccomment">/// for practical purposes). Patch version is restricted to below 64, and</span>
     <span class="doccomment">/// would rarely be used.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// So, for instance, `1:20210521` would correspond to `1.7806.0`, and</span>
-    <span class="doccomment">/// map to the counter `(1 &lt;&lt; 22) + (7806 &lt;&lt; 6) = 4693888`.</span>
+    <span class="doccomment">/// So, for instance, `1:20210520` would correspond to `1.505.0`,</span>
+    <span class="doccomment">/// since `(dt.date(2021, 5, 20) - dt.date(2020, 1, 1)).days = 505`, and</span>
+    <span class="doccomment">/// map to the counter `(1 &lt;&lt; 22) + (505 &lt;&lt; 6) = 4226624`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the check fails, then the SB2 update stops.</span>
     <span class="ident">CheckDerivedFirmwareVersions</span>,
