@@ -433,6 +433,21 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         if let Some(product_version) = command.value_of("product-version") {
             config.firmware.product = lpc55::secure_binary::Version::from(product_version.to_string().as_str());
         }
+        if let Some(product_major) = command.value_of("product-major") {
+            config.firmware.product.major = product_major.parse()?;
+        }
+        if let Some(product_minor) = command.value_of("product-minor") {
+            config.firmware.product.minor = product_minor.parse()?;
+        }
+        if let Some(product_date) = command.value_of("product-date") {
+            use chrono::naive::NaiveDate;
+            let date = NaiveDate::parse_from_str(product_date, "%Y-%m-%d")
+                .or(NaiveDate::parse_from_str(product_date, "%Y%m%d"))
+                .or(NaiveDate::parse_from_str(product_date, "%y%m%d"))?;
+            let days_since_millenium = (NaiveDate::from_ymd(2000, 1, 1) - date).num_days();
+            assert!(days_since_millenium > 0);
+            config.firmware.product.minor = days_since_millenium as u16;
+        }
         let unsigned_image = UnsignedSb21File::try_assemble_from(&config)?;
         let signing_key = lpc55::pki::SigningKey::try_from_uri(config.pki.signing_key.as_ref())?;
         // dbg!(&signing_key);

@@ -194,8 +194,19 @@ pub enum BootCommandSequenceDescription {
     /// Takes the version specified in `config.firmware.product` and
     /// checks that it is greater than or equal to both the "Secure"
     /// and "Nonsecure" firmware versions in the customer data page on the device.
+    ///
+    /// This uses an interpretation and encoding of the `[u16; 3]` Version
+    /// as an incrementing `u32` counter. Namely, major version is interpreted
+    /// as an era (signaling breaking changes) and restricted to below 1024.
+    /// Minor version is interpreted as days since the millenium (unrestricted
+    /// for practical purposes). Patch version is restricted to below 64, and
+    /// would rarely be used.
+    ///
+    /// So, for instance, `1:20210521` would correspond to `1.7806.0`, and
+    /// map to the counter `(1 << 22) + (7806 << 6) = 4693888`.
+    ///
     /// If the check fails, then the SB2 update stops.
-    CheckFirmwareVersions,
+    CheckDerivedFirmwareVersions,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
