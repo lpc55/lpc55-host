@@ -404,7 +404,9 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         if let Some(image) = command.value_of("image") {
             config.firmware.image = image.to_string();
         }
-
+        if let Some(signed_image) = command.value_of("signed-image") {
+            config.firmware.signed_image = signed_image.to_string();
+        }
         // let _signed_image = lpc55::signed_binary::sign(&config)?;
         let signing_request = ImageSigningRequest::try_from(&config)?;
         let signed_image = signing_request.sign();
@@ -424,6 +426,12 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         let mut config = lpc55::secure_binary::Config::try_from(config_filename)?;
         if let Some(signed_image) = command.value_of("signed-image") {
             config.firmware.signed_image = signed_image.to_string();
+        }
+        if let Some(secure_boot_image) = command.value_of("secure-boot-image") {
+            config.firmware.secure_boot_image = secure_boot_image.to_string();
+        }
+        if let Some(product_version) = command.value_of("product-version") {
+            config.firmware.product = lpc55::secure_binary::Version::from(product_version.to_string().as_str());
         }
         let unsigned_image = UnsignedSb21File::try_assemble_from(&config)?;
         let signing_key = lpc55::pki::SigningKey::try_from_uri(config.pki.signing_key.as_ref())?;

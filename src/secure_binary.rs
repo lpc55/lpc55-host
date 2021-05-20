@@ -387,6 +387,25 @@ impl UnsignedSb21File {
                                 address: 0,
                                 data: Vec::from(first_block),
                             });
+                        },
+                        BootCommandSequenceDescription::CheckFirmwareVersions => {
+
+                            let version = config.firmware.product;
+                            if version.minor > 255 || version.patch > 255 {
+                                return Err(anyhow::anyhow!("config.firmware.product can at most be 65535.255.255 for VerifyFirmwareVersions"));
+                            }
+                            let version_to_check: u32 = ((version.major as u32) << 16) | ((version.minor as u32) << 8) | version.patch as u32;
+
+                            info!("Checking firmware versions against: {:08x}", version_to_check);
+
+                            commands.push(BootCommand::CheckSecureFirmwareVersion {
+                                version: version_to_check
+                            });
+
+                            commands.push(BootCommand::CheckNonsecureFirmwareVersion {
+                                version: version_to_check
+                            });
+
                         }
                     }
                 }
