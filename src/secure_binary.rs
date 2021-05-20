@@ -835,7 +835,7 @@ pub struct Version {
 }
 
 // not sure if 999 or 9999
-const MAX_BCD: u16 = 999;
+const MAX_BCD: u16 = 9999;
 
 fn bcd(x: u16) -> [u8; 2] {
     assert!(x <= MAX_BCD);

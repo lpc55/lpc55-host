@@ -444,8 +444,9 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             let date = NaiveDate::parse_from_str(product_date, "%Y-%m-%d")
                 .or(NaiveDate::parse_from_str(product_date, "%Y%m%d"))
                 .or(NaiveDate::parse_from_str(product_date, "%y%m%d"))?;
-            let days_since_millenium = (NaiveDate::from_ymd(2000, 1, 1) - date).num_days();
+            let days_since_millenium = (date - NaiveDate::from_ymd(2000, 1, 1)).num_days();
             assert!(days_since_millenium > 0);
+            info!("overriding product.major with date {}, i.e. {}", &date, days_since_millenium);
             config.firmware.product.minor = days_since_millenium as u16;
         }
         let unsigned_image = UnsignedSb21File::try_assemble_from(&config)?;
