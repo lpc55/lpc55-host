@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["DebugAccess",""],["DebugAccessPolicy","Controls access of debuggers to specific subsystems."]],"struct":[["DebugAccessPolicies",""]]});
