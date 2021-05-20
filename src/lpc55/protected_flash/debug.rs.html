@@ -419,6 +419,11 @@
 <span id="416">416</span>
 <span id="417">417</span>
 <span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -432,12 +437,17 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugAccess</span> {
     <span class="doccomment">/// The state of an empty key (all four relevant words are all-zero)</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// It seems that this state has the same effect as (all) `Enabled`,</span>
+    <span class="doccomment">/// It seems that this state has the same effect as `Enabled`,</span>
     <span class="doccomment">/// if not please open a GitHub issue!</span>
     <span class="ident">Default</span>,
+    <span class="doccomment">/// Debugging access is not possible</span>
     <span class="ident">Disabled</span>,
+    <span class="doccomment">/// Debugging access is possible</span>
     <span class="ident">Enabled</span>,
+    <span class="doccomment">/// Debugger must present a Debug Credential (this functionality</span>
+    <span class="doccomment">/// is not currently implemented or further exposed).</span>
     <span class="ident">Authenticate</span>,
+    <span class="doccomment">/// &quot;Bring your own settings&quot;</span>
     <span class="ident">Custom</span>(<span class="ident">DebugSettings</span>),
 }
 
