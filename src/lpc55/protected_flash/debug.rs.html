@@ -414,6 +414,9 @@
 <span id="411">411</span>
 <span id="412">412</span>
 <span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -425,6 +428,9 @@
     <span class="ident">AllEnabled</span>,
     <span class="ident">AllAuthenticate</span>,
     <span class="doccomment">/// The state of an empty key (all four relevant words are all-zero)</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// It seems that this state has the same effect as `AllEnabled`,</span>
+    <span class="doccomment">/// if not please open a GitHub issue!</span>
     <span class="ident">Default</span>,
     <span class="ident">Custom</span> (
         <span class="ident">DebugAccessPolicies</span>,
