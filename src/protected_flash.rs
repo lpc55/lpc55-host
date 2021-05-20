@@ -22,6 +22,9 @@ big_array! {
     +1192,
 }
 
+pub mod debug;
+pub use debug::{DebugAccess, DebugSettings};
+
 pub const FACTORY_SETTINGS_ADDRESS: usize = 0x9_E400;
 pub const CUSTOMER_SETTINGS_SCRATCH_ADDRESS: usize = 0x9_DE00;
 
@@ -65,7 +68,7 @@ where
     // PIN = "pinned" or fixed
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub debug_settings: DebugAccess,
+    pub debug_access: DebugAccess,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub vendor_usage: VendorUsage,
@@ -149,7 +152,8 @@ where
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     #[serde(skip_deserializing)]
-    debug_settings: DebugAccess,
+    /// This is non-public as it is not respected when writing customer settings.
+    debug_access: DebugAccess,
 
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -419,7 +423,7 @@ where
         cursor.write_all(&self.usb_id.pid.to_le_bytes())?;
         cursor.write_all(&[0u8; 4])?;
 
-        let [fixed, disabled]: [u32; 2] = DebugAccessPolicies::from(self.debug_settings).into();
+        let [fixed, disabled]: [u32; 2] = DebugSettings::from(self.debug_access).into();
         cursor.write_all(&fixed.to_le_bytes())?;
         cursor.write_all(&disabled.to_le_bytes())?;
 
@@ -484,7 +488,7 @@ fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: Factory
     let factory = FactorySettings {
         boot_configuration: BootConfiguration::from(boot_cfg),
         usb_id: UsbId::from(usb_id),
-        debug_settings: DebugAccessPolicies::from([cc_socu_pin, cc_socu_default]).into(),
+        debug_access: DebugSettings::from([cc_socu_pin, cc_socu_default]).into(),
         vendor_usage: VendorUsage::from(vendor_usage),
         secure_boot_configuration: SecureBootConfiguration::from(secure_boot_cfg),
         prince_configuration: PrinceConfiguration::from(prince_cfg),
@@ -632,6 +636,7 @@ pub struct UsbId {
 }
 
 impl Default for UsbId {
+    /// Set to (0, 0), which the bootloader interprets as its default 1FC9:0021
     fn default() -> Self {
         // Self { vid: 0x1fc9, pid: 0x0021 }
         Self { vid: 0, pid: 0 }
@@ -1080,355 +1085,13 @@ impl From<u32> for RotKeysStatus {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd,Serialize)]
-pub enum DebugAccess {
-    AllDisabled,
-    AllEnabled,
-    AllAuthenticate,
-    Custom (
-        DebugAccessPolicies,
-    )
-}
-
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd,Serialize)]
-/// Controls access of debuggers to specific subsystems.
-///
-/// To understand if access is possible:
-/// - factory + customer setting: Enabled -> yes
-/// - factor + customer set to Enabled or Authenticate -> need a prepared debug certificate
-///   (this is not implemented in this library)
-/// - any setting Illegal => device may lock up
-/// - any setting Disabled => access not possible!!
-///
-/// Peculiarities to be aware of:
-/// - Factory settings (`CC_SOCU_PIN`, `CC_SOCU_DFLT`) can be made stricter, but not relaxed,
-///   using customer settings (`DCFG_CC_SOCU_NS_PIN`, `DCFG_CC_SOCU_NS_DFLT`)
-/// - As long as the factory page is not sealed, the setting can be changed there.
-/// - To change settings in the customer page, the ping/pong dance must be done.
-/// - The disabled bit ("DFLT") determines which setting is potentially in effect
-/// - The fixed bit ("PIN") determines whether a debugger may activate the potentially
-///   effective settings (by presenting a Debug Authentication certificate)
-/// - The non-fixed disabled setting is illegal.
-/// - All bits are written in the lower half-word, and must be also written in inverted
-///   form in the upper half-word.
-/// - Except, it seems, the default / empty setting, where both PIN and DFLT words are all zero.
-///
-/// In this implementation, we disregard customer settings from configuration files,
-/// enforcing that only the firmware changes them.
-///
-/// TODO: We could also model the factory default, where the entire word is zeros.
-/// This would need some special handling + research.
-pub enum DebugAccessPolicy {
-    /// Disabled at startup, debugging not possible
-    Disabled,
-    /// Debugging enabled at startup (debugger can't turn off).
-    /// "Access to the sub-domain is always enabled."
-    Enabled,
-    // /// Enabled the policy, but it could be changed by authenticated debugger
-    /// According to UM 11126, 51.7.14, Table 1064:
-    /// "Illegal setting. Part may lock-up if this setting is selected."
-    Illegal,
-    /// Debugging disabled at startup, only authenticated debugger can access
-    Authenticate,
-}
-
-impl Default for DebugAccess {
-    /// Set to enabled, so that `lpc55 factory-settings` does not
-    /// turn off debugging on an otherwise empty key, unless explicitly
-    /// configured to be turned off.
-    fn default() -> Self {
-        Self::AllEnabled
-    }
-}
-
-impl Default for DebugAccessPolicy {
-    /// Set to enabled, so that `lpc55 factory-settings` does not
-    /// turn off debugging on an otherwise empty key, unless explicitly
-    /// configured to be turned off.
-    fn default() -> Self {
-        Self::Enabled
-    }
-}
-
-impl DebugAccessPolicy {
-    /// Called `PIN` by NXP, e.g in UM 11126, 51.7.14
-    ///
-    /// The interpretation is that the setting in the "disabled"
-    /// bit can not be changed by the debugger (i.e. it can
-    /// not enabled debugging by providing an appropriate Debug
-    /// Credential (DC)).
-    ///
-    /// In their words:
-    /// "A bitmask that specifies which debug domains are predetermined
-    /// by device configuration."
-    fn fixed_bit(&self) -> u32 {
-        use DebugAccessPolicy::*;
-        match *self {
-            Authenticate | Illegal => 0,
-            Disabled | Enabled => 1,
-        }
-    }
-    /// Called `DFLT` by NXP, e.g in UM 11126, 51.7.14
-    ///
-    /// The setting that is applied during startup.
-    ///
-    /// In their words:
-    /// "Provides the final access level for those bits that the SOCU_PIN
-    /// field indicated are predetermined by device configuration."
-    fn disabled_bit(&self) -> u32 {
-        use DebugAccessPolicy::*;
-        match *self {
-            Enabled | Authenticate => 0,
-            Disabled | Illegal => 1,
-        }
-    }
-}
-
-impl From<[bool; 2]> for DebugAccessPolicy {
-    fn from(bits: [bool; 2]) -> Self {
-        let [fixed, disabled] = bits;
-        use DebugAccessPolicy::*;
-        //  UM, 517.1.4, Table 1064
-        match (fixed, disabled) {
-            (true, false) => Enabled,
-            (false, false) => Authenticate,
-            (false, true) => Illegal,
-            (true, true) => Disabled,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-#[serde(rename_all = "kebab-case")]
-pub struct DebugAccessPolicies {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub nonsecure_noninvasive: DebugAccessPolicy,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub nonsecure_invasive: DebugAccessPolicy,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub secure_noninvasive: DebugAccessPolicy,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub secure_invasive: DebugAccessPolicy,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub cm33_invasive: DebugAccessPolicy,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub cm33_noninvasive: DebugAccessPolicy,
-
-    /// JTAG test access port
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub jtag_tap: DebugAccessPolicy,
-
-    /// Flash mass erase command
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub flash_mass_erase_command: DebugAccessPolicy,
-
-    /// ISP boot command
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub isp_boot_command: DebugAccessPolicy,
-    /// FA (fault analysis) command
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub fault_analysis_command: DebugAccessPolicy,
-
-    /// enforce UUID match during debug authentication
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub check_uuid: bool,
-}
-
-impl DebugAccessPolicies {
-    pub fn legal(&self) -> bool {
-        ![
-            self.nonsecure_noninvasive,
-            self.nonsecure_invasive,
-            self.secure_noninvasive,
-            self.secure_invasive,
-            self.cm33_invasive,
-            self.cm33_noninvasive,
-            self.jtag_tap,
-            self.flash_mass_erase_command,
-            self.isp_boot_command,
-            self.fault_analysis_command,
-        ].iter()
-            .any(|&policy| policy == DebugAccessPolicy::Illegal)
-    }
-}
-
-impl From<DebugAccess> for DebugAccessPolicies {
-    fn from(value: DebugAccess) -> Self {
-        use DebugAccessPolicy::*;
-        match value {
-            // Fixed, Disabled
-            DebugAccess::AllDisabled => DebugAccessPolicies {
-                nonsecure_noninvasive: Disabled,
-                nonsecure_invasive: Disabled,
-                secure_noninvasive: Disabled,
-                secure_invasive: Disabled,
-                cm33_invasive: Disabled,
-                cm33_noninvasive: Disabled,
-                jtag_tap: Disabled,
-                flash_mass_erase_command: Disabled,
-                isp_boot_command: Disabled,
-                fault_analysis_command: Disabled,
-                check_uuid: true,
-            },
-
-            // Fixed, Enabled
-            DebugAccess::AllEnabled => DebugAccessPolicies {
-                nonsecure_noninvasive: Enabled,
-                nonsecure_invasive: Enabled,
-                secure_noninvasive: Enabled,
-                secure_invasive: Enabled,
-                cm33_invasive: Enabled,
-                cm33_noninvasive: Enabled,
-                jtag_tap: Enabled,
-                flash_mass_erase_command: Enabled,
-                isp_boot_command: Enabled,
-                fault_analysis_command: Enabled,
-                check_uuid: false,
-            },
-
-            // Not fixed, debugger must authenticate
-            DebugAccess::AllAuthenticate => DebugAccessPolicies {
-                nonsecure_noninvasive: Authenticate,
-                nonsecure_invasive: Authenticate,
-                secure_noninvasive: Authenticate,
-                secure_invasive: Authenticate,
-                cm33_invasive: Authenticate,
-                cm33_noninvasive: Authenticate,
-                jtag_tap: Authenticate,
-                flash_mass_erase_command: Authenticate,
-                isp_boot_command: Authenticate,
-                fault_analysis_command: Authenticate,
-                check_uuid: false,
-            },
-
-            DebugAccess::Custom ( policies ) =>
-                policies,
-        }
-    }
-}
-
-impl From<DebugAccessPolicies> for DebugAccess {
-    fn from(value: DebugAccessPolicies) -> Self {
-        return DebugAccess::Custom(value);
-    }
-}
-
-impl From<[u32; 2]> for DebugAccessPolicies {
-    fn from(value: [u32; 2]) -> Self {
-        // fix = debugger can't change = PIN
-        // set = DFLT
-        let [fix, set] = value;
-        Self {
-            nonsecure_noninvasive: DebugAccessPolicy::from([
-                ((fix >> 0) & 1) != 0,
-                ((set >> 0) & 1) != 0,
-            ]),
-            nonsecure_invasive: DebugAccessPolicy::from([
-                ((fix >> 1) & 1) != 0,
-                ((set >> 1) & 1) != 0,
-            ]),
-            secure_noninvasive: DebugAccessPolicy::from([
-                ((fix >> 2) & 1) != 0,
-                ((set >> 2) & 1) != 0,
-            ]),
-            secure_invasive: DebugAccessPolicy::from([
-                ((fix >> 3) & 1) != 0,
-                ((set >> 3) & 1) != 0,
-            ]),
-            jtag_tap: DebugAccessPolicy::from([
-                ((fix >> 4) & 1) != 0,
-                ((set >> 4) & 1) != 0,
-            ]),
-            cm33_invasive: DebugAccessPolicy::from([
-                ((fix >> 5) & 1) != 0,
-                ((set >> 5) & 1) != 0,
-            ]),
-            isp_boot_command: DebugAccessPolicy::from([
-                ((fix >> 6) & 1) != 0,
-                ((set >> 6) & 1) != 0,
-            ]),
-            fault_analysis_command: DebugAccessPolicy::from([
-                ((fix >> 7) & 1) != 0,
-                ((set >> 7) & 1) != 0,
-            ]),
-            flash_mass_erase_command: DebugAccessPolicy::from([
-                ((fix >> 8) & 1) != 0,
-                ((set >> 8) & 1) != 0,
-            ]),
-            cm33_noninvasive: DebugAccessPolicy::from([
-                ((fix >> 9) & 1) != 0,
-                ((set >> 9) & 1) != 0,
-            ]),
-            check_uuid: ((fix >> 15) & 1) != 0,
-        }
-    }
-}
-
-impl From<DebugAccessPolicies> for [u32; 2] {
-    fn from(policies: DebugAccessPolicies) -> [u32; 2] {
-        let mut fixed: u32 = 0;
-        let mut disabled: u32 = 0;
-
-        assert!(policies.legal());
-
-        fixed |= policies.nonsecure_noninvasive.fixed_bit() << 0;
-        disabled |= policies.nonsecure_noninvasive.disabled_bit() << 0;
-
-        fixed |= policies.nonsecure_invasive.fixed_bit() << 1;
-        disabled |= policies.nonsecure_invasive.disabled_bit() << 1;
-
-        fixed |= policies.secure_noninvasive.fixed_bit() << 2;
-        disabled |= policies.secure_noninvasive.disabled_bit() << 2;
-
-        fixed |= policies.secure_invasive.fixed_bit() << 3;
-        disabled |= policies.secure_invasive.disabled_bit() << 3;
-
-        fixed |= policies.jtag_tap.fixed_bit() << 4;
-        disabled |= policies.jtag_tap.disabled_bit() << 4;
-
-        fixed |= policies.cm33_invasive.fixed_bit() << 5;
-        disabled |= policies.cm33_invasive.disabled_bit() << 5;
-
-        fixed |= policies.isp_boot_command.fixed_bit() << 6;
-        disabled |= policies.isp_boot_command.disabled_bit() << 6;
-
-        fixed |= policies.fault_analysis_command.fixed_bit() << 7;
-        disabled |= policies.fault_analysis_command.disabled_bit() << 7;
-
-        fixed |= policies.flash_mass_erase_command.fixed_bit() << 8;
-        disabled |= policies.flash_mass_erase_command.disabled_bit() << 8;
-
-        fixed |= policies.cm33_noninvasive.fixed_bit() << 9;
-        disabled |= policies.cm33_noninvasive.disabled_bit() << 9;
-
-        fixed |= (policies.check_uuid as u32) << 15;
-
-        // "Inverse value of [15:0]"
-        fixed |= ((!fixed) & 0xffff) << 16;
-        disabled |= ((!disabled) & 0xffff) << 16;
-
-        [fixed, disabled]
-    }
-}
-
 impl<CustomerData, VendorUsage> CustomerSettings<CustomerData, VendorUsage>
 where
     CustomerData: CustomerSettingsCustomerData,
     VendorUsage: CustomerSettingsVendorUsage,
 {
-    pub fn debug_settings(&self) -> DebugAccessPolicies {
-        self.debug_settings.clone().into()
+    pub fn debug_settings(&self) -> DebugSettings {
+        self.debug_access.into()
     }
 
     pub fn to_bytes(&mut self) -> anyhow::Result<[u8; 512]> {
@@ -1536,7 +1199,7 @@ fn parse_customer_page<CustomerData: CustomerSettingsCustomerData, VendorUsage: 
         image_key_revocation_id: MonotonicCounter::from(image_key_revocation_id),
         vendor_usage: VendorUsage::from(vendor_usage),
         rot_keys_status: RotKeysStatus::from(rot_keys_status),
-        debug_settings: DebugAccessPolicies::from([dcfg_cc_socu_ns_pin, dcfg_cc_socu_ns_default]).into(),
+        debug_access: DebugSettings::from([dcfg_cc_socu_ns_pin, dcfg_cc_socu_ns_default]).into(),
         enable_fault_analysis_mode: enable_fa != 0,
         factory_prog_in_progress: FactorySettingsProgInProgress(factory_prog_in_progress),
         prince_ivs: [
