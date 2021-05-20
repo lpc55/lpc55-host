@@ -159,8 +159,8 @@ debug-access = {{ Custom = {{ nonsecure-noninvasive = "Disabled", secure-invasiv
 
     let data = fs::read(binfile_path).expect("Unable to read output customer file");
 
-   // debug policies, default StartEnabled
-    assert_eq!(data[0x10.. 0x18], [0x11, 0x00, 0xee, 0xff, 0xf6, 0x03, 0x09, 0xfc]);
+   // debug policies, default Enabled
+    assert_eq!(data[0x10.. 0x18], [0xf7, 0x03, 0x08, 0xfc, 0xf6, 0x03, 0x09, 0xfc]);
 }
 
 #[test]
