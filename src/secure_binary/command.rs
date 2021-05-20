@@ -190,6 +190,12 @@ pub enum BootCommandSequenceDescription {
     /// pads to 512B if necessary, erases flash, then uploads securely
     /// (all but first block, only then the first block).
     UploadSignedImage,
+
+    /// Takes the version specified in `config.firmware.product` and
+    /// checks that it is greater than or equal to both the "Secure"
+    /// and "Nonsecure" firmware versions in the customer data page on the device.
+    /// If the check fails, then the SB2 update stops.
+    CheckFirmwareVersions,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
