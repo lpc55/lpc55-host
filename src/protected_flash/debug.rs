@@ -1,3 +1,5 @@
+// https://www.nxp.com/docs/en/application-note/AN13037.pdf
+
 use serde::{Deserialize, Serialize};
 
 use crate::util::is_default;
@@ -119,6 +121,7 @@ impl DebugSetting {
     ///
     /// It seems that the meaning of this bit is incorrectly used
     /// for the enabled and disabled states in Table 1064 of that section.
+    /// And indeed, AN13037 confirms this.
     fn enabled_bit(&self) -> u32 {
         use DebugSetting::*;
         match *self {
@@ -134,6 +137,8 @@ impl From<[bool; 2]> for DebugSetting {
         use DebugSetting::*;
         //  UM, 517.1.4, Table 1064
         //  It seems that Enabled and Disabled are mixed up / incorrect in the table.
+        //
+        //  Indeed, AN13037 confirms this.
         match (fixed, enabled) {
             (true, true) => Enabled,
             (false, false) => Authenticate,
@@ -145,25 +150,33 @@ impl From<[bool; 2]> for DebugSetting {
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(rename_all = "kebab-case")]
+// The `{non,}secure_{non,}invasive` settings pertain to CPU0,
+// whereas CPU1 has two separate settings.
 pub struct DebugSettings {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    /// non-invasive debugging of the TrustZone non-secure domain of CPU0
     pub nonsecure_noninvasive: DebugSetting,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    /// invasive debugging of the TrustZone non-secure domain of CPU0
     pub nonsecure_invasive: DebugSetting,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    /// non-invasive debugging of the TrustZone secure domain of CPU0
     pub secure_noninvasive: DebugSetting,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
+    /// invasive debugging of the TrustZone secure domain of CPU0
     pub secure_invasive: DebugSetting,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub cm33_invasive: DebugSetting,
+    /// non-invasive debugging of CPU1
+    pub cpu1_noninvasive: DebugSetting,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub cm33_noninvasive: DebugSetting,
+    /// invasive debugging of CPU1
+    pub cpu1_invasive: DebugSetting,
 
     /// JTAG test access port
     #[serde(default)]
@@ -197,8 +210,8 @@ impl DebugSettings {
             self.nonsecure_invasive,
             self.secure_noninvasive,
             self.secure_invasive,
-            self.cm33_invasive,
-            self.cm33_noninvasive,
+            self.cpu1_noninvasive,
+            self.cpu1_invasive,
             self.jtag_tap,
             self.flash_mass_erase_command,
             self.isp_boot_command,
@@ -213,8 +226,8 @@ impl DebugSettings {
             self.nonsecure_invasive,
             self.secure_noninvasive,
             self.secure_invasive,
-            self.cm33_invasive,
-            self.cm33_noninvasive,
+            self.cpu1_noninvasive,
+            self.cpu1_invasive,
             self.jtag_tap,
             self.flash_mass_erase_command,
             self.isp_boot_command,
@@ -238,8 +251,8 @@ impl From<DebugAccess> for DebugSettings {
                 nonsecure_invasive: setting,
                 secure_noninvasive: setting,
                 secure_invasive: setting,
-                cm33_invasive: setting,
-                cm33_noninvasive: setting,
+                cpu1_noninvasive: setting,
+                cpu1_invasive: setting,
                 jtag_tap: setting,
                 flash_mass_erase_command: setting,
                 isp_boot_command: setting,
@@ -295,11 +308,11 @@ impl From<[u32; 2]> for DebugSettings {
                 secure_noninvasive: from_bit(2),
                 secure_invasive: from_bit(3),
                 jtag_tap: from_bit(4),
-                cm33_invasive: from_bit(5),
+                cpu1_invasive: from_bit(5),
                 isp_boot_command: from_bit(6),
                 fault_analysis_command: from_bit(7),
                 flash_mass_erase_command: from_bit(8),
-                cm33_noninvasive: from_bit(9),
+                cpu1_noninvasive: from_bit(9),
                 check_uuid: ((fix >> 15) & 1) != 0,
             }
         }
@@ -328,11 +341,11 @@ impl From<DebugSettings> for [u32; 2] {
         set_bits(settings.secure_noninvasive, 2);
         set_bits(settings.secure_invasive, 3);
         set_bits(settings.jtag_tap, 4);
-        set_bits(settings.cm33_invasive, 5);
+        set_bits(settings.cpu1_invasive, 5);
         set_bits(settings.isp_boot_command, 6);
         set_bits(settings.fault_analysis_command, 7);
         set_bits(settings.flash_mass_erase_command, 8);
-        set_bits(settings.cm33_noninvasive, 9);
+        set_bits(settings.cpu1_noninvasive, 9);
 
         fixed |= (settings.check_uuid as u32) << 15;
 
