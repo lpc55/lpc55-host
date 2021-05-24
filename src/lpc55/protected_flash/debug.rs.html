@@ -354,6 +354,12 @@
 <span id="351">351</span>
 <span id="352">352</span>
 <span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// https://www.nxp.com/docs/en/application-note/AN13037.pdf</span>
 
@@ -512,22 +518,28 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugSettings</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
+    <span class="doccomment">/// non-invasive debugging of the TrustZone non-secure domain of CPU0</span>
     <span class="kw">pub</span> <span class="ident">nonsecure_noninvasive</span>: <span class="ident">DebugSetting</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
+    <span class="doccomment">/// invasive debugging of the TrustZone non-secure domain of CPU0</span>
     <span class="kw">pub</span> <span class="ident">nonsecure_invasive</span>: <span class="ident">DebugSetting</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
+    <span class="doccomment">/// non-invasive debugging of the TrustZone secure domain of CPU0</span>
     <span class="kw">pub</span> <span class="ident">secure_noninvasive</span>: <span class="ident">DebugSetting</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
+    <span class="doccomment">/// invasive debugging of the TrustZone secure domain of CPU0</span>
     <span class="kw">pub</span> <span class="ident">secure_invasive</span>: <span class="ident">DebugSetting</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">cpu1_invasive</span>: <span class="ident">DebugSetting</span>,
+    <span class="doccomment">/// non-invasive debugging of CPU1</span>
+    <span class="kw">pub</span> <span class="ident">cpu1_noninvasive</span>: <span class="ident">DebugSetting</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">cpu1_noninvasive</span>: <span class="ident">DebugSetting</span>,
+    <span class="doccomment">/// invasive debugging of CPU1</span>
+    <span class="kw">pub</span> <span class="ident">cpu1_invasive</span>: <span class="ident">DebugSetting</span>,
 
     <span class="doccomment">/// JTAG test access port</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
@@ -561,8 +573,8 @@
             <span class="self">self</span>.<span class="ident">nonsecure_invasive</span>,
             <span class="self">self</span>.<span class="ident">secure_noninvasive</span>,
             <span class="self">self</span>.<span class="ident">secure_invasive</span>,
-            <span class="self">self</span>.<span class="ident">cpu1_invasive</span>,
             <span class="self">self</span>.<span class="ident">cpu1_noninvasive</span>,
+            <span class="self">self</span>.<span class="ident">cpu1_invasive</span>,
             <span class="self">self</span>.<span class="ident">jtag_tap</span>,
             <span class="self">self</span>.<span class="ident">flash_mass_erase_command</span>,
             <span class="self">self</span>.<span class="ident">isp_boot_command</span>,
@@ -577,8 +589,8 @@
             <span class="self">self</span>.<span class="ident">nonsecure_invasive</span>,
             <span class="self">self</span>.<span class="ident">secure_noninvasive</span>,
             <span class="self">self</span>.<span class="ident">secure_invasive</span>,
-            <span class="self">self</span>.<span class="ident">cpu1_invasive</span>,
             <span class="self">self</span>.<span class="ident">cpu1_noninvasive</span>,
+            <span class="self">self</span>.<span class="ident">cpu1_invasive</span>,
             <span class="self">self</span>.<span class="ident">jtag_tap</span>,
             <span class="self">self</span>.<span class="ident">flash_mass_erase_command</span>,
             <span class="self">self</span>.<span class="ident">isp_boot_command</span>,
@@ -602,8 +614,8 @@
                 <span class="ident">nonsecure_invasive</span>: <span class="ident">setting</span>,
                 <span class="ident">secure_noninvasive</span>: <span class="ident">setting</span>,
                 <span class="ident">secure_invasive</span>: <span class="ident">setting</span>,
-                <span class="ident">cpu1_invasive</span>: <span class="ident">setting</span>,
                 <span class="ident">cpu1_noninvasive</span>: <span class="ident">setting</span>,
+                <span class="ident">cpu1_invasive</span>: <span class="ident">setting</span>,
                 <span class="ident">jtag_tap</span>: <span class="ident">setting</span>,
                 <span class="ident">flash_mass_erase_command</span>: <span class="ident">setting</span>,
                 <span class="ident">isp_boot_command</span>: <span class="ident">setting</span>,
