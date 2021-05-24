@@ -347,7 +347,16 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="comment">// https://www.nxp.com/docs/en/application-note/AN13037.pdf</span>
+
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">is_default</span>;
@@ -469,6 +478,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// It seems that the meaning of this bit is incorrectly used</span>
     <span class="doccomment">/// for the enabled and disabled states in Table 1064 of that section.</span>
+    <span class="doccomment">/// And indeed, AN13037 confirms this.</span>
     <span class="kw">fn</span> <span class="ident">enabled_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">use</span> <span class="ident">DebugSetting</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
@@ -484,6 +494,8 @@
         <span class="kw">use</span> <span class="ident">DebugSetting</span>::<span class="kw-2">*</span>;
         <span class="comment">//  UM, 517.1.4, Table 1064</span>
         <span class="comment">//  It seems that Enabled and Disabled are mixed up / incorrect in the table.</span>
+        <span class="comment">//</span>
+        <span class="comment">//  Indeed, AN13037 confirms this.</span>
         <span class="kw">match</span> (<span class="ident">fixed</span>, <span class="ident">enabled</span>) {
             (<span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Enabled</span>,
             (<span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Authenticate</span>,
@@ -495,6 +507,8 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="comment">// The `{non,}secure_{non,}invasive` settings pertain to CPU0,</span>
+<span class="comment">// whereas CPU1 has two separate settings.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugSettings</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
@@ -510,10 +524,10 @@
     <span class="kw">pub</span> <span class="ident">secure_invasive</span>: <span class="ident">DebugSetting</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">cm33_invasive</span>: <span class="ident">DebugSetting</span>,
+    <span class="kw">pub</span> <span class="ident">cpu1_invasive</span>: <span class="ident">DebugSetting</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">cm33_noninvasive</span>: <span class="ident">DebugSetting</span>,
+    <span class="kw">pub</span> <span class="ident">cpu1_noninvasive</span>: <span class="ident">DebugSetting</span>,
 
     <span class="doccomment">/// JTAG test access port</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
@@ -547,8 +561,8 @@
             <span class="self">self</span>.<span class="ident">nonsecure_invasive</span>,
             <span class="self">self</span>.<span class="ident">secure_noninvasive</span>,
             <span class="self">self</span>.<span class="ident">secure_invasive</span>,
-            <span class="self">self</span>.<span class="ident">cm33_invasive</span>,
-            <span class="self">self</span>.<span class="ident">cm33_noninvasive</span>,
+            <span class="self">self</span>.<span class="ident">cpu1_invasive</span>,
+            <span class="self">self</span>.<span class="ident">cpu1_noninvasive</span>,
             <span class="self">self</span>.<span class="ident">jtag_tap</span>,
             <span class="self">self</span>.<span class="ident">flash_mass_erase_command</span>,
             <span class="self">self</span>.<span class="ident">isp_boot_command</span>,
@@ -563,8 +577,8 @@
             <span class="self">self</span>.<span class="ident">nonsecure_invasive</span>,
             <span class="self">self</span>.<span class="ident">secure_noninvasive</span>,
             <span class="self">self</span>.<span class="ident">secure_invasive</span>,
-            <span class="self">self</span>.<span class="ident">cm33_invasive</span>,
-            <span class="self">self</span>.<span class="ident">cm33_noninvasive</span>,
+            <span class="self">self</span>.<span class="ident">cpu1_invasive</span>,
+            <span class="self">self</span>.<span class="ident">cpu1_noninvasive</span>,
             <span class="self">self</span>.<span class="ident">jtag_tap</span>,
             <span class="self">self</span>.<span class="ident">flash_mass_erase_command</span>,
             <span class="self">self</span>.<span class="ident">isp_boot_command</span>,
@@ -588,8 +602,8 @@
                 <span class="ident">nonsecure_invasive</span>: <span class="ident">setting</span>,
                 <span class="ident">secure_noninvasive</span>: <span class="ident">setting</span>,
                 <span class="ident">secure_invasive</span>: <span class="ident">setting</span>,
-                <span class="ident">cm33_invasive</span>: <span class="ident">setting</span>,
-                <span class="ident">cm33_noninvasive</span>: <span class="ident">setting</span>,
+                <span class="ident">cpu1_invasive</span>: <span class="ident">setting</span>,
+                <span class="ident">cpu1_noninvasive</span>: <span class="ident">setting</span>,
                 <span class="ident">jtag_tap</span>: <span class="ident">setting</span>,
                 <span class="ident">flash_mass_erase_command</span>: <span class="ident">setting</span>,
                 <span class="ident">isp_boot_command</span>: <span class="ident">setting</span>,
@@ -645,11 +659,11 @@
                 <span class="ident">secure_noninvasive</span>: <span class="ident">from_bit</span>(<span class="number">2</span>),
                 <span class="ident">secure_invasive</span>: <span class="ident">from_bit</span>(<span class="number">3</span>),
                 <span class="ident">jtag_tap</span>: <span class="ident">from_bit</span>(<span class="number">4</span>),
-                <span class="ident">cm33_invasive</span>: <span class="ident">from_bit</span>(<span class="number">5</span>),
+                <span class="ident">cpu1_invasive</span>: <span class="ident">from_bit</span>(<span class="number">5</span>),
                 <span class="ident">isp_boot_command</span>: <span class="ident">from_bit</span>(<span class="number">6</span>),
                 <span class="ident">fault_analysis_command</span>: <span class="ident">from_bit</span>(<span class="number">7</span>),
                 <span class="ident">flash_mass_erase_command</span>: <span class="ident">from_bit</span>(<span class="number">8</span>),
-                <span class="ident">cm33_noninvasive</span>: <span class="ident">from_bit</span>(<span class="number">9</span>),
+                <span class="ident">cpu1_noninvasive</span>: <span class="ident">from_bit</span>(<span class="number">9</span>),
                 <span class="ident">check_uuid</span>: ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">15</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
             }
         }
@@ -678,11 +692,11 @@
         <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">secure_noninvasive</span>, <span class="number">2</span>);
         <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">secure_invasive</span>, <span class="number">3</span>);
         <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">jtag_tap</span>, <span class="number">4</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">cm33_invasive</span>, <span class="number">5</span>);
+        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">cpu1_invasive</span>, <span class="number">5</span>);
         <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">isp_boot_command</span>, <span class="number">6</span>);
         <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">fault_analysis_command</span>, <span class="number">7</span>);
         <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">flash_mass_erase_command</span>, <span class="number">8</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">cm33_noninvasive</span>, <span class="number">9</span>);
+        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">cpu1_noninvasive</span>, <span class="number">9</span>);
 
         <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">settings</span>.<span class="ident">check_uuid</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">15</span>;
 
