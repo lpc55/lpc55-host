@@ -531,8 +531,8 @@ impl From<u8> for BootSpeed {
         use BootSpeed::*;
         match value {
             0b00 => Nxp,
-            0b01 => Fro48,
-            0b10 => Fro96,
+            0b01 => Fro96,
+            0b10 => Fro48,
             0b11 | _ => Reserved,
         }
     }
