@@ -461,7 +461,7 @@ impl UnsignedSb21File {
         let cert_table_len = 4 + padded_certificate0_der.len() as u32;
         // really?
         // let total_image_length_in_bytes = self.signed_data_length() as _;
-        let total_image_length_in_bytes = cert_table_len + 368;
+        let total_image_length_in_bytes = (((cert_table_len + 368) + 15)/16) * 16;
         let certificate_block_header = FullCertificateBlockHeader {
             header_length_in_bytes: 32,
             build_number: self.parameters.build,
