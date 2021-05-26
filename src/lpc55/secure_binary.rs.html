@@ -1849,7 +1849,7 @@
         <span class="kw">let</span> <span class="ident">cert_table_len</span> <span class="op">=</span> <span class="number">4</span> <span class="op">+</span> <span class="ident">padded_certificate0_der</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="comment">// really?</span>
         <span class="comment">// let total_image_length_in_bytes = self.signed_data_length() as _;</span>
-        <span class="kw">let</span> <span class="ident">total_image_length_in_bytes</span> <span class="op">=</span> <span class="ident">cert_table_len</span> <span class="op">+</span> <span class="number">368</span>;
+        <span class="kw">let</span> <span class="ident">total_image_length_in_bytes</span> <span class="op">=</span> (((<span class="ident">cert_table_len</span> <span class="op">+</span> <span class="number">368</span>) <span class="op">+</span> <span class="number">15</span>)<span class="op">/</span><span class="number">16</span>) <span class="op">*</span> <span class="number">16</span>;
         <span class="kw">let</span> <span class="ident">certificate_block_header</span> <span class="op">=</span> <span class="ident">FullCertificateBlockHeader</span> {
             <span class="ident">header_length_in_bytes</span>: <span class="number">32</span>,
             <span class="ident">build_number</span>: <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">build</span>,
