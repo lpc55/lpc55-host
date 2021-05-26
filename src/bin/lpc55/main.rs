@@ -309,12 +309,20 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
             // "yaml-pretty" => println!("{}", serde_yaml::to_string_pretty(&pfr).unwrap()),
             _ => panic!(),
         }
-        // let j = serde_json::to_string(&pfr).unwrap();
-        // println!("{}", j);
+        if let Some(filename) = command.value_of("OUTPUT FACTORY") {
+            fs::write(
+                &filename,
+                &data[512*3..512*4],
+            ).expect("Unable to write file");
+        }
 
-        // println!("CFPA-scratch == CFPA-ping: {}", pfr.field.scratch == pfr.field.ping);
-        // println!("CFPA-scratch == CFPA-pong: {}", pfr.field.scratch == pfr.field.pong);
-        // println!("CFPA-ping == CFPA-pong: {}", pfr.field.ping == pfr.field.pong);
+        if let Some(filename) = command.value_of("OUTPUT CUSTOMER") {
+
+            fs::write(
+                &filename,
+                &data[0..512*3],
+            ).expect("Unable to write file");
+        }
     }
 
     if let Some(command) = args.subcommand_matches("write-memory") {

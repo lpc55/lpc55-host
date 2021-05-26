@@ -243,7 +243,22 @@ pub fn app() -> clap::App<'static, 'static> {
                      "yaml",
                      "toml",
                  ])
-             )
+            )
+            .arg(Arg::with_name("OUTPUT FACTORY")
+                    .short("f")
+                    .long("output-factory")
+                    .value_name("OUTPUT")
+                    .help("Output the factory pfr page to a 512 byte binary file.")
+                    .required(false)
+            )
+            .arg(Arg::with_name("OUTPUT CUSTOMER")
+                    .short("c")
+                    .long("output-customer")
+                    .value_name("OUTPUT")
+                    .help("Output the customer pfr pages to a 1536 byte binary file (raw, ping, and pong pages).")
+                    .required(false)
+            )
+
         )
 
         .subcommand(SubCommand::with_name("read-memory")
