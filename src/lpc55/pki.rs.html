@@ -493,6 +493,14 @@
 <span id="490">490</span>
 <span id="491">491</span>
 <span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Abstraction allowing use of either PKCS1 PEM file or PKCS11 keys</span>
 <span class="doccomment">//! for signing data.</span>
@@ -937,6 +945,14 @@
         <span class="kw">for</span> <span class="ident">fingerprint</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">fingerprints</span>().<span class="ident">iter</span>() {
             <span class="ident">hash</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">fingerprint</span>);
         }
+        <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">32</span>]<span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">hash</span>.<span class="ident">finalize</span>()).<span class="ident">unwrap</span>();
+        <span class="ident">Sha256Hash</span>(<span class="ident">hash</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fingerprint_from_bytes</span>(<span class="ident">fingerprints</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Sha256Hash</span> {
+        <span class="kw">use</span> <span class="ident">sha2</span>::<span class="ident">Digest</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">sha2</span>::<span class="ident">Sha256</span>::<span class="ident">new</span>();
+        <span class="ident">hash</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">fingerprints</span>);
         <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">32</span>]<span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">hash</span>.<span class="ident">finalize</span>()).<span class="ident">unwrap</span>();
         <span class="ident">Sha256Hash</span>(<span class="ident">hash</span>)
     }
