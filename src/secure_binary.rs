@@ -275,16 +275,22 @@ pub struct SignedSb21File {
 impl Sb21HeaderPart {
     fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
+        let mut cert_block = Vec::new();
         bytes.extend_from_slice(&self.header.to_bytes());
         bytes.extend_from_slice(&self.digest);
         bytes.extend_from_slice(&self.encrypted_keyblob);
-        bytes.extend_from_slice(&self.certificate_block_header.to_bytes());
-        bytes.extend_from_slice(&(self.padded_certificate0_der.len() as u32).to_le_bytes());
+        cert_block.extend_from_slice(&self.certificate_block_header.to_bytes());
+        cert_block.extend_from_slice(&(self.padded_certificate0_der.len() as u32).to_le_bytes());
         assert!(self.padded_certificate0_der.len() > 100);
-        bytes.extend_from_slice(&self.padded_certificate0_der);
+        cert_block.extend_from_slice(&self.padded_certificate0_der);
         for fp in self.rot_fingerprints.iter() {
-            bytes.extend_from_slice(fp.0.as_ref());
+            cert_block.extend_from_slice(fp.0.as_ref());
         }
+        // Pad 16
+        cert_block.resize(((cert_block.len() + 15) / 16) * 16, 0);
+
+        bytes.extend_from_slice(&cert_block);
+
         bytes
     }
 }
@@ -443,6 +449,7 @@ impl UnsignedSb21File {
 
         let mut padded_certificate0_der = Vec::from(self.certificates.certificate_der(0.into()));
         let unpadded_cert_length = padded_certificate0_der.len();
+        // let padded_len = 16*((unpadded_cert_length + 15)/16);
         let padded_len = 4*((unpadded_cert_length + 3)/4);
         // dbg!(padded_certificate0_der.len());
         padded_certificate0_der.resize(padded_len, 0);
@@ -519,13 +526,15 @@ impl UnsignedSb21File {
 
     pub fn signed_data_length(&self) -> usize {
         // need "padded" length here
-        // let certificate_length = 16*((self.certificates.certificate_ders[0].len() + 15)/16);
+        // let certificate_length = 16*((self.certificates.certificate_der(0.into()).len() + 15)/16);
         let certificate_length = 4*((self.certificates.certificate_der(0.into()).len() + 3)/4);
 
         // let header_blocks = 16;
         // let keyblob_blocks = 5;
         let signed_data_length = 16*(6 + 2 + 5 + 2) + 4 + certificate_length + 128;
-        signed_data_length
+
+        // pad 16
+        16 * ((signed_data_length + 15) / 16)
     }
 
     pub fn boot_tag_offset_blocks(&self) -> usize {
@@ -683,8 +692,18 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
             let (i, certificate_block_header) = FullCertificateBlockHeader::from_bytes(i)?;
             let (i, certificate_length) = le_u32::<_, ()>(i).unwrap();
             let (i, certificate_data) = take::<_, _, ()>(certificate_length)(i)?;
-            let (i, _rot_key_hashes) = take::<_, _, ()>(128usize)(i)?;
+
+            let unpadded_signed_data_length = 16*(6 + 2 + 5 + 2) + 4 + certificate_length + 128;
+
+            let (i, rot_key_hashes) = take::<_, _, ()>(128usize)(i)?;
+            let i = if (unpadded_signed_data_length % 16) != 0 {
+                 take::<_, _, ()>(16u8 - (unpadded_signed_data_length % 16) as u8)(i)?.0
+            } else {
+                i
+            };
             let (i, signature) = take::<_, _, ()>(256usize)(i)?;
+
+            info!("rotkh: {}", hex_str!(&crate::pki::Certificates::fingerprint_from_bytes(&rot_key_hashes).0));
 
             // the weird sectionAllignment (sic!)
             info!("SB2 header: \n{:#?}", &header);
@@ -707,12 +726,17 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
                 _ => { panic!("invalid certificate"); }
             };
             // info!("cert: \n{:?}", &certificate);
+            println!("certificate length: {}", certificate_length);
 
             // now let's verify the signature
-            let signed_data_length = 16*(6 + 2 + 5 + 2) + 4 + certificate_length + 128;
+            // pad 16
+            println!("unpadded signed data length: 0x{:x}", unpadded_signed_data_length);
+            // let signed_data_length = signed_data_length + (16 - (signed_data_length % 16));
+            let signed_data_length = 16 * ((unpadded_signed_data_length + 15) / 16);
+
             // let signed_data_length = 0x5f0;
             println!("end of cert data: {:>16x}", hex_str!(&certificate_data));
-            println!("signed_data_length: 0x{:x}", signed_data_length);
+            println!("signed data length: 0x{:x}", signed_data_length);
 
             let signed_data_hash = sha256(&data[..signed_data_length as usize]);
             println!("data hash: {}", hex_str!(&signed_data_hash, 4));
