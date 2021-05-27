@@ -225,6 +225,7 @@ pub struct UnsignedSb21File {
     // which owns the DER-encoded cert as Vec<u8>, and returns parsed view on demand.
     // certificates: [X509Certificate<'static>; 4],
     pub certificates: Certificates,
+    pub slot: CertificateSlot,
     pub keyblob: Keyblob,
     pub commands: Vec<BootCommand>,
 }
@@ -346,6 +347,8 @@ impl UnsignedSb21File {
         };
 
         let certificates = Certificates::try_from_pki(&config.pki)?;
+        let signing_key = SigningKey::try_from_uri(config.pki.signing_key.as_ref())?;
+        let slot = certificates.index_of(signing_key.public_key())?;
 
         let keyblob = Keyblob { dek: config.reproducibility.dek, mac: config.reproducibility.mac };
 
@@ -424,6 +427,7 @@ impl UnsignedSb21File {
         let return_value = Self {
             parameters,
             certificates,
+            slot,
             keyblob,
             commands,
         };
@@ -447,7 +451,7 @@ impl UnsignedSb21File {
 
         let encrypted_keyblob = self.keyblob.to_bytes();
 
-        let mut padded_certificate0_der = Vec::from(self.certificates.certificate_der(0.into()));
+        let mut padded_certificate0_der = Vec::from(self.certificates.certificate_der(self.slot));
         let unpadded_cert_length = padded_certificate0_der.len();
         // let padded_len = 16*((unpadded_cert_length + 15)/16);
         let padded_len = 4*((unpadded_cert_length + 3)/4);
@@ -526,8 +530,7 @@ impl UnsignedSb21File {
 
     pub fn signed_data_length(&self) -> usize {
         // need "padded" length here
-        // let certificate_length = 16*((self.certificates.certificate_der(0.into()).len() + 15)/16);
-        let certificate_length = 4*((self.certificates.certificate_der(0.into()).len() + 3)/4);
+        let certificate_length = 4*((self.certificates.certificate_der(self.slot).len() + 3)/4);
 
         // let header_blocks = 16;
         // let keyblob_blocks = 5;

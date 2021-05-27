@@ -45,12 +45,11 @@ pub struct Pki {
 
     /// Paths to the four root certificates.
     ///
+    /// The appropriate certificate to include in signed firmware and containers is selected
+    /// using the signing key's public key.
+    ///
     /// Encoded as X.509 DER files.
     pub certificates: [String; 4],
-
-    #[serde(skip_serializing_if = "is_default")]
-    #[serde(default)]
-    pub certificate_slot: CertificateSlot,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -254,6 +253,8 @@ impl signature::Signer<Signature> for SigningKey {
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct CertificateSlot(usize);
 
+// This should not be necessary; not having it would prevent
+// negligence errors like "Default::default.into()".
 impl From<usize> for CertificateSlot {
     /// panics if i > 3
     fn from(i: usize) -> Self {
@@ -409,7 +410,7 @@ impl Certificates {
 
     pub fn index_of(&self, public_key: PublicKey) -> Result<CertificateSlot> {
         for i in 0..4 {
-            let slot = i.into();
+            let slot = CertificateSlot(i);
             if public_key == self.certificate(slot).public_key() {
                 return Ok(slot)
             }
