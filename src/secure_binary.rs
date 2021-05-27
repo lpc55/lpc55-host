@@ -142,7 +142,11 @@ pub struct Reproducibility {
     #[serde(default)]
     /// Timestamp in microseconds since 2000-01-01
     ///
-    /// If left out of configuration, the current timestamp is used.
+    /// If left out of configuration, when signing the `product` version
+    /// of `Firmware` is is interpreted as calver (i.e., minor version is
+    /// interpreted as days since 2020-01-01) and used. This is in contrast
+    /// to the vendor's implementation, which uses "current" time, making the
+    /// build unreproducible.
     pub timestamp: u64,
     #[serde(skip_serializing_if = "is_default")]
     #[serde(default)]
@@ -326,19 +330,9 @@ impl UnsignedSb21File {
                     nonce => nonce,
                 }
             },
-            timestamp: {
-                match config.reproducibility.timestamp {
-                    0 => {
-                        use std::time::SystemTime;
-                        // let nxp_epoch = ?
-                        // let now = SystemTime::now().duration_since(nxp_epoch);
-                        // now.as_millis()
-
-                        // double check, Python's `datetime.datetime(2000, 1, 1, 0, 0, 0, 0).timestamp()` is `946681200.0`
-                        (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() - 946_681_200_000) as _
-                    }
-                    timestamp => timestamp,
-                }
+            timestamp: match config.reproducibility.timestamp {
+                0 => config.firmware.product.timestamp_micros(),
+                timestamp => timestamp,
             },
             build: config.firmware.build,
             component: config.firmware.component,
@@ -896,6 +890,14 @@ impl Version {
     pub fn to_pretty(&self) -> String {
         let pretty = format!("{}.{}.{}", self.major, self.minor, self.patch);
         pretty
+    }
+
+    pub fn timestamp_micros(&self) -> u64 {
+        use chrono::{Duration, naive::NaiveDate};
+        let epoch = NaiveDate::from_ymd(2020, 1, 1).and_hms(12, 0, 0);
+        let date = epoch + Duration::days(self.minor as _);
+
+        (date.timestamp_millis() * 1000) as _
     }
 }
 
