@@ -52,12 +52,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         _ => None
     };
 
-    let uuid: Option<Uuid> = match args.value_of("UUID").map(Uuid::parse_str) {
-        // isn't there a combinator for this? o.o
-        Some(Ok(uuid)) => Some(uuid),
-        Some(Err(e)) => return Err(e)?,
-        None => None,
-    };
+    let uuid = args.value_of("UUID").map(Uuid::parse_str).transpose()?;
 
     let bootloader = || Bootloader::try_find(vid, pid, uuid).ok_or(anyhow!("Could not attach to a bootloader"));
 
