@@ -3,6 +3,7 @@
 //! Construct a `Bootloader` from a VID/PID pair (optionally a UUID to disambiguate),
 //! then call its methods.
 
+use anyhow::anyhow;
 use enum_iterator::IntoEnumIterator;
 use hidapi::HidApi;
 use serde::{Deserialize, Serialize};
@@ -59,22 +60,29 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 
 impl Bootloader {
-    /// Select first available ROM bootloader with the given VID and PID.
-    ///
-    /// TODO: Open question is whether this is a good idea.
-    /// For instance, `write-flash` on the wrong device could wreak havoc.
-    pub fn try_new(vid: Option<u16>, pid: Option<u16>) -> Option<Self> {
+    /// Select a unique ROM bootloader with the given VID and PID.
+    pub fn try_new(vid: Option<u16>, pid: Option<u16>) -> anyhow::Result<Self> {
         Self::try_find(vid, pid, None)
     }
 
-    /// Attempt to find a ROM bootloader with the given VID, PID and UUID.
-    pub fn try_find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> Option<Self> {
+    /// Attempt to find a unique ROM bootloader with the given VID, PID and UUID.
+    pub fn try_find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> anyhow::Result<Self> {
+        let mut bootloaders = Self::find(vid, pid, uuid);
+        if bootloaders.len() > 1 {
+            Err(anyhow!("Muliple matching bootloaders found"))
+        } else {
+            bootloaders.pop().ok_or_else(|| anyhow!("No matching bootloader found"))
+        }
+    }
+
+    /// Finds all ROM bootloader with the given VID, PID and UUID.
+    pub fn find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> Vec<Self> {
         Self::list()
             .into_iter()
             .filter(|bootloader| vid.map_or(true, |vid| vid == bootloader.vid))
             .filter(|bootloader| pid.map_or(true, |pid| pid == bootloader.pid))
             .filter(|bootloader| uuid.map_or(true, |uuid| uuid.as_u128() == bootloader.uuid))
-            .next()
+            .collect()
     }
 
     /// Returns a vector of all HID devices that appear to be ROM bootloaders

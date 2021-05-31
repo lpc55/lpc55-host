@@ -4,7 +4,7 @@ use core::convert::TryFrom;
 use std::io::{self, Write as _};
 use std::fs;
 
-use anyhow::{anyhow};
+use anyhow::{Context as _, anyhow};
 use delog::hex_str;
 use log::{info, warn, trace};
 use uuid::Uuid;
@@ -54,7 +54,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
     let uuid = args.value_of("UUID").map(Uuid::parse_str).transpose()?;
 
-    let bootloader = || Bootloader::try_find(vid, pid, uuid).ok_or(anyhow!("Could not attach to a bootloader"));
+    let bootloader = || Bootloader::try_find(vid, pid, uuid).context("Could not attach to a bootloader");
 
     if let Some(command) = args.subcommand_matches("http") {
         let bootloader = bootloader()?;
