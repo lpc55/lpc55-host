@@ -59,7 +59,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 
 impl Bootloader {
-    /// Select first available ROM bootloader with the given VID/PID pair.
+    /// Select first available ROM bootloader with the given VID and PID.
     ///
     /// TODO: Open question is whether this is a good idea.
     /// For instance, `write-flash` on the wrong device could wreak havoc.
@@ -67,22 +67,13 @@ impl Bootloader {
         Self::try_find(vid, pid, None)
     }
 
-    /// Attempt to find a ROM bootloader with the given UUID (and VID/PID pair).
+    /// Attempt to find a ROM bootloader with the given VID, PID and UUID.
     pub fn try_find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> Option<Self> {
         Self::list()
             .into_iter()
-            .filter(|bootloader| {
-                let mut predicate = true;
-                if vid.is_some() && pid.is_some() {
-                    predicate = bootloader.vid == vid.unwrap() && bootloader.pid == pid.unwrap();
-                }
-                if predicate {
-                    if let Some(uuid) = uuid {
-                        predicate = bootloader.uuid == uuid.as_u128();
-                    }
-                }
-                predicate
-            })
+            .filter(|bootloader| vid.map_or(true, |vid| vid == bootloader.vid))
+            .filter(|bootloader| pid.map_or(true, |pid| pid == bootloader.pid))
+            .filter(|bootloader| uuid.map_or(true, |uuid| uuid.as_u128() == bootloader.uuid))
             .next()
     }
 
