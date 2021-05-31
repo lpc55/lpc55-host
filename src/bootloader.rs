@@ -65,19 +65,13 @@ impl Bootloader {
     /// For instance, `write-flash` on the wrong device could wreak havoc.
     pub fn try_new(vid: Option<u16>, pid: Option<u16>) -> Option<Self> {
         Self::try_find(vid, pid, None)
-        // // Bootloader is not Copy, so we can't filter
-        // let mut bootloaders = Self::list();
-        // let index = bootloaders.iter()
-        //     .position(|bootloader| bootloader.vid == vid && bootloader.pid == pid);
-        // index.map(|i| bootloaders.remove(i))
     }
 
     /// Attempt to find a ROM bootloader with the given UUID (and VID/PID pair).
     pub fn try_find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> Option<Self> {
-        // Bootloader is not Copy, so we can't filter
-        let mut bootloaders = Self::list();
-        let index = bootloaders.iter()
-            .position(|bootloader| {
+        Self::list()
+            .into_iter()
+            .filter(|bootloader| {
                 let mut predicate = true;
                 if vid.is_some() && pid.is_some() {
                     predicate = bootloader.vid == vid.unwrap() && bootloader.pid == pid.unwrap();
@@ -88,8 +82,8 @@ impl Bootloader {
                     }
                 }
                 predicate
-            });
-        index.map(|i| bootloaders.remove(i))
+            })
+            .next()
     }
 
     /// Returns a vector of all HID devices that appear to be ROM bootloaders
