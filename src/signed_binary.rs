@@ -122,7 +122,7 @@ fn modify_header(padded_image: &mut Vec<u8>, padded_certificate_length: usize) -
     padded_image[0x20..][..4].copy_from_slice((total_image_size as u32).to_le_bytes().as_ref());
     // 0x24: image type "SPT" = [XIP Signed, TZ disabled, 0, 0-]
     // This doesn't seem to match UM 11126, Chap. 7, Table 183 at all :)
-    padded_image[0x24..][..4].copy_from_slice(&[0x04, 0x40, 0x00, 0x00]);
+    padded_image[0x24..][..4].copy_from_slice(&[0x04, 0x00, 0x00, 0x00]);
     // "header offset", i.e. image size
     padded_image[0x28..][..4].copy_from_slice((image_size as u32).to_le_bytes().as_ref());
 
