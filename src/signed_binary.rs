@@ -120,8 +120,10 @@ fn modify_header(padded_image: &mut Vec<u8>, padded_certificate_length: usize) -
 
     // 0x20: total image size
     padded_image[0x20..][..4].copy_from_slice((total_image_size as u32).to_le_bytes().as_ref());
-    // 0x24: image type "SPT" = [XIP Signed, TZ disabled, 0, 0-]
+    // 0x24: image type "SPT" = [XIP Signed, TZ enabled, 0, 0-]
     // This doesn't seem to match UM 11126, Chap. 7, Table 183 at all :)
+    // NOTE: Setting "TZ disabled" (0x40 in second byte) prevents use of the
+    // "boot to bootrom" method in lpc55-hal.
     padded_image[0x24..][..4].copy_from_slice(&[0x04, 0x00, 0x00, 0x00]);
     // "header offset", i.e. image size
     padded_image[0x28..][..4].copy_from_slice((image_size as u32).to_le_bytes().as_ref());
