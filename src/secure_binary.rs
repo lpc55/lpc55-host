@@ -30,7 +30,7 @@
 use std::convert::{TryFrom, TryInto};
 use std::fs;
 
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 use serde::{Deserialize, Serialize};
 use x509_parser::certificate::X509Certificate;
 
@@ -77,13 +77,16 @@ pub struct Config {
     pub customer_settings: CustomerSettings,
 
     /// Commands and command sequences for the SB file
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
     pub commands: Vec<BootCommandDescription>,
 }
 
 impl TryFrom<&'_ str> for Config {
     type Error = anyhow::Error;
     fn try_from(config_filename: &str) -> anyhow::Result<Self> {
-        let config = fs::read_to_string(config_filename)?;
+        let config = fs::read_to_string(config_filename)
+            .with_context(|| format!("Failed to read config from {}", config_filename))?;
         let config: Config = toml::from_str(&config)?;
         trace!("{:#?}", &config);
         Ok(config)
@@ -136,7 +139,10 @@ pub struct Reproducibility {
     #[serde(default)]
     /// Nonce for the "AES-CTR-in-NXP-variant" encryption of the firmware.
     ///
-    /// If left out, random values are chosen.
+    /// If left out, all zeros are used.
+    ///
+    /// This differs from vendor's `elftosb`, in order to ensure default
+    /// reproducibility, and we don't have the encrypted firmware use case.
     pub nonce: [u32; 4],
     #[serde(skip_serializing_if = "is_default")]
     #[serde(default)]
@@ -324,12 +330,13 @@ impl UnsignedSb21File {
         // pub commands: Vec<BootCommand>,
 
         let parameters = Sb21FileParameters {
-            nonce: {
-                match config.reproducibility.nonce {
-                    [0, 0, 0, 0] => rand::random(),
-                    nonce => nonce,
-                }
-            },
+            nonce: config.reproducibility.nonce,
+            // nonce: {
+            //     match config.reproducibility.nonce {
+            //         [0, 0, 0, 0] => rand::random(),
+            //         nonce => nonce,
+            //     }
+            // },
             timestamp: match config.reproducibility.timestamp {
                 0 => config.firmware.product.timestamp_micros(),
                 timestamp => timestamp,
@@ -357,7 +364,10 @@ impl UnsignedSb21File {
                     match sequence {
 
                         BootCommandSequenceDescription::UploadSignedImage => {
-                            let mut image = fs::read(&config.firmware.signed_image)?;
+                            let mut image = fs::read(&config.firmware.signed_image)
+                                .with_context(|| format!(
+                                    "Failed to read signed firmware image from {}",
+                                    config.firmware.signed_image))?;
                             let unpadded_image_size = image.len();
 
                             // Pad size to make 512 aligned
@@ -674,7 +684,8 @@ impl SignedSb21File {
 }
 
 pub fn show(filename: &str) -> Result<Vec<u8>> {
-    let data = fs::read(filename)?;
+    let data = fs::read(filename)
+        .with_context(|| format!("Failed to read data from from {}", filename))?;
     trace!("filename: {}", filename);
     trace!("filesize: {}B", data.len());
 
