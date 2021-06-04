@@ -1,6 +1,6 @@
 [package]
 name = "lpc55"
-version = "0.1.0-alpha.5"
+version = "0.1.0-alpha.6"
 authors = ["Nicolas Stalder <n@stalder.io>"]
 edition = "2018"
 description = "Host-side tooling to interact with LPC55 chips via the ROM bootloader"

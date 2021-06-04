@@ -33,8 +33,7 @@ impl core::fmt::Debug for Bootloader {
         f.debug_struct("Bootloader")
             .field("vid", &hexstr!(&self.vid.to_be_bytes()))
             .field("pid", &hexstr!(&self.pid.to_be_bytes()))
-            // .field("uuid", &hexstr!(self.uuid.to_be_bytes().as_ref()))
-            .field("uuid", &Uuid::from_u128(self.uuid))
+            .field("uuid", &hexstr!(&self.uuid.to_be_bytes()))
         .finish()
     }
 }
