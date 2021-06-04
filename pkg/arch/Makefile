@@ -11,10 +11,10 @@ build-install-aurutils-chroot:
 	sudo pacman -Syu
 	sudo pacman -S lpc55
 
-build-install-makepkg:
+build-makepkg:
 	makepkg -f
 
-build-makepkg:
+build-install-makepkg:
 	makepkg -fi
 
 build-devtools-chroot:
