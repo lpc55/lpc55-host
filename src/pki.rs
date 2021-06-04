@@ -4,7 +4,7 @@
 use std::convert::{TryFrom, TryInto};
 use std::{fmt, fs};
 
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 use serde::{Deserialize, Serialize};
 use x509_parser::certificate::X509Certificate;
 
@@ -63,7 +63,8 @@ pub struct WrappedPki {
 impl TryFrom<&'_ str> for Pki {
     type Error = anyhow::Error;
     fn try_from(config_filename: &str) -> anyhow::Result<Self> {
-        let config = fs::read_to_string(config_filename)?;
+        let config = fs::read_to_string(config_filename)
+            .with_context(|| format!("Failed to read config from {}", config_filename))?;
         let wrapped_pki: WrappedPki = toml::from_str(&config)?;
         let pki = wrapped_pki.pki;
         trace!("{:#?}", &pki);
@@ -125,7 +126,8 @@ impl SigningKey {
         use SigningKeySource::*;
         Ok(match source {
             Pkcs1PemFile(path) => {
-                let pem = std::fs::read_to_string(path)?;
+                let pem = std::fs::read_to_string(path)
+                    .with_context(|| format!("Failed to read private key from PEM file {}", path.display()))?;
                 // do this instead:
                 // https://docs.rs/rsa/0.3.0/rsa/struct.RSAPrivateKey.html?search=#example
                 let der = pem_parser::pem_to_der(&pem);
@@ -303,7 +305,9 @@ impl Certificate {
     pub fn try_from(source: &CertificateSource) -> Result<Self> {
         use CertificateSource::*;
         let der = match source {
-            X509DerFile(filename) => fs::read(filename)?,
+            X509DerFile(filename) => fs::read(filename)
+                .with_context(|| format!(
+                    "Failed to read certificate from DER file {}", filename.display()))?,
             Pkcs11Uri(uri) => {
                 use pkcs11::types::{CK_ATTRIBUTE, CKA_VALUE};
 

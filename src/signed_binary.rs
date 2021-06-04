@@ -1,7 +1,7 @@
 use core::convert::TryFrom;
 use std::fs;
 
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 
 use crate::secure_binary::Config;
 use crate::pki::{Certificate, Certificates, CertificateSlot, CertificateSource, SigningKey};
@@ -26,7 +26,8 @@ impl ImageSigningRequest {
     /// Parse config, load all data checking for validity.
     pub fn try_from(config: &Config) -> Result<Self> {
 
-        let plain_image = fs::read(&config.firmware.image)?;
+        let plain_image = fs::read(&config.firmware.image)
+            .with_context(|| format!("Failed to read firmware image from {}", config.firmware.image))?;
 
         let certificate_sources = [
             CertificateSource::try_from(config.pki.certificates[0].as_ref())?,
@@ -76,7 +77,7 @@ impl ImageSigningRequest {
         let certificate = word_padded(self.certificates.certificate_der(i.into()));
 
         let total_image_size = modify_header(&mut image, certificate.len());
-        println!("{:x}", total_image_size);
+        // println!("{:x}", total_image_size);
 
         let build_number = 1;
         let certificate_block_header = certificate_block_header_bytes(
@@ -152,7 +153,7 @@ fn certificate_block_header_bytes(total_image_length: usize, aligned_cert_length
     // grep for FOUR_CHAR_CODE
     extend32(&mut bytes, build_number);
     extendu(&mut bytes, total_image_length);
-    print!("set length to {:x}", total_image_length);
+    // println!("set length to {:x}", total_image_length);
 
     let certificates: u32 = 1;
     // one certificate
