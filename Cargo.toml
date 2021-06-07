@@ -79,3 +79,17 @@ with-device = []
 # opt-level = 'z'
 # lto = true
 # codegen-units = 1
+
+[package.metadata.deb]
+assets = [
+    # Binary
+    ["target/release/lpc55", "usr/bin/", "755"],
+
+    # Completions
+    ["target/release/_lpc55", "usr/share/zsh/vendor-completions/", "644"],
+    ["target/release/lpc55.bash", "usr/share/bash-completion/completions/lpc55", "644"],
+
+    # udev rule
+    ["pkg/debian/70-raw-lpc55-mcuboot.rules", "usr/lib/udev/rules.d/", "644"],
+]
+extended-description = "Host-side tooling to interact with LPC55 chips via the ROM bootloader"
