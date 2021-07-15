@@ -5,6 +5,7 @@ authors = ["Nicolas Stalder <n@stalder.io>"]
 edition = "2018"
 description = "Host-side tooling to interact with LPC55 chips via the ROM bootloader"
 repository = "https://github.com/lpc55/lpc55-host"
+homepage = "https://github.com/lpc55/lpc55-host"
 readme = "README.md"
 license = "Apache-2.0 OR MIT"
 documentation = "https://docs.rs/lpc55"
@@ -24,7 +25,7 @@ base64 = "0.13"
 bitflags = "1.2.1"
 chrono = "0.4.19"
 clap = { version = "2.33.3", default-features = false, optional = true }
-ctr = "0.7"
+ctr = "0.8"
 delog = "0.1.0-alpha.2"
 enum-iterator = "0.6.0"
 hex = "0.4.2"
@@ -56,7 +57,7 @@ pkcs11-uri = "0.1.2"
 insta = "1.1.0"
 tempfile = "3.2.0"
 assert_cmd = "1"
-predicates = "1"
+predicates = "2"
 
 [build-dependencies]
 clap = { version = "2.33.3", default-features = false }
