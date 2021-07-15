@@ -44,4 +44,4 @@ pub mod http;
 pub use bootloader::Bootloader;
 pub use bootloader::Error as BootloaderError;
 pub use bootloader::protocol::Error as ProtocolError;
-
+pub use uuid;

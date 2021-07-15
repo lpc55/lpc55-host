@@ -1307,6 +1307,10 @@ impl Sb2Header {
         Self::LEN
     }
 
+    pub fn product_version(&self) -> Version {
+        self.product_version
+    }
+
     fn to_bytes(&self) -> [u8; Self::LEN] {
         let mut bytes = Vec::new();
         for entry in self.nonce.iter() {
