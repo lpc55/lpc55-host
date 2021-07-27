@@ -8,6 +8,9 @@ use anyhow::{Context as _, Result};
 use serde::{Deserialize, Serialize};
 use x509_parser::certificate::X509Certificate;
 
+use rsa::pkcs1::FromRsaPrivateKey;
+use rsa::pkcs1::FromRsaPublicKey;
+
 use crate::util::is_default;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -88,13 +91,13 @@ impl TryFrom<&'_ str> for SigningKeySource {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SigningKey {
-    Pkcs1(rsa::RSAPrivateKey),
+    Pkcs1(rsa::RsaPrivateKey),
     Pkcs11Uri(pkcs11_uri::Pkcs11Uri),
 }
 
 /// An RSA2k public key
 #[derive(Clone, Debug, PartialEq)]
-pub struct PublicKey(pub rsa::RSAPublicKey);
+pub struct PublicKey(pub rsa::RsaPublicKey);
 
 impl PublicKey {
     pub fn fingerprint(&self) -> Sha256Hash {
@@ -129,9 +132,9 @@ impl SigningKey {
                 let pem = std::fs::read_to_string(path)
                     .with_context(|| format!("Failed to read private key from PEM file {}", path.display()))?;
                 // do this instead:
-                // https://docs.rs/rsa/0.3.0/rsa/struct.RSAPrivateKey.html?search=#example
+                // https://docs.rs/rsa/0.3.0/rsa/struct.RsaPrivateKey.html?search=#example
                 let der = pem_parser::pem_to_der(&pem);
-                let key = rsa::RSAPrivateKey::from_pkcs1(&der)?;
+                let key = rsa::RsaPrivateKey::from_pkcs1_der(&der)?;
                 SigningKey::Pkcs1(key)
             }
             Pkcs11Uri(uri) => {
@@ -206,7 +209,7 @@ impl SigningKey {
                 // https://github.com/mheese/rust-pkcs11/issues/44
                 let n = rsa::BigUint::from_bytes_be(&n.to_bytes_le());
                 let e = rsa::BigUint::from_bytes_be(&e.to_bytes_le());
-                let public_key = rsa::RSAPublicKey::new(n, e).unwrap();
+                let public_key = rsa::RsaPublicKey::new(n, e).unwrap();
                 public_key
             }
         })
@@ -344,7 +347,7 @@ impl Certificate {
         // let OID_RSA_ENCRYPTION = oid!(1.2.840.113549.1.1.1);
         assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
 
-        let public_key = PublicKey(rsa::RSAPublicKey::from_pkcs1(&spki.subject_public_key.data)?);
+        let public_key = PublicKey(rsa::RsaPublicKey::from_pkcs1_der(&spki.subject_public_key.data)?);
         Ok(public_key.fingerprint())
     }
 
@@ -360,7 +363,7 @@ impl Certificate {
     pub fn public_key(&self) -> PublicKey {
         let spki = self.certificate().tbs_certificate.subject_pki;
         assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
-        PublicKey(rsa::RSAPublicKey::from_pkcs1(&spki.subject_public_key.data).unwrap())
+        PublicKey(rsa::RsaPublicKey::from_pkcs1_der(&spki.subject_public_key.data).unwrap())
     }
 
     pub fn fingerprint(&self) -> Sha256Hash {

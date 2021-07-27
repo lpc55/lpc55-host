@@ -33,6 +33,7 @@ use std::fs;
 use anyhow::{Context as _, Result};
 use serde::{Deserialize, Serialize};
 use x509_parser::certificate::X509Certificate;
+use rsa::pkcs1::FromRsaPublicKey;
 
 use nom::{
     branch::alt,
@@ -754,7 +755,7 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
             assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
 
             println!("rsa pub key: {:?}", &spki.subject_public_key.data);
-            let public_key = rsa::RSAPublicKey::from_pkcs1(&spki.subject_public_key.data).expect("can parse public key");
+            let public_key = rsa::RsaPublicKey::from_pkcs1_der(&spki.subject_public_key.data).expect("can parse public key");
             println!("signature: {}", hexstr!(&signature));
             let padding_scheme = rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
             use rsa::PublicKey;
