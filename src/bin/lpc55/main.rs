@@ -26,7 +26,7 @@ fn check_align(number: usize) -> anyhow::Result<()> {
     if number % 512 == 0 {
         Ok(())
     } else {
-        Err(anyhow!("{} is not a multiple of 512"))
+        Err(anyhow!("{} is not a multiple of 512", number))
     }
 }
 
