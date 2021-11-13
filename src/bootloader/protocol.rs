@@ -392,7 +392,7 @@ impl Protocol {
     pub fn write(&self, data: &[u8]) -> Result<()> {
         let sent = self.device.write(data)?;
         let all = data.len();
-        if sent == all {
+        if sent >= all {
             Ok(())
         } else {
             Err(hidapi::HidError::IncompleteSendError { sent, all })?
