@@ -106,9 +106,8 @@ impl Bootloader {
             })
             .filter_map(|(device, vid, pid)| {
                 let protocol = Protocol::new(device);
-                let bootloader = GetProperties { protocol: &protocol }.device_uuid().ok()
-                    .map(|uuid| Self { protocol, vid, pid, uuid });
-                bootloader
+                GetProperties { protocol: &protocol }.device_uuid().ok()
+                    .map(|uuid| Self { protocol, vid, pid, uuid })
             })
             .collect()
     }

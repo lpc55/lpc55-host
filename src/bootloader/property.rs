@@ -226,7 +226,7 @@ impl GetProperties<'_> {
             ((values[3] as u128) << 96) +
             ((values[2] as u128) << 64) +
             ((values[1] as u128) << 32) +
-            ((values[0] as u128))
+            (values[0] as u128)
             // ((u32::from_le_bytes(values[0].to_be_bytes()) as u128) << 96) +
             // ((u32::from_le_bytes(values[1].to_be_bytes()) as u128) << 64) +
             // ((u32::from_le_bytes(values[2].to_be_bytes()) as u128) << 32) +

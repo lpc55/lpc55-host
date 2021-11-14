@@ -45,7 +45,7 @@ impl ImageSigningRequest {
             plain_image,
             certificates,
             signing_key,
-            slot: slot,
+            slot,
         })
     }
 
@@ -74,7 +74,7 @@ impl ImageSigningRequest {
 
         let mut image = word_padded(&self.plain_image);
 
-        let certificate = word_padded(self.certificates.certificate_der(i.into()));
+        let certificate = word_padded(self.certificates.certificate_der(i));
 
         let total_image_size = modify_header(&mut image, certificate.len());
         // println!("{:x}", total_image_size);

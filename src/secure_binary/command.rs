@@ -57,9 +57,7 @@ pub struct RawBootCommand {
 
 impl RawBootCommand {
     pub fn to_bytes(&self) -> [u8; 16] {
-        let mut buffer = Vec::new();
-        buffer.push(0);
-        buffer.push(self.tag);
+        let mut buffer = vec![0, self.tag];
         buffer.extend_from_slice(self.flags.to_le_bytes().as_ref());
         buffer.extend_from_slice(self.address.to_le_bytes().as_ref());
         buffer.extend_from_slice(self.count.to_le_bytes().as_ref());

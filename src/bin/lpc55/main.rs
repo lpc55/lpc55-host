@@ -59,7 +59,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
     if let Some(command) = args.subcommand_matches("http") {
         let bootloader = bootloader()?;
         let addr = command.value_of("ADDR").unwrap().to_string();
-        let port = u16::from_str_radix(command.value_of("PORT").unwrap(), 10).unwrap();
+        let port = command.value_of("PORT").unwrap().parse::<u16>().unwrap();
         let http_config = lpc55::http::HttpConfig { addr, port, timeout_ms: 5000 };
         let server = lpc55::http::Server::new(&http_config, bootloader)?;
         server.run()?;
@@ -169,13 +169,11 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
                     info!("preserving firmware, prince-iv, and reserved fields.");
 
                     // Do not overwrite firmware versions
-                    for i in 8 .. 16 {
-                        settings[i] = current_pfr_raw[i];
-                    }
+                    let protect = 8..16;
+                    settings[protect.clone()].clone_from_slice(&current_pfr_raw[protect]);
                     // Do not overwrite any of the PRINCE IV's or reserved areas.
-                    for i in 48 .. 256 {
-                        settings[i] = current_pfr_raw[i];
-                    }
+                    let protect = 48..256;
+                    settings[protect.clone()].clone_from_slice(&current_pfr_raw[protect]);
                 }
 
                 trace!("writing pfr: {}", hex_str!(&settings));
@@ -445,8 +443,8 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         if let Some(product_date) = command.value_of("product-date") {
             use chrono::naive::NaiveDate;
             let date = NaiveDate::parse_from_str(product_date, "%Y-%m-%d")
-                .or(NaiveDate::parse_from_str(product_date, "%Y%m%d"))
-                .or(NaiveDate::parse_from_str(product_date, "%y%m%d"))?;
+                .or_else(|_| NaiveDate::parse_from_str(product_date, "%Y%m%d"))
+                .or_else(|_| NaiveDate::parse_from_str(product_date, "%y%m%d"))?;
             let days_since_twenties = (date - NaiveDate::from_ymd(2020, 1, 1)).num_days();
             assert!(days_since_twenties > 0);
             info!("overriding product.major with date {}, i.e. {}", &date, days_since_twenties);
