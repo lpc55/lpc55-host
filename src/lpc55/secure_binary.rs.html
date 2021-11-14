@@ -1429,6 +1429,20 @@
 <span id="1429">1429</span>
 <span id="1430">1430</span>
 <span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Generator and parser for signed firmware and SB (secure binary) files</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The format is as follows:</span>
@@ -2288,6 +2302,20 @@
 <span class="comment">//     }</span>
 <span class="comment">// }</span>
 
+<span class="doccomment">/// Version of a firmware.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The version must be encoded in certain places.</span>
+<span class="doccomment">/// To make the API somewhat useable (but admittedly also a bit weirder),</span>
+<span class="doccomment">/// we use:</span>
+<span class="doccomment">/// - 10 bits for major</span>
+<span class="doccomment">/// - 16 bits for minor</span>
+<span class="doccomment">/// - 6 bits for patch</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// which gives offsets of 22 bits for major and 6 bits for minor in the u32.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Further, the minor version is at times interpreted as a &quot;calver&quot; encoding</span>
+<span class="doccomment">/// days since 2020-01-01. This is optional to use, &quot;semver&quot; works as well.</span>
+<span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Version</span> {
     <span class="kw">pub</span> <span class="ident">major</span>: <span class="ident">u16</span>,
