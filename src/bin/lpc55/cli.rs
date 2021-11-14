@@ -4,7 +4,7 @@ use clap::{self, crate_authors, crate_version, App, Arg, SubCommand};
 
 // duplicated here, because when using this `cli` module in build.rs
 // to generate shell completions, there is no `lpc55` crate yet
-pub const KEYSTORE_KEY_NAMES: [&'static str; 6] = [
+pub const KEYSTORE_KEY_NAMES: [&str; 6] = [
     "secure-boot-kek",
     "user-key",
     "unique-device-secret",

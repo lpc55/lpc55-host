@@ -20,6 +20,8 @@
 //!
 //! There is also the somehow underadvertised <https://github.com/NXPmicro/spsdk>.
 
+// for readability
+#![allow(clippy::identity_op)]
 
 #[macro_use]
 extern crate log;

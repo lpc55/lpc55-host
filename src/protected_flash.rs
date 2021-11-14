@@ -533,7 +533,7 @@ impl From<u8> for BootSpeed {
             0b00 => Nxp,
             0b01 => Fro96,
             0b10 => Fro48,
-            0b11 | _ => Reserved,
+            /*0b11 |*/ _ => Reserved,
         }
     }
 }
@@ -713,8 +713,8 @@ pub struct SecureBootConfiguration {
     pub trustzone_mode: TrustzoneMode,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    /// For this DICE stuff, see also https://www.microsoft.com/en-us/research/project/dice-device-identifier-composition-engine/
-    /// and the actual standard https://trustedcomputinggroup.org/resource/hardware-requirements-for-a-device-identifier-composition-engine/
+    /// For this DICE stuff, see also <https://www.microsoft.com/en-us/research/project/dice-device-identifier-composition-engine/>
+    /// and the actual standard <https://trustedcomputinggroup.org/resource/hardware-requirements-for-a-device-identifier-composition-engine/>
     pub dice_computation_disabled: bool,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]

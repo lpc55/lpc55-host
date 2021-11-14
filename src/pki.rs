@@ -154,8 +154,7 @@ impl SigningKey {
                 let mut hasher = sha2::Sha256::new();
                 hasher.update(data);
                 let hashed_data = hasher.finalize();
-                let signature = key.sign(padding_scheme, &hashed_data).expect("signatures work");
-                signature
+                key.sign(padding_scheme, &hashed_data).expect("signatures work")
             }
             Pkcs11Uri(uri) => {
                 let (context, session, object) = uri.identify_object().unwrap();
@@ -169,8 +168,7 @@ impl SigningKey {
 
                 // now do a signature, assuming this is an RSA key
                 context.sign_init(session, &mechanism, object).unwrap();
-                let signature = context.sign(session, data).unwrap();
-                signature
+                context.sign(session, data).unwrap()
             }
         };
         assert_eq!(256, signature.len());
@@ -209,8 +207,7 @@ impl SigningKey {
                 // https://github.com/mheese/rust-pkcs11/issues/44
                 let n = rsa::BigUint::from_bytes_be(&n.to_bytes_le());
                 let e = rsa::BigUint::from_bytes_be(&e.to_bytes_le());
-                let public_key = rsa::RsaPublicKey::new(n, e).unwrap();
-                public_key
+                rsa::RsaPublicKey::new(n, e).unwrap()
             }
         })
     }
@@ -347,7 +344,7 @@ impl Certificate {
         // let OID_RSA_ENCRYPTION = oid!(1.2.840.113549.1.1.1);
         assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
 
-        let public_key = PublicKey(rsa::RsaPublicKey::from_pkcs1_der(&spki.subject_public_key.data)?);
+        let public_key = PublicKey(rsa::RsaPublicKey::from_pkcs1_der(spki.subject_public_key.data)?);
         Ok(public_key.fingerprint())
     }
 
@@ -363,7 +360,7 @@ impl Certificate {
     pub fn public_key(&self) -> PublicKey {
         let spki = self.certificate().tbs_certificate.subject_pki;
         assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
-        PublicKey(rsa::RsaPublicKey::from_pkcs1_der(&spki.subject_public_key.data).unwrap())
+        PublicKey(rsa::RsaPublicKey::from_pkcs1_der(spki.subject_public_key.data).unwrap())
     }
 
     pub fn fingerprint(&self) -> Sha256Hash {

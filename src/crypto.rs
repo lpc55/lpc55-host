@@ -40,9 +40,9 @@ pub fn nxp_aes_ctr_cipher(ciphertext: &[u8], dek: [u8; 32], nonce: [u32; 4], off
         let nonce3_offset = offset_blocks + (i as u32);
         let mut nonce2 = [0u8; 16];
         nonce2[..4].copy_from_slice(nonce[0].to_le_bytes().as_ref());
-        nonce2[4..8].copy_from_slice(&nonce[1].to_le_bytes().as_ref());
-        nonce2[8..12].copy_from_slice(&nonce[2].to_le_bytes().as_ref());
-        nonce2[12..16].copy_from_slice(&(nonce[3] + nonce3_offset).to_le_bytes().as_ref());
+        nonce2[4..8].copy_from_slice(nonce[1].to_le_bytes().as_ref());
+        nonce2[8..12].copy_from_slice(nonce[2].to_le_bytes().as_ref());
+        nonce2[12..16].copy_from_slice((nonce[3] + nonce3_offset).to_le_bytes().as_ref());
         let mut cipher = Aes256Ctr::new(dek.as_ref().into(), nonce2.as_ref().into());
         cipher.apply_keystream(chunk);
     }

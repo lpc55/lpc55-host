@@ -69,10 +69,7 @@ pub enum DataPhase {
 
 impl DataPhase {
     pub fn has_command_data(&self) -> bool {
-        match self {
-            DataPhase::CommandData(_) => true,
-            _ => false,
-        }
+        matches!(self, DataPhase::CommandData(_))
     }
 }
 
@@ -93,8 +90,8 @@ impl Command {
                let mut bytes = Vec::with_capacity(words.len() * 4);
                let cursor = &mut bytes;
 
-               for i in 0 .. words.len() {
-                   cursor.write_all(&words[i].to_le_bytes()).unwrap();
+               for word in words.iter() {
+                   cursor.write_all(&word.to_le_bytes()).unwrap();
                }
 
                 DataPhase::CommandData(bytes)
@@ -483,7 +480,7 @@ pub enum Key {
 }
 
 // unfortunately duplicated in cli.rs, for why see there
-pub const KEYSTORE_KEY_NAMES: [&'static str; 6] = [
+pub const KEYSTORE_KEY_NAMES: [&str; 6] = [
     "secure-boot-kek",
     "user-key",
     "unique-device-secret",

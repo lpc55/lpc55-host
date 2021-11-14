@@ -136,7 +136,7 @@ impl Protocol {
                 // successful status, mirroring our command header
                 let packet = ResponsePacket::try_from(initial_response)?;
 
-                assert_eq!(packet.has_data, false);
+                assert!(!packet.has_data);
                 if let Some(status) = packet.status {
                     panic!("{:?}", status);
                 }
@@ -196,7 +196,7 @@ impl Protocol {
                         }
 
                         let packet = ResponsePacket::try_from(self.read_packet()?)?;
-                        assert_eq!(packet.has_data, false);
+                        assert!(!packet.has_data);
                         if let Some(status) = packet.status {
                             panic!("unexpected status {:?}", &status);
                         }
@@ -226,7 +226,7 @@ impl Protocol {
                         }
 
                         let packet = ResponsePacket::try_from(self.read_packet()?)?;
-                        assert_eq!(packet.has_data, false);
+                        assert!(!packet.has_data);
                         if let Some(status) = packet.status {
                             panic!("unexpected status {:?}", &status);
                         }
@@ -255,7 +255,7 @@ impl Protocol {
                             x => x?,
                         })?;
                         // let packet = ResponsePacket::try_from(self.read_packet()?)?;
-                        assert_eq!(packet.has_data, false);
+                        assert!(!packet.has_data);
                         if let Some(status) = packet.status {
                             panic!("unexpected status {:?}", &status);
                         }
@@ -292,7 +292,7 @@ impl Protocol {
 
                 let packet = ResponsePacket::try_from(initial_response)?;
                 // assert_eq!([0x03, 0x00, 0x0C, 0x00], &initial_generic_response[..4]);
-                assert_eq!(packet.has_data, true);
+                assert!(!packet.has_data);
                 assert!(packet.status.is_none());
                 assert_eq!(packet.tag, command::ResponseTag::ReadMemory);
 
@@ -309,7 +309,7 @@ impl Protocol {
                 }
 
                 let packet = ResponsePacket::try_from(self.read_packet()?)?;
-                assert_eq!(packet.has_data, false);
+                assert!(!packet.has_data);
                 assert!(packet.status.is_none());
 
                 assert_eq!(packet.tag, command::ResponseTag::Generic);
@@ -395,7 +395,7 @@ impl Protocol {
         if sent >= all {
             Ok(())
         } else {
-            Err(hidapi::HidError::IncompleteSendError { sent, all })?
+            Err(hidapi::HidError::IncompleteSendError { sent, all }.into())
         }
     }
 

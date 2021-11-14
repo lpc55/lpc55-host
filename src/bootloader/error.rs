@@ -1,4 +1,4 @@
-//! https://github.com/NXPmicro/spsdk/blob/020a983e53769fe16cb9b49395d56f0201eccca6/spsdk/mboot/error_codes.py
+//! <https://github.com/NXPmicro/spsdk/blob/020a983e53769fe16cb9b49395d56f0201eccca6/spsdk/mboot/error_codes.py>
 
 use core::convert::TryFrom;
 
@@ -125,10 +125,10 @@ generate! { CrcCheckerError:
     OutOfRange = 4,
 }
 
-impl Into<(ErrorGroup, u8)> for BootloaderError {
-    fn into(self) -> (ErrorGroup, u8) {
+impl From<BootloaderError> for (ErrorGroup, u8) {
+    fn from(error: BootloaderError) -> Self {
         use BootloaderError::*;
-        match self {
+        match error {
             Generic(error) => (ErrorGroup::Generic, error as u8),
             FlashDriver(error) => (ErrorGroup::FlashDriver, error as u8),
             PropertyStore(error) => (ErrorGroup::PropertyStore, error as u8),
@@ -142,8 +142,7 @@ impl Into<(ErrorGroup, u8)> for BootloaderError {
 impl From<BootloaderError> for u32 {
     fn from(error: BootloaderError) -> u32 {
         let (group, code) = error.into();
-        let status = (group as u32 * 100) + code as u32;
-        status
+        (group as u32 * 100) + code as u32
     }
 }
 
@@ -158,7 +157,7 @@ impl From<u32> for BootloaderError {
                 (ErrorGroup::PropertyStore, code) => PropertyStoreError::try_from(code).map_or(Unknown(status), PropertyStore),
                 (ErrorGroup::CrcChecker, code) => CrcCheckerError::try_from(code).map_or(Unknown(status), CrcChecker),
                 (ErrorGroup::SbLoader, code) => SbLoaderError::try_from(code).map_or(Unknown(status), SbLoader),
-                _ => return Unknown(status),
+                _ => Unknown(status),
             }
         } else {
             Unknown(status)

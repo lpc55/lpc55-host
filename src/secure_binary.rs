@@ -187,8 +187,8 @@ pub fn sniff(file: &[u8]) -> Result<Filetype> {
         // firmware starts with SP (4b) then PC (4B)
         // maybe: fallback to viewing as "bin" if not ELF or SB?
         &[0x00, 0x00, 0x04, 0x20] => {
-            match &file[0x20..0x24] {
-                &[0x00, 0x00, 0x00, 0x00] => Filetype::UnsignedBin,
+            match file[0x20..0x24] {
+                [0x00, 0x00, 0x00, 0x00] => Filetype::UnsignedBin,
                 _ => Filetype::SignedBin,
             }
         }
@@ -522,8 +522,7 @@ impl UnsignedSb21File {
 
     pub fn total_serialized_length(&self) -> usize {
         // this needs to be everything-everything (i.e., len(file.sb2))
-        let blocks = 0
-            + self.boot_tag_offset_blocks()
+        let blocks = self.boot_tag_offset_blocks()
             // boot tag(1) + hmac table(2*2)
             + 5
             // the actual payload
@@ -652,7 +651,7 @@ impl UnsignedSb21File {
     /// - on-disk/file keys (cf. RFC 8089: The "file" URI Scheme)
     /// - PKCS#11 keys, so any kind of HSM can be used (cf. RFC 7512: The PKCS #11 URI Scheme)
     /// - possibly other hardware interfaces, such as Tony's yubihsm crate (perhaps: yubihsm:id=<u16>)
-    ///   cf: https://docs.rs/yubihsm/0.37.0/yubihsm/client/struct.Client.html#method.sign_rsa_pkcs1v15_sha256
+    ///   cf: <https://docs.rs/yubihsm/0.37.0/yubihsm/client/struct.Client.html#method.sign_rsa_pkcs1v15_sha256>
     pub fn sign(&self, signing_key: &SigningKey) -> SignedSb21File {
         let header_part = self.header_part();
         let header_bytes = header_part.to_bytes();
@@ -693,143 +692,140 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
     let filetype = sniff(&data)?;
     trace!("filetype: {:?}", filetype);
 
-    match filetype {
-        Filetype::Sb21 => {
-            let (i, header) = Sb2Header::inner_from_bytes(&data)?;//.unwrap();//.1;//.map_err(|_| anyhow::anyhow!("could not parse SB2 file"))?.1;
-            let (i, digest_hmac) = take::<_, _, ()>(32u8)(i)?;
-            let (i, keyblob) = Keyblob::from_bytes(i)?;
-            let (i, certificate_block_header) = FullCertificateBlockHeader::from_bytes(i)?;
-            let (i, certificate_length) = le_u32::<_, ()>(i).unwrap();
-            let (i, certificate_data) = take::<_, _, ()>(certificate_length)(i)?;
+    if let Filetype::Sb21 = filetype {
+        let (i, header) = Sb2Header::inner_from_bytes(&data)?;//.unwrap();//.1;//.map_err(|_| anyhow::anyhow!("could not parse SB2 file"))?.1;
+        let (i, digest_hmac) = take::<_, _, ()>(32u8)(i)?;
+        let (i, keyblob) = Keyblob::from_bytes(i)?;
+        let (i, certificate_block_header) = FullCertificateBlockHeader::from_bytes(i)?;
+        let (i, certificate_length) = le_u32::<_, ()>(i).unwrap();
+        let (i, certificate_data) = take::<_, _, ()>(certificate_length)(i)?;
 
-            let unpadded_signed_data_length = 16*(6 + 2 + 5 + 2) + 4 + certificate_length + 128;
+        let unpadded_signed_data_length = 16*(6 + 2 + 5 + 2) + 4 + certificate_length + 128;
 
-            let (i, rot_key_hashes) = take::<_, _, ()>(128usize)(i)?;
-            let i = if (unpadded_signed_data_length % 16) != 0 {
-                 take::<_, _, ()>(16u8 - (unpadded_signed_data_length % 16) as u8)(i)?.0
-            } else {
-                i
-            };
-            let (i, signature) = take::<_, _, ()>(256usize)(i)?;
+        let (i, rot_key_hashes) = take::<_, _, ()>(128usize)(i)?;
+        let i = if (unpadded_signed_data_length % 16) != 0 {
+             take::<_, _, ()>(16u8 - (unpadded_signed_data_length % 16) as u8)(i)?.0
+        } else {
+            i
+        };
+        let (i, signature) = take::<_, _, ()>(256usize)(i)?;
 
-            info!("rotkh: {}", hex_str!(&crate::pki::Certificates::fingerprint_from_bytes(&rot_key_hashes).0));
+        info!("rotkh: {}", hex_str!(&crate::pki::Certificates::fingerprint_from_bytes(rot_key_hashes).0));
 
-            // the weird sectionAllignment (sic!)
-            info!("SB2 header: \n{:#?}", &header);
-            info!("  nonce: {:?}", &header.nonce);
-            info!("  tstmp: {}", header.timestamp_microseconds_since_millenium);
-            info!("  junk: {}", hexstr!(&header.sb_header_padding));
-            info!("HMAC:       \n{:?}", &digest_hmac);
-            info!("keyblob:    \n{:?}", &keyblob);
-            info!("  DEK: {}", hexstr!(&keyblob.dek));
-            info!("  MAC: {}", hexstr!(&keyblob.mac));
-            info!("CTH:        \n{:?}", &certificate_block_header);
+        // the weird sectionAllignment (sic!)
+        info!("SB2 header: \n{:#?}", &header);
+        info!("  nonce: {:?}", &header.nonce);
+        info!("  tstmp: {}", header.timestamp_microseconds_since_millenium);
+        info!("  junk: {}", hexstr!(&header.sb_header_padding));
+        info!("HMAC:       \n{:?}", &digest_hmac);
+        info!("keyblob:    \n{:?}", &keyblob);
+        info!("  DEK: {}", hexstr!(&keyblob.dek));
+        info!("  MAC: {}", hexstr!(&keyblob.mac));
+        info!("CTH:        \n{:?}", &certificate_block_header);
 
-            let certificate = match X509Certificate::from_der(certificate_data) {
-                Ok((rem, cert)) => {
-                    println!("remainder: {}", hex_str!(rem));
-                    // assert!(rem.is_empty());
-                    assert_eq!(cert.tbs_certificate.version, x509_parser::x509::X509Version::V3);
-                    cert
-                }
-                _ => { panic!("invalid certificate"); }
-            };
-            // info!("cert: \n{:?}", &certificate);
-            println!("certificate length: {}", certificate_length);
+        let certificate = match X509Certificate::from_der(certificate_data) {
+            Ok((rem, cert)) => {
+                println!("remainder: {}", hex_str!(rem));
+                // assert!(rem.is_empty());
+                assert_eq!(cert.tbs_certificate.version, x509_parser::x509::X509Version::V3);
+                cert
+            }
+            _ => { panic!("invalid certificate"); }
+        };
+        // info!("cert: \n{:?}", &certificate);
+        println!("certificate length: {}", certificate_length);
 
-            // now let's verify the signature
-            // pad 16
-            println!("unpadded signed data length: 0x{:x}", unpadded_signed_data_length);
-            // let signed_data_length = signed_data_length + (16 - (signed_data_length % 16));
-            let signed_data_length = 16 * ((unpadded_signed_data_length + 15) / 16);
+        // now let's verify the signature
+        // pad 16
+        println!("unpadded signed data length: 0x{:x}", unpadded_signed_data_length);
+        // let signed_data_length = signed_data_length + (16 - (signed_data_length % 16));
+        let signed_data_length = 16 * ((unpadded_signed_data_length + 15) / 16);
 
-            // let signed_data_length = 0x5f0;
-            println!("end of cert data: {:>16x}", hex_str!(&certificate_data));
-            println!("signed data length: 0x{:x}", signed_data_length);
+        // let signed_data_length = 0x5f0;
+        println!("end of cert data: {:>16x}", hex_str!(&certificate_data));
+        println!("signed data length: 0x{:x}", signed_data_length);
 
-            let signed_data_hash = sha256(&data[..signed_data_length as usize]);
-            println!("data hash: {}", hex_str!(&signed_data_hash, 4));
+        let signed_data_hash = sha256(&data[..signed_data_length as usize]);
+        println!("data hash: {}", hex_str!(&signed_data_hash, 4));
 
-            let spki = certificate.tbs_certificate.subject_pki;
-            trace!("alg: {:?}", spki.algorithm.algorithm);
-            assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
+        let spki = certificate.tbs_certificate.subject_pki;
+        trace!("alg: {:?}", spki.algorithm.algorithm);
+        assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
 
-            println!("rsa pub key: {:?}", &spki.subject_public_key.data);
-            let public_key = rsa::RsaPublicKey::from_pkcs1_der(&spki.subject_public_key.data).expect("can parse public key");
-            println!("signature: {}", hexstr!(&signature));
-            let padding_scheme = rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
-            use rsa::PublicKey;
-            public_key.verify(padding_scheme, &signed_data_hash, signature).expect("signature valid");
-            // let signature = secret_key.sign(padding_scheme, &hashed_image).expect("signatures work");
+        println!("rsa pub key: {:?}", &spki.subject_public_key.data);
+        let public_key = rsa::RsaPublicKey::from_pkcs1_der(spki.subject_public_key.data).expect("can parse public key");
+        println!("signature: {}", hexstr!(&signature));
+        let padding_scheme = rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
+        use rsa::PublicKey;
+        public_key.verify(padding_scheme, &signed_data_hash, signature).expect("signature valid");
+        // let signature = secret_key.sign(padding_scheme, &hashed_image).expect("signatures work");
 
-            let calculated_boot_tag_offset_bytes = signed_data_length + 256;
-            assert_eq!(calculated_boot_tag_offset_bytes, header.boot_tag_offset_blocks * 16);
+        let calculated_boot_tag_offset_bytes = signed_data_length + 256;
+        assert_eq!(calculated_boot_tag_offset_bytes, header.boot_tag_offset_blocks * 16);
 
-            // alright, BootTag, Hmac, Section
-            //
-            // here's what happens:
-            // - encryption is weird... (big-endian AES-CTR, but with nonce modified by adding
-            // block number to little-endian encoding of last nonce-value)
-            //
-            // - first: encrypted boot tag
-            // - then: unencrypted HMAC of encrypted boot tag
-            // - then: unencrypted HMAC of encrypted section data (commands and their data)
-            // - then: encrypted section data
-            //
-            // the digest HMAC at the top after image header is HMAC(first HMAC || second HMAC)
-            //
-            //
-            let _boot_tag_offset_blocks = header.boot_tag_offset_blocks;
+        // alright, BootTag, Hmac, Section
+        //
+        // here's what happens:
+        // - encryption is weird... (big-endian AES-CTR, but with nonce modified by adding
+        // block number to little-endian encoding of last nonce-value)
+        //
+        // - first: encrypted boot tag
+        // - then: unencrypted HMAC of encrypted boot tag
+        // - then: unencrypted HMAC of encrypted section data (commands and their data)
+        // - then: encrypted section data
+        //
+        // the digest HMAC at the top after image header is HMAC(first HMAC || second HMAC)
+        //
+        //
+        let _boot_tag_offset_blocks = header.boot_tag_offset_blocks;
 
-            let (i, enciphered_boot_tag) = take::<_, _, ()>(16u8)(i)?;
-            let calculated_boot_tag_hmac = hmac(keyblob.mac, &enciphered_boot_tag);
+        let (i, enciphered_boot_tag) = take::<_, _, ()>(16u8)(i)?;
+        let calculated_boot_tag_hmac = hmac(keyblob.mac, enciphered_boot_tag);
 
-            let deciphered_boot_tag = nxp_aes_ctr_cipher(
-                enciphered_boot_tag,
-                keyblob.dek, header.nonce,
-                header.boot_tag_offset_blocks,
-            );
+        let deciphered_boot_tag = nxp_aes_ctr_cipher(
+            enciphered_boot_tag,
+            keyblob.dek, header.nonce,
+            header.boot_tag_offset_blocks,
+        );
 
-            let (_, boot_tag) = BootCommand::from_bytes(&deciphered_boot_tag)?;
-            println!("boot tag: {:?}", &boot_tag);
-            // TODO? check cipher blocks
+        let (_, boot_tag) = BootCommand::from_bytes(&deciphered_boot_tag)?;
+        println!("boot tag: {:?}", &boot_tag);
+        // TODO? check cipher blocks
 
-            let (i, hmac_table) = take::<_, _, ()>(64u8)(i)?;
+        let (i, hmac_table) = take::<_, _, ()>(64u8)(i)?;
 
-            let (_, (boot_tag_hmac, section_hmac)) = tuple((
-                take::<_, _, ()>(32u8),
-                take::<_, _, ()>(32u8),
-            ))(hmac_table)?;
+        let (_, (boot_tag_hmac, section_hmac)) = tuple((
+            take::<_, _, ()>(32u8),
+            take::<_, _, ()>(32u8),
+        ))(hmac_table)?;
 
-            assert_eq!(boot_tag_hmac, calculated_boot_tag_hmac);
+        assert_eq!(boot_tag_hmac, calculated_boot_tag_hmac);
 
-            // let (i, section_hmac) = take::<_, _, ()>(32u8)(i)?;
+        // let (i, section_hmac) = take::<_, _, ()>(32u8)(i)?;
 
-            let enciphered_section = i;
+        let enciphered_section = i;
 
-            let calculated_section_hmac = hmac(keyblob.mac, enciphered_section);
-            assert_eq!(section_hmac, calculated_section_hmac);
+        let calculated_section_hmac = hmac(keyblob.mac, enciphered_section);
+        assert_eq!(section_hmac, calculated_section_hmac);
 
-            let deciphered_section = nxp_aes_ctr_cipher(
-                enciphered_section,
-                keyblob.dek, header.nonce,
-                header.boot_tag_offset_blocks + 5,
-            );
+        let deciphered_section = nxp_aes_ctr_cipher(
+            enciphered_section,
+            keyblob.dek, header.nonce,
+            header.boot_tag_offset_blocks + 5,
+        );
 
-            let calculated_digest_hmac = hmac(keyblob.mac, hmac_table);
-            assert_eq!(digest_hmac, calculated_digest_hmac);
+        let calculated_digest_hmac = hmac(keyblob.mac, hmac_table);
+        assert_eq!(digest_hmac, calculated_digest_hmac);
 
-            let mut i = deciphered_section.as_ref();
-            loop {
-                let (j, command) = BootCommand::from_bytes(i)?;
-                i = j;
-                trace!("command: {:?}", &command);
-                if i.is_empty() {
-                    break;
-                }
+        let mut i = deciphered_section.as_ref();
+        loop {
+            let (j, command) = BootCommand::from_bytes(i)?;
+            i = j;
+            trace!("command: {:?}", &command);
+            if i.is_empty() {
+                break;
             }
         }
-        _ => {}
     }
 
     println!("crc32(123456789) = 0x{:x}", crc32(b"123456789"));
@@ -1015,9 +1011,8 @@ fn aes_wrap(key: [u8; 32], data: &[u8]) -> Vec<u8> {
     let n = (data.len() as u64) / 8;
 
     let mut A = u64::from_be_bytes([0xA6u8; 8]);
-    let mut R = Vec::new();
     // to keep NIST indices, never used
-    R.push(0);
+    let mut R = vec![0];
     for (_, P) in (1..=n).zip(data.chunks(8)) {
         R.push(u64::from_be_bytes(P.try_into().unwrap()));
     }
@@ -1033,7 +1028,7 @@ fn aes_wrap(key: [u8; 32], data: &[u8]) -> Vec<u8> {
             let t = (n*j + i) as u64;
             A = u64::from_be_bytes(B[..8].try_into().unwrap());
             // i.e., MSB(64, B) ^ t
-            A = A ^ t;
+            A ^= t;
             R[i as usize] = u64::from_be_bytes(B[8..].try_into().unwrap());
         }
     }
@@ -1058,9 +1053,8 @@ fn aes_unwrap(key: [u8; 32], wrapped: &[u8]) -> Vec<u8> {
     let aes = aes::Aes256::new(&key.into());
     let n = (wrapped.len() as u64) / 8 - 1;
     let mut A = u64::from_be_bytes(wrapped[..8].try_into().unwrap());
-    let mut R = Vec::new();
     // to keep NIST indices, never used
-    R.push(0);
+    let mut R = vec![0];
     for (_, C) in (1..=n).zip(wrapped.chunks(8).skip(1)) {
         R.push(u64::from_be_bytes(C.try_into().unwrap()));
     }
@@ -1306,6 +1300,10 @@ impl Sb2Header {
     /// 96 bytes
     pub fn len(&self) -> usize {
         Self::LEN
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn product_version(&self) -> Version {
