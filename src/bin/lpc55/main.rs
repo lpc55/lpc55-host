@@ -9,7 +9,7 @@ use delog::hex_str;
 use log::{info, warn, trace};
 use uuid::Uuid;
 
-use lpc55::bootloader::{Bootloader, command};
+use lpc55::bootloader::{Bootloader, command, UuidSelectable as _};
 
 mod cli;
 mod logger;
@@ -366,7 +366,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
         let bootloader = bootloader()?;
         let filename = command.value_of("SB-FILE").unwrap();
         let image = fs::read(&filename)?;
-        bootloader.receive_sb_file(image);
+        bootloader.receive_sb_file(&image);
         return Ok(());
     }
 

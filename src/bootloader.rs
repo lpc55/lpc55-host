@@ -3,6 +3,8 @@
 //! Construct a `Bootloader` from a VID/PID pair (optionally a UUID to disambiguate),
 //! then call its methods.
 
+use core::fmt;
+
 use anyhow::anyhow;
 use enum_iterator::IntoEnumIterator;
 use hidapi::HidApi;
@@ -18,6 +20,40 @@ pub mod protocol;
 pub mod provision;
 use protocol::Protocol;
 
+pub trait UuidSelectable: Sized {
+    /// Returns the UUID associated with the thing, if it has a UUID.
+    ///
+    /// Note: This may modify the thing as it might need to communicate with it.
+    fn try_uuid(&mut self) -> anyhow::Result<Uuid>;
+
+    /// Returns all of the available things.
+    fn list() -> Vec<Self>;
+
+    /// Returns the thing with the given UUID.
+    ///
+    /// Default implementation; replace for better error messages.
+    fn having(uuid: Uuid) -> anyhow::Result<Self> {
+        let mut candidates: Vec<Self> = Self::list().into_iter()
+            // The Err variant is preventing a simple `Ok(uuid) == entry.try_uuid()`,
+            // as there is no Eq on anyhow::Error.
+            .filter_map(|mut entry| {
+                if let Ok(entry_uuid) = entry.try_uuid() {
+                    if entry_uuid == uuid {
+                        Some(entry)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }).collect();
+        match candidates.len() {
+            0 => Err(anyhow!("No candidate has UUID {:X}", uuid.to_simple())),
+            1 => Ok(candidates.remove(0)),
+            n => Err(anyhow!("Multiple ({}) candidates have UUID {:X}", n, uuid.to_simple())),
+        }
+    }
+}
 
 pub struct Bootloader {
     pub protocol: Protocol,
@@ -28,8 +64,8 @@ pub struct Bootloader {
     pub uuid: u128,
 }
 
-impl core::fmt::Debug for Bootloader {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for Bootloader {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Bootloader")
             .field("vid", &hexstr!(&self.vid.to_be_bytes()))
             .field("pid", &hexstr!(&self.pid.to_be_bytes()))
@@ -37,6 +73,13 @@ impl core::fmt::Debug for Bootloader {
         .finish()
     }
 }
+
+impl fmt::Display for Bootloader {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
+    }
+}
+
 
 
 /// Bootloader commands return a "status". The non-zero statii can be split
@@ -58,34 +101,22 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 
-impl Bootloader {
-    /// Select a unique ROM bootloader with the given VID and PID.
-    pub fn try_new(vid: Option<u16>, pid: Option<u16>) -> anyhow::Result<Self> {
-        Self::try_find(vid, pid, None)
+impl UuidSelectable for Bootloader {
+    fn try_uuid(&mut self) -> anyhow::Result<Uuid> {
+        Ok(self.uuid())
     }
 
-    /// Attempt to find a unique ROM bootloader with the given VID, PID and UUID.
-    pub fn try_find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> anyhow::Result<Self> {
-        let mut bootloaders = Self::find(vid, pid, uuid);
-        if bootloaders.len() > 1 {
-            Err(anyhow!("Muliple matching bootloaders found"))
-        } else {
-            bootloaders.pop().ok_or_else(|| anyhow!("No matching bootloader found"))
+    fn having(uuid: Uuid) -> anyhow::Result<Self> {
+        let mut candidates: Vec<Self> = Self::list().into_iter().filter(|bootloader| bootloader.uuid() == uuid).collect();
+        match candidates.len() {
+            0 => Err(anyhow!("No usable bootloader has UUID {:X}", uuid.to_simple())),
+            1 => Ok(candidates.remove(0)),
+            n => Err(anyhow!("Multiple ({}) bootloaders have UUID {:X}", n, uuid.to_simple())),
         }
     }
 
-    /// Finds all ROM bootloader with the given VID, PID and UUID.
-    pub fn find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> Vec<Self> {
-        Self::list()
-            .into_iter()
-            .filter(|bootloader| vid.map_or(true, |vid| vid == bootloader.vid))
-            .filter(|bootloader| pid.map_or(true, |pid| pid == bootloader.pid))
-            .filter(|bootloader| uuid.map_or(true, |uuid| uuid.as_u128() == bootloader.uuid))
-            .collect()
-    }
-
     /// Returns a vector of all HID devices that appear to be ROM bootloaders
-    pub fn list() -> Vec<Self> {
+    fn list() -> Vec<Self> {
         let api = HidApi::new().unwrap();
         api.device_list()
             .filter_map(|device_info| {
@@ -109,6 +140,39 @@ impl Bootloader {
                 GetProperties { protocol: &protocol }.device_uuid().ok()
                     .map(|uuid| Self { protocol, vid, pid, uuid })
             })
+            .collect()
+    }
+
+}
+
+impl Bootloader {
+
+    fn uuid(&self) -> Uuid {
+        Uuid::from_u128(self.uuid)
+    }
+
+    /// Select a unique ROM bootloader with the given VID and PID.
+    pub fn try_new(vid: Option<u16>, pid: Option<u16>) -> anyhow::Result<Self> {
+        Self::try_find(vid, pid, None)
+    }
+
+    /// Attempt to find a unique ROM bootloader with the given VID, PID and UUID.
+    pub fn try_find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> anyhow::Result<Self> {
+        let mut bootloaders = Self::find(vid, pid, uuid);
+        if bootloaders.len() > 1 {
+            Err(anyhow!("Muliple matching bootloaders found"))
+        } else {
+            bootloaders.pop().ok_or_else(|| anyhow!("No matching bootloader found"))
+        }
+    }
+
+    /// Finds all ROM bootloader with the given VID, PID and UUID.
+    pub fn find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> Vec<Self> {
+        Self::list()
+            .into_iter()
+            .filter(|bootloader| vid.map_or(true, |vid| vid == bootloader.vid))
+            .filter(|bootloader| pid.map_or(true, |pid| pid == bootloader.pid))
+            .filter(|bootloader| uuid.map_or(true, |uuid| uuid.as_u128() == bootloader.uuid))
             .collect()
     }
 
@@ -190,8 +254,8 @@ impl Bootloader {
         }
     }
 
-    pub fn receive_sb_file(&self, data: Vec<u8>) {
-        let _response = self.protocol.call(&Command::ReceiveSbFile { data }).expect("success");
+    pub fn receive_sb_file(&self, data: &[u8]) {
+        let _response = self.protocol.call(&Command::ReceiveSbFile { data: data.to_vec() }).expect("success");
     }
 
     pub fn erase_flash(&self, address: usize, length: usize) {

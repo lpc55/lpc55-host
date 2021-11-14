@@ -43,7 +43,7 @@ pub mod util;
 pub mod http;
 
 // re-exports
-pub use bootloader::Bootloader;
+pub use bootloader::{Bootloader, UuidSelectable};
 pub use bootloader::Error as BootloaderError;
 pub use bootloader::protocol::Error as ProtocolError;
 pub use uuid;
