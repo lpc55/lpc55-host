@@ -31,6 +31,7 @@ use std::convert::{TryFrom, TryInto};
 use std::fs;
 
 use anyhow::{Context as _, Result};
+pub use chrono::naive::NaiveDate;
 use serde::{Deserialize, Serialize};
 use x509_parser::certificate::X509Certificate;
 use rsa::pkcs1::FromRsaPublicKey;
@@ -856,6 +857,20 @@ pub struct CertificateBlockHeader {
 //     }
 // }
 
+/// Version of a firmware.
+///
+/// The version must be encoded in certain places.
+/// To make the API somewhat useable (but admittedly also a bit weirder),
+/// we use:
+/// - 10 bits for major
+/// - 16 bits for minor
+/// - 6 bits for patch
+///
+/// which gives offsets of 22 bits for major and 6 bits for minor in the u32.
+///
+/// Further, the minor version is at times interpreted as a "calver" encoding
+/// days since 2020-01-01. This is optional to use, "semver" works as well.
+///
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Version {
     pub major: u16,
@@ -895,13 +910,27 @@ impl Version {
     }
 
     /// For end-user consumption, period-separated, not BCD
-    pub fn to_pretty(&self) -> String {
-        let pretty = format!("{}.{}.{}", self.major, self.minor, self.patch);
-        pretty
+    pub fn to_semver(&self) -> String {
+        format!("{}.{}.{}", self.major, self.minor, self.patch)
+    }
+
+    /// The minor version component in its interpretation as days since 2020-01-01
+    pub fn minor_as_date(&self) -> NaiveDate {
+        use chrono::Duration;
+        let epoch = NaiveDate::from_ymd(2020, 1, 1);
+        let date = epoch + Duration::days(self.minor as _);
+        date
+    }
+
+    /// For end-user consumption.
+    ///
+    /// Example: `1:20210624.0`
+    pub fn to_calver(&self) -> String {
+        format!("{}:{}.{}", self.major, self.minor_as_date().format("%Y%m%d"), self.patch)
     }
 
     pub fn timestamp_micros(&self) -> u64 {
-        use chrono::{Duration, naive::NaiveDate};
+        use chrono::Duration;
         let epoch = NaiveDate::from_ymd(2020, 1, 1).and_hms(12, 0, 0);
         let date = epoch + Duration::days(self.minor as _);
 
@@ -917,6 +946,21 @@ impl<'a> From<&'a str> for Version {
             major: parts[0].parse().unwrap(),
             minor: parts[1].parse().unwrap(),
             patch: parts[2].parse().unwrap(),
+        }
+    }
+}
+
+impl From<[u8; 4]> for Version {
+    fn from(bytes: [u8; 4]) -> Self {
+        let version = u32::from_be_bytes(bytes);
+        let major = (version >> 22) as _;
+        let minor = ((version >> 6) & ((1 << 16) - 1)) as _;
+        let patch = (version & ((1 << 6) - 1)) as _;
+
+        Self {
+            major,
+            minor,
+            patch,
         }
     }
 }
@@ -966,7 +1010,7 @@ impl serde::Serialize for Version {
     where
         S: serde::ser::Serializer,
     {
-        serializer.serialize_str(&self.to_pretty())
+        serializer.serialize_str(&self.to_semver())
     }
 }
 
