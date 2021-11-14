@@ -1782,7 +1782,7 @@
             <span class="number">0b00</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Nxp</span>,
             <span class="number">0b01</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Fro96</span>,
             <span class="number">0b10</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Fro48</span>,
-            <span class="number">0b11</span> <span class="op">|</span> <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Reserved</span>,
+            <span class="comment">/*0b11 |*/</span> <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Reserved</span>,
         }
     }
 }
@@ -1962,8 +1962,8 @@
     <span class="kw">pub</span> <span class="ident">trustzone_mode</span>: <span class="ident">TrustzoneMode</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="doccomment">/// For this DICE stuff, see also https://www.microsoft.com/en-us/research/project/dice-device-identifier-composition-engine/</span>
-    <span class="doccomment">/// and the actual standard https://trustedcomputinggroup.org/resource/hardware-requirements-for-a-device-identifier-composition-engine/</span>
+    <span class="doccomment">/// For this DICE stuff, see also &lt;https://www.microsoft.com/en-us/research/project/dice-device-identifier-composition-engine/&gt;</span>
+    <span class="doccomment">/// and the actual standard &lt;https://trustedcomputinggroup.org/resource/hardware-requirements-for-a-device-identifier-composition-engine/&gt;</span>
     <span class="kw">pub</span> <span class="ident">dice_computation_disabled</span>: <span class="ident">bool</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>

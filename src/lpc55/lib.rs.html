@@ -45,6 +45,8 @@
 <span id="45">45</span>
 <span id="46">46</span>
 <span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Host-side library to interact with and provision NXP LPC55 devices.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Additionally, a command-line tool `lpc55` is implemented, so far</span>
@@ -67,6 +69,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! There is also the somehow underadvertised &lt;https://github.com/NXPmicro/spsdk&gt;.</span>
 
+<span class="comment">// for readability</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::identity_op</span>)]</span>
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">log</span>;
@@ -88,7 +92,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">http</span>;
 
 <span class="comment">// re-exports</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader::Bootloader</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader</span>::{<span class="ident">Bootloader</span>, <span class="ident">UuidSelectable</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader::Error</span> <span class="kw">as</span> <span class="ident">BootloaderError</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader::protocol::Error</span> <span class="kw">as</span> <span class="ident">ProtocolError</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">uuid</span>;

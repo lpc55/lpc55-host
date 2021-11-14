@@ -436,8 +436,6 @@
 <span id="436">436</span>
 <span id="437">437</span>
 <span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
 <span class="kw">use</span> <span class="ident">std::fs</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -497,9 +495,7 @@
 
 <span class="kw">impl</span> <span class="ident">RawBootCommand</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">16</span>] {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="number">0</span>);
-        <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">tag</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>, <span class="self">self</span>.<span class="ident">tag</span>];
         <span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
         <span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="self">self</span>.<span class="ident">address</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
         <span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="self">self</span>.<span class="ident">count</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
