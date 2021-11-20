@@ -503,9 +503,6 @@
 <span id="503">503</span>
 <span id="504">504</span>
 <span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Abstraction allowing use of either PKCS1 PEM file or PKCS11 keys</span>
 <span class="doccomment">//! for signing data.</span>
 
@@ -662,8 +659,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">sha2::Sha256::new</span>();
                 <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="ident">data</span>);
                 <span class="kw">let</span> <span class="ident">hashed_data</span> <span class="op">=</span> <span class="ident">hasher</span>.<span class="ident">finalize</span>();
-                <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">sign</span>(<span class="ident">padding_scheme</span>, <span class="kw-2">&amp;</span><span class="ident">hashed_data</span>).<span class="ident">expect</span>(<span class="string">&quot;signatures work&quot;</span>);
-                <span class="ident">signature</span>
+                <span class="ident">key</span>.<span class="ident">sign</span>(<span class="ident">padding_scheme</span>, <span class="kw-2">&amp;</span><span class="ident">hashed_data</span>).<span class="ident">expect</span>(<span class="string">&quot;signatures work&quot;</span>)
             }
             <span class="ident">Pkcs11Uri</span>(<span class="ident">uri</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">context</span>, <span class="ident">session</span>, <span class="ident">object</span>) <span class="op">=</span> <span class="ident">uri</span>.<span class="ident">identify_object</span>().<span class="ident">unwrap</span>();
@@ -677,8 +673,7 @@
 
                 <span class="comment">// now do a signature, assuming this is an RSA key</span>
                 <span class="ident">context</span>.<span class="ident">sign_init</span>(<span class="ident">session</span>, <span class="kw-2">&amp;</span><span class="ident">mechanism</span>, <span class="ident">object</span>).<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">sign</span>(<span class="ident">session</span>, <span class="ident">data</span>).<span class="ident">unwrap</span>();
-                <span class="ident">signature</span>
+                <span class="ident">context</span>.<span class="ident">sign</span>(<span class="ident">session</span>, <span class="ident">data</span>).<span class="ident">unwrap</span>()
             }
         };
         <span class="macro">assert_eq!</span>(<span class="number">256</span>, <span class="ident">signature</span>.<span class="ident">len</span>());
@@ -717,8 +712,7 @@
                 <span class="comment">// https://github.com/mheese/rust-pkcs11/issues/44</span>
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">rsa::BigUint::from_bytes_be</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_bytes_le</span>());
                 <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">rsa::BigUint::from_bytes_be</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">to_bytes_le</span>());
-                <span class="kw">let</span> <span class="ident">public_key</span> <span class="op">=</span> <span class="ident">rsa::RsaPublicKey::new</span>(<span class="ident">n</span>, <span class="ident">e</span>).<span class="ident">unwrap</span>();
-                <span class="ident">public_key</span>
+                <span class="ident">rsa::RsaPublicKey::new</span>(<span class="ident">n</span>, <span class="ident">e</span>).<span class="ident">unwrap</span>()
             }
         })
     }
@@ -855,7 +849,7 @@
         <span class="comment">// let OID_RSA_ENCRYPTION = oid!(1.2.840.113549.1.1.1);</span>
         <span class="macro">assert_eq!</span>(<span class="ident">oid_registry::OID_PKCS1_RSAENCRYPTION</span>, <span class="ident">spki</span>.<span class="ident">algorithm</span>.<span class="ident">algorithm</span>);
 
-        <span class="kw">let</span> <span class="ident">public_key</span> <span class="op">=</span> <span class="ident">PublicKey</span>(<span class="ident">rsa::RsaPublicKey::from_pkcs1_der</span>(<span class="kw-2">&amp;</span><span class="ident">spki</span>.<span class="ident">subject_public_key</span>.<span class="ident">data</span>)<span class="question-mark">?</span>);
+        <span class="kw">let</span> <span class="ident">public_key</span> <span class="op">=</span> <span class="ident">PublicKey</span>(<span class="ident">rsa::RsaPublicKey::from_pkcs1_der</span>(<span class="ident">spki</span>.<span class="ident">subject_public_key</span>.<span class="ident">data</span>)<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">public_key</span>.<span class="ident">fingerprint</span>())
     }
 
@@ -871,7 +865,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">public_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PublicKey</span> {
         <span class="kw">let</span> <span class="ident">spki</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">certificate</span>().<span class="ident">tbs_certificate</span>.<span class="ident">subject_pki</span>;
         <span class="macro">assert_eq!</span>(<span class="ident">oid_registry::OID_PKCS1_RSAENCRYPTION</span>, <span class="ident">spki</span>.<span class="ident">algorithm</span>.<span class="ident">algorithm</span>);
-        <span class="ident">PublicKey</span>(<span class="ident">rsa::RsaPublicKey::from_pkcs1_der</span>(<span class="kw-2">&amp;</span><span class="ident">spki</span>.<span class="ident">subject_public_key</span>.<span class="ident">data</span>).<span class="ident">unwrap</span>())
+        <span class="ident">PublicKey</span>(<span class="ident">rsa::RsaPublicKey::from_pkcs1_der</span>(<span class="ident">spki</span>.<span class="ident">subject_public_key</span>.<span class="ident">data</span>).<span class="ident">unwrap</span>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fingerprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Sha256Hash</span> {
