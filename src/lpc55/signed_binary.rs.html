@@ -231,7 +231,7 @@
             <span class="ident">plain_image</span>,
             <span class="ident">certificates</span>,
             <span class="ident">signing_key</span>,
-            <span class="ident">slot</span>,
+            <span class="ident">slot</span>: <span class="ident">slot</span>,
         })
     }
 
@@ -260,7 +260,7 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">image</span> <span class="op">=</span> <span class="ident">word_padded</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">plain_image</span>);
 
-        <span class="kw">let</span> <span class="ident">certificate</span> <span class="op">=</span> <span class="ident">word_padded</span>(<span class="self">self</span>.<span class="ident">certificates</span>.<span class="ident">certificate_der</span>(<span class="ident">i</span>));
+        <span class="kw">let</span> <span class="ident">certificate</span> <span class="op">=</span> <span class="ident">word_padded</span>(<span class="self">self</span>.<span class="ident">certificates</span>.<span class="ident">certificate_der</span>(<span class="ident">i</span>.<span class="ident">into</span>()));
 
         <span class="kw">let</span> <span class="ident">total_image_size</span> <span class="op">=</span> <span class="ident">modify_header</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">image</span>, <span class="ident">certificate</span>.<span class="ident">len</span>());
         <span class="comment">// println!(&quot;{:x}&quot;, total_image_size);</span>
