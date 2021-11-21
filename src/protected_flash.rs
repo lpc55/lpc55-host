@@ -12,8 +12,8 @@ use sha2::Digest as _;
 
 use nom::{
     IResult,
+    bytes::complete::take,
     number::complete::le_u32,
-    take,
 };
 
 use serde_big_array::big_array;
@@ -385,13 +385,13 @@ impl Keystore {
 fn parse_keystore(input: &[u8]) -> IResult<&[u8], Keystore> {
     let (input, header) = le_u32(input)?;
     let (input, puf_discharge_time_milliseconds) = le_u32(input)?;
-    let (input, activation_code) = take!(input, 1192)?;
-    let (input, secure_boot_kek) = take!(input, 56)?;
-    let (input, user_key) = take!(input, 56)?;
-    let (input, unique_device_secret) = take!(input, 56)?;
-    let (input, prince_region_0) = take!(input, 56)?;
-    let (input, prince_region_1) = take!(input, 56)?;
-    let (input, prince_region_2) = take!(input, 56)?;
+    let (input, activation_code) = take(1192usize)(input)?;
+    let (input, secure_boot_kek) = take(56u8)(input)?;
+    let (input, user_key) = take(56u8)(input)?;
+    let (input, unique_device_secret) = take(56u8)(input)?;
+    let (input, prince_region_0) = take(56u8)(input)?;
+    let (input, prince_region_1) = take(56u8)(input)?;
+    let (input, prince_region_2) = take(56u8)(input)?;
 
     let keystore = Keystore {
         header: KeystoreHeader(header),
@@ -474,16 +474,16 @@ fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: Factory
     let (input, prince_sr_2) = le_u32(input)?;
 
     // reserved
-    let (input, _) = take!(input, 8 * 4)?;
+    let (input, _) = take(8 * 4u8)(input)?;
 
-    let (input, rot_fingerprint) = take!(input, 32)?;
+    let (input, rot_fingerprint) = take(32u8)(input)?;
 
     // reserved
-    let (input, _) = take!(input, 9 * 4 * 4)?;
+    let (input, _) = take(9 * 4 * 4u8)(input)?;
 
-    let (input, customer_data) = take!(input, 14 * 4 * 4)?;
+    let (input, customer_data) = take(14 * 4 * 4u8)(input)?;
 
-    let (input, sha256_hash) = take!(input, 32)?;
+    let (input, sha256_hash) = take(32u8)(input)?;
 
     let factory = FactorySettings {
         boot_configuration: BootConfiguration::from(boot_cfg),
@@ -1166,7 +1166,7 @@ fn parse_customer_page<CustomerData: CustomerSettingsCustomerData, VendorUsage: 
     let (input, image_key_revocation_id) = le_u32(input)?;
 
     // reserved
-    let (input, _) = take!(input, 4)?;
+    let (input, _) = take(4u8)(input)?;
 
     let (input, rot_keys_status) = le_u32(input)?;
     let (input, vendor_usage) = le_u32(input)?;
@@ -1175,20 +1175,20 @@ fn parse_customer_page<CustomerData: CustomerSettingsCustomerData, VendorUsage: 
     let (input, enable_fa) = le_u32(input)?;
     let (input, factory_prog_in_progress) = le_u32(input)?;
 
-    let (input, prince_iv_code0) = take!(input, 14*4)?;
+    let (input, prince_iv_code0) = take(14*4u8)(input)?;
     debug!("prince IV code 0 = {}", hex_str!(prince_iv_code0));
-    let (input, prince_iv_code1) = take!(input, 14*4)?;
-    let (input, prince_iv_code2) = take!(input, 14*4)?;
+    let (input, prince_iv_code1) = take(14*4u8)(input)?;
+    let (input, prince_iv_code2) = take(14*4u8)(input)?;
 
     // reserved
-    let (input, _reserved) = take!(input, 10 * 4)?;
+    let (input, _reserved) = take(10 * 4u8)(input)?;
     debug!("reserved raw = {}", hex_str!(_reserved));
 
-    let (input, customer_data) = take!(input, 56 * 4)?;
+    let (input, customer_data) = take(56 * 4u8)(input)?;
     debug!("customer_data all zero = {}", customer_data.iter().all(|x| *x == 0));
     debug!("customer_data raw = {}", hex_str!(customer_data));
 
-    let (input, sha256_hash) = take!(input, 32)?;
+    let (input, sha256_hash) = take(32u8)(input)?;
 
     assert!(input.is_empty());
     let page = CustomerSettings {

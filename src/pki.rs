@@ -6,7 +6,7 @@ use std::{fmt, fs};
 
 use anyhow::{Context as _, Result};
 use serde::{Deserialize, Serialize};
-use x509_parser::certificate::X509Certificate;
+use x509_parser::{certificate::X509Certificate, traits::FromDer};
 
 use rsa::pkcs1::FromRsaPrivateKey;
 use rsa::pkcs1::FromRsaPublicKey;
