@@ -33,7 +33,7 @@ use std::fs;
 use anyhow::{Context as _, Result};
 pub use chrono::naive::NaiveDate;
 use serde::{Deserialize, Serialize};
-use x509_parser::certificate::X509Certificate;
+use x509_parser::{certificate::X509Certificate, traits::FromDer};
 use rsa::pkcs1::FromRsaPublicKey;
 
 use nom::{
@@ -169,7 +169,7 @@ pub struct Reproducibility {
 }
 
 
-#[derive(Clone, Copy, Debug, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Filetype {
     Elf,
     UnsignedBin,
@@ -683,6 +683,19 @@ impl SignedSb21File {
         bytes
     }
 }
+
+// impl SignedSb21File {
+//     // TODO: Convert `pub fn show` into a proper decoder
+//     pub fn read<P: AsRef<std::path::Path>>(path: P) -> Result<Self> {
+//         let data = fs::read(path.as_ref())
+//             .with_context(|| format!("Failed to read data from from {}", path.as_ref().display()))?;
+
+//         if sniff(&data)? != Filetype::Sb21 {
+//             return Err(anyhow::anyhow!("Doesn't look like an SB 2.1 file"));
+//         }
+
+//     }
+// }
 
 pub fn show(filename: &str) -> Result<Vec<u8>> {
     let data = fs::read(filename)
