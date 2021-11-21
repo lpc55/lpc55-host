@@ -511,7 +511,7 @@
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">Context</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">x509_parser::certificate::X509Certificate</span>;
+<span class="kw">use</span> <span class="ident">x509_parser</span>::{<span class="ident">certificate::X509Certificate</span>, <span class="ident">traits::FromDer</span>};
 
 <span class="kw">use</span> <span class="ident">rsa::pkcs1::FromRsaPrivateKey</span>;
 <span class="kw">use</span> <span class="ident">rsa::pkcs1::FromRsaPublicKey</span>;
