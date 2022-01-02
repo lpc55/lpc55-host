@@ -315,6 +315,7 @@ pub struct Sb21HeaderPart {
     // not sure if the 8 bytes padding can be set to zero or not
     encrypted_keyblob: [u8; 80],
     certificate_block_header: FullCertificateBlockHeader,
+    #[allow(dead_code)]
     unpadded_cert_length: usize,
     padded_certificate0_der: Vec<u8>,
     rot_fingerprints: [Sha256Hash; 4],

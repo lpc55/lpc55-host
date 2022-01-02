@@ -237,7 +237,12 @@ impl Protocol {
                         Ok(command::Response::Generic)
                     }
                     command::Command::ReceiveSbFile { data } => {
+
+                        #[cfg(feature = "progressbar")]
+                        let bar = indicatif::ProgressBar::new(data.len() as u64);
                         for chunk in data.chunks(32) {
+                            #[cfg(feature = "progressbar")]
+                            bar.inc(32);
                             let mut data_packet = vec![command::ReportId::CommandData as u8, 0, chunk.len() as u8, 0];
                             data_packet.extend_from_slice(chunk);
                             data_packet.resize(4 + 32, 0);
