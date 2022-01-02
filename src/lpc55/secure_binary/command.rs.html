@@ -494,7 +494,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">RawBootCommand</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">16</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">16</span>] {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>, <span class="self">self</span>.<span class="ident">tag</span>];
         <span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
         <span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="self">self</span>.<span class="ident">address</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
@@ -505,7 +505,7 @@
         <span class="ident">buffer</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nom::IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="self">Self</span>, ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">nom::IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="self">Self</span>, ()<span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">i</span>, (
             <span class="ident">checksum</span>,
             <span class="ident">tag</span>,
@@ -656,12 +656,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SingleBootCommandDescription</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BootCommand</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">anyhow::Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SingleBootCommandDescription</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">BootCommand</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SingleBootCommandDescription</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">BootCommand</span><span class="op">&gt;</span> {
 
         <span class="kw">use</span> <span class="ident">SingleBootCommandDescription</span>::<span class="kw-2">*</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">cmd</span> {
-            <span class="ident">Erase</span> { <span class="ident">start</span>, <span class="ident">end</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BootCommand::EraseRegion</span> { <span class="ident">address</span>: <span class="kw-2">*</span><span class="ident">start</span>, <span class="ident">bytes</span>: <span class="ident">core::cmp::max</span>(<span class="number">0</span>, <span class="kw-2">*</span><span class="ident">end</span> <span class="op">-</span> <span class="kw-2">*</span><span class="ident">start</span>) },
-            <span class="ident">Load</span> { <span class="ident">file</span>, <span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">len</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Erase</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; <span class="ident">BootCommand::EraseRegion</span> { <span class="ident">address</span>: <span class="kw-2">*</span><span class="ident">start</span>, <span class="ident">bytes</span>: <span class="ident">core::cmp::max</span>(<span class="number">0</span>, <span class="kw-2">*</span><span class="ident">end</span> <span class="op">-</span> <span class="kw-2">*</span><span class="ident">start</span>) },
+            <span class="ident">Load</span> { <span class="ident">file</span>, <span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">len</span> } =&gt; {
                 <span class="kw">let</span> <span class="ident">image</span> <span class="op">=</span> <span class="ident">fs::read</span>(<span class="ident">file</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">len</span>) <span class="op">=</span> <span class="ident">len</span> {
@@ -676,8 +676,8 @@
                 <span class="ident">BootCommand::Load</span> { <span class="ident">address</span>: <span class="kw-2">*</span><span class="ident">dst</span>, <span class="ident">data</span> }
 
             }
-            <span class="ident">CheckNonsecureFirmwareVersion</span> { <span class="ident">version</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BootCommand::CheckNonsecureFirmwareVersion</span> { <span class="ident">version</span>: <span class="kw-2">*</span><span class="ident">version</span> },
-            <span class="ident">CheckSecureFirmwareVersion</span> { <span class="ident">version</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BootCommand::CheckSecureFirmwareVersion</span> { <span class="ident">version</span>: <span class="kw-2">*</span><span class="ident">version</span> },
+            <span class="ident">CheckNonsecureFirmwareVersion</span> { <span class="ident">version</span> } =&gt; <span class="ident">BootCommand::CheckNonsecureFirmwareVersion</span> { <span class="ident">version</span>: <span class="kw-2">*</span><span class="ident">version</span> },
+            <span class="ident">CheckSecureFirmwareVersion</span> { <span class="ident">version</span> } =&gt; <span class="ident">BootCommand::CheckSecureFirmwareVersion</span> { <span class="ident">version</span>: <span class="kw-2">*</span><span class="ident">version</span> },
         })
     }
 }
@@ -712,15 +712,15 @@
 }
 
 <span class="kw">impl</span> <span class="ident">BootCommand</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">BootCommand</span>::<span class="kw-2">*</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmd</span>: <span class="ident">RawBootCommand</span> <span class="op">=</span> <span class="ident">Default::default</span>();
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Nop</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Nop</span> =&gt; {
                 <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::Nop</span> <span class="kw">as</span> <span class="ident">u8</span>;
                 <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
             }
-            <span class="ident">Tag</span> { <span class="ident">last</span>, <span class="ident">tag</span>, <span class="ident">flags</span>, <span class="ident">cipher_blocks</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Tag</span> { <span class="ident">last</span>, <span class="ident">tag</span>, <span class="ident">flags</span>, <span class="ident">cipher_blocks</span> } =&gt; {
                 <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::Tag</span> <span class="kw">as</span> <span class="ident">u8</span>;
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">last</span> {
                     <span class="ident">cmd</span>.<span class="ident">flags</span> <span class="op">=</span> <span class="number">1</span>;
@@ -732,7 +732,7 @@
                 <span class="ident">cmd</span>.<span class="ident">count</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">cipher_blocks</span>;
                 <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
             }
-            <span class="ident">Load</span> { <span class="ident">address</span>, <span class="ident">data</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Load</span> { <span class="ident">address</span>, <span class="ident">data</span> } =&gt; {
                 <span class="kw">if</span> <span class="ident">address</span> <span class="op">+</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">START_OF_PROTECTED_FLASH</span> {
                     <span class="macro">panic!</span>(<span class="string">&quot;It is nearly always a mistake to write into the protected flash area&quot;</span>);
                 }
@@ -761,12 +761,12 @@
                 <span class="ident">vec</span>.<span class="ident">resize</span>(<span class="number">16</span> <span class="op">+</span> <span class="number">16</span><span class="kw-2">*</span><span class="ident">blocks</span>, <span class="number">0</span>);
                 <span class="ident">vec</span>
             }
-            <span class="ident">EraseAll</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">EraseAll</span> =&gt; {
                 <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::Erase</span> <span class="kw">as</span> <span class="ident">u8</span>;
                 <span class="ident">cmd</span>.<span class="ident">flags</span> <span class="op">=</span> <span class="number">1</span>;
                 <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
             }
-            <span class="ident">EraseRegion</span> { <span class="ident">address</span>, <span class="ident">bytes</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">EraseRegion</span> { <span class="ident">address</span>, <span class="ident">bytes</span> } =&gt; {
                 <span class="kw">if</span> <span class="ident">address</span> <span class="op">+</span> <span class="ident">bytes</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">START_OF_PROTECTED_FLASH</span> {
                     <span class="macro">panic!</span>(<span class="string">&quot;It is nearly always a mistake to erase the protected flash area&quot;</span>);
                 }
@@ -775,32 +775,32 @@
                 <span class="ident">cmd</span>.<span class="ident">count</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">bytes</span>;
                 <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
             }
-            <span class="ident">CheckSecureFirmwareVersion</span> { <span class="ident">version</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">CheckSecureFirmwareVersion</span> { <span class="ident">version</span> } =&gt; {
                 <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::CheckFirmwareVersion</span> <span class="kw">as</span> <span class="ident">u8</span>;
                 <span class="comment">// according to nxp/spsdk</span>
                 <span class="ident">cmd</span>.<span class="ident">address</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="ident">cmd</span>.<span class="ident">count</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">version</span>;
                 <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
             }
-            <span class="ident">CheckNonsecureFirmwareVersion</span> { <span class="ident">version</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">CheckNonsecureFirmwareVersion</span> { <span class="ident">version</span> } =&gt; {
                 <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::CheckFirmwareVersion</span> <span class="kw">as</span> <span class="ident">u8</span>;
                 <span class="ident">cmd</span>.<span class="ident">address</span> <span class="op">=</span> <span class="number">1</span>;
                 <span class="ident">cmd</span>.<span class="ident">count</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">version</span>;
                 <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo!</span>(),
+            <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(),
         }
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nom::IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="self">Self</span>, ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">nom::IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="self">Self</span>, ()<span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">i</span>, <span class="ident">raw</span>) <span class="op">=</span> <span class="ident">RawBootCommand::from_bytes</span>(<span class="ident">bytes</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">raw</span>.<span class="ident">tag</span> {
             <span class="comment">// BootTag::Nop =&gt; {</span>
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">0</span> =&gt; {
                 <span class="comment">// todo? check everything zero except checksum</span>
                 (<span class="ident">i</span>, <span class="ident"><span class="self">Self</span>::Nop</span>)
             }
             <span class="comment">// BootTag::Tag =&gt; {</span>
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">1</span> =&gt; {
                 (<span class="ident">i</span>, <span class="ident"><span class="self">Self</span>::Tag</span> {
                     <span class="ident">last</span>: (<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
                     <span class="ident">tag</span>: <span class="ident">raw</span>.<span class="ident">address</span>,
@@ -809,7 +809,7 @@
                 })
             }
             <span class="comment">// BootTag::Load =&gt; {</span>
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">2</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">blocks</span> <span class="op">=</span> (<span class="ident">raw</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">15</span>) <span class="op">/</span> <span class="number">16</span>;
                 <span class="kw">let</span> (<span class="ident">i</span>, <span class="ident">data_ref</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="ident">blocks</span> <span class="op">*</span> <span class="number">16</span>)(<span class="ident">i</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::from</span>(<span class="kw-2">&amp;</span><span class="ident">data_ref</span>[..<span class="ident">raw</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>]);
@@ -827,7 +827,7 @@
                 })
             }
             <span class="comment">// BootTag::Fill =&gt; {</span>
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">3</span> =&gt; {
                 (<span class="ident">i</span>, <span class="ident"><span class="self">Self</span>::Fill</span> {
                     <span class="ident">address</span>: <span class="ident">raw</span>.<span class="ident">address</span>,
                     <span class="ident">bytes</span>: <span class="ident">raw</span>.<span class="ident">count</span>,
@@ -835,7 +835,7 @@
                 })
             }
             <span class="comment">// BootTag::Erase =&gt; {</span>
-            <span class="number">7</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">7</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">erase_all</span> <span class="op">=</span> (<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">let</span> <span class="ident">disable_flash_security_state</span> <span class="op">=</span> (<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;</span> <span class="number">2</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
                 <span class="comment">// not supported yet</span>
@@ -855,7 +855,7 @@
                 }
             }
             <span class="comment">// BootTag::CheckFirmwareVersion =&gt; {</span>
-            <span class="number">0xB</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">0xB</span> =&gt; {
                 <span class="comment">// header.m_address = ENDIAN_HOST_TO_LITTLE_U32((uint32_t)m_versionType);</span>
                 <span class="comment">// header.m_count = ENDIAN_HOST_TO_LITTLE_U32(m_version);</span>
                 <span class="comment">// SecureVersion = 0x0,</span>
@@ -869,7 +869,7 @@
                     (<span class="ident">i</span>, <span class="ident"><span class="self">Self</span>::CheckSecureFirmwareVersion</span> { <span class="ident">version</span>: <span class="ident">raw</span>.<span class="ident">count</span> })
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo!</span>(<span class="string">&quot;implement other boot commands&quot;</span>),
+            <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(<span class="string">&quot;implement other boot commands&quot;</span>),
         })
     }
 }

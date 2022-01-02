@@ -434,7 +434,7 @@
     <span class="doccomment">/// Set to default, so that `lpc55 factory-settings` does not</span>
     <span class="doccomment">/// turn off debugging on an otherwise empty key, unless explicitly</span>
     <span class="doccomment">/// configured to be turned off.</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Default</span>
     }
 }
@@ -447,7 +447,7 @@
     <span class="doccomment">/// It might be possible to set the default to `Self::Default` here,</span>
     <span class="doccomment">/// if we research whether its valid for some settings to stay</span>
     <span class="doccomment">/// 0 in both bits and also in the &quot;inverted&quot; section.</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Enabled</span>
     }
 }
@@ -463,11 +463,11 @@
     <span class="doccomment">/// In their words:</span>
     <span class="doccomment">/// &quot;A bitmask that specifies which debug domains are predetermined</span>
     <span class="doccomment">/// by device configuration.&quot;</span>
-    <span class="kw">fn</span> <span class="ident">fixed_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">fixed_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">use</span> <span class="ident">DebugSetting</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Authenticate</span> <span class="op">|</span> <span class="ident">Default</span> <span class="op">|</span> <span class="ident">Illegal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="ident">Disabled</span> <span class="op">|</span> <span class="ident">Enabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="ident">Authenticate</span> <span class="op">|</span> <span class="ident">Default</span> <span class="op">|</span> <span class="ident">Illegal</span> =&gt; <span class="number">0</span>,
+            <span class="ident">Disabled</span> <span class="op">|</span> <span class="ident">Enabled</span> =&gt; <span class="number">1</span>,
         }
     }
     <span class="doccomment">/// Called `DFLT` by NXP, e.g in UM 11126, 51.7.14</span>
@@ -481,17 +481,17 @@
     <span class="doccomment">/// It seems that the meaning of this bit is incorrectly used</span>
     <span class="doccomment">/// for the enabled and disabled states in Table 1064 of that section.</span>
     <span class="doccomment">/// And indeed, AN13037 confirms this.</span>
-    <span class="kw">fn</span> <span class="ident">enabled_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">enabled_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">use</span> <span class="ident">DebugSetting</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Disabled</span> <span class="op">|</span> <span class="ident">Default</span> <span class="op">|</span> <span class="ident">Authenticate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="ident">Enabled</span> <span class="op">|</span> <span class="ident">Illegal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="ident">Disabled</span> <span class="op">|</span> <span class="ident">Default</span> <span class="op">|</span> <span class="ident">Authenticate</span> =&gt; <span class="number">0</span>,
+            <span class="ident">Enabled</span> <span class="op">|</span> <span class="ident">Illegal</span> =&gt; <span class="number">1</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">bool</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSetting</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">bits</span>: [<span class="ident">bool</span>; <span class="number">2</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">bits</span>: [<span class="ident">bool</span>; <span class="number">2</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> [<span class="ident">fixed</span>, <span class="ident">enabled</span>] <span class="op">=</span> <span class="ident">bits</span>;
         <span class="kw">use</span> <span class="ident">DebugSetting</span>::<span class="kw-2">*</span>;
         <span class="comment">//  UM, 517.1.4, Table 1064</span>
@@ -499,10 +499,10 @@
         <span class="comment">//</span>
         <span class="comment">//  Indeed, AN13037 confirms this.</span>
         <span class="kw">match</span> (<span class="ident">fixed</span>, <span class="ident">enabled</span>) {
-            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Enabled</span>,
-            (<span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Authenticate</span>,
-            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Illegal</span>,
-            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Disabled</span>,
+            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="ident">Enabled</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; <span class="ident">Authenticate</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="ident">Illegal</span>,
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="ident">Disabled</span>,
         }
     }
 }
@@ -563,7 +563,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">DebugSettings</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_legal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_legal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         [
             <span class="self">self</span>.<span class="ident">nonsecure_noninvasive</span>,
             <span class="self">self</span>.<span class="ident">nonsecure_invasive</span>,
@@ -579,7 +579,7 @@
             .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">setting</span><span class="op">|</span> <span class="ident">setting</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DebugSetting::Illegal</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_non_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_non_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         [
             <span class="self">self</span>.<span class="ident">nonsecure_noninvasive</span>,
             <span class="self">self</span>.<span class="ident">nonsecure_invasive</span>,
@@ -595,16 +595,16 @@
             .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">setting</span><span class="op">|</span> <span class="ident">setting</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DebugSetting::Default</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DebugAccess::Default</span>.<span class="ident">into</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">DebugAccess::Default</span>.<span class="ident">into</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugAccess</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSettings</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DebugAccess</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DebugAccess</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">use</span> <span class="ident">DebugSetting</span>::<span class="kw-2">*</span>;
 
-        <span class="kw">fn</span> <span class="ident">filled_with</span>(<span class="ident">setting</span>: <span class="ident">DebugSetting</span>, <span class="ident">check_uuid</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DebugSettings</span> {
+        <span class="kw">fn</span> <span class="ident">filled_with</span>(<span class="ident">setting</span>: <span class="ident">DebugSetting</span>, <span class="ident">check_uuid</span>: <span class="ident">bool</span>) -&gt; <span class="ident">DebugSettings</span> {
             <span class="ident">DebugSettings</span> {
                 <span class="ident">nonsecure_noninvasive</span>: <span class="ident">setting</span>,
                 <span class="ident">nonsecure_invasive</span>: <span class="ident">setting</span>,
@@ -621,28 +621,28 @@
         }
         <span class="kw">match</span> <span class="ident">value</span> {
 
-            <span class="ident">DebugAccess::Default</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">filled_with</span>(<span class="ident">Default</span>, <span class="bool-val">false</span>),
-            <span class="ident">DebugAccess::Disabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">filled_with</span>(<span class="ident">Disabled</span>, <span class="bool-val">true</span>),
-            <span class="ident">DebugAccess::Enabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">filled_with</span>(<span class="ident">Enabled</span>, <span class="bool-val">false</span>),
-            <span class="ident">DebugAccess::Authenticate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">filled_with</span>(<span class="ident">Authenticate</span>, <span class="bool-val">false</span>),
+            <span class="ident">DebugAccess::Default</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Default</span>, <span class="bool-val">false</span>),
+            <span class="ident">DebugAccess::Disabled</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Disabled</span>, <span class="bool-val">true</span>),
+            <span class="ident">DebugAccess::Enabled</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Enabled</span>, <span class="bool-val">false</span>),
+            <span class="ident">DebugAccess::Authenticate</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Authenticate</span>, <span class="bool-val">false</span>),
 
-            <span class="ident">DebugAccess::Custom</span> ( <span class="ident">settings</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">settings</span>,
+            <span class="ident">DebugAccess::Custom</span> ( <span class="ident">settings</span> ) =&gt; <span class="ident">settings</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSettings</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAccess</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">settings</span>: <span class="ident">DebugSettings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">settings</span>: <span class="ident">DebugSettings</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">are_all_default</span>() {
             <span class="kw">return</span> <span class="ident">DebugAccess::Default</span>;
         };
-        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DebugAccess::Authenticate</span>.<span class="ident">into</span>() {
+        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">==</span> <span class="ident">DebugAccess::Authenticate</span>.<span class="ident">into</span>() {
             <span class="kw">return</span> <span class="ident">DebugAccess::Authenticate</span>;
         }
-        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DebugAccess::Disabled</span>.<span class="ident">into</span>() {
+        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">==</span> <span class="ident">DebugAccess::Disabled</span>.<span class="ident">into</span>() {
             <span class="kw">return</span> <span class="ident">DebugAccess::Disabled</span>;
         }
-        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DebugAccess::Enabled</span>.<span class="ident">into</span>() {
+        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">==</span> <span class="ident">DebugAccess::Enabled</span>.<span class="ident">into</span>() {
             <span class="kw">return</span> <span class="ident">DebugAccess::Enabled</span>;
         }
         <span class="ident">DebugAccess::Custom</span>(<span class="ident">settings</span>)
@@ -650,11 +650,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSettings</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: [<span class="ident">u32</span>; <span class="number">2</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: [<span class="ident">u32</span>; <span class="number">2</span>]) -&gt; <span class="self">Self</span> {
         <span class="comment">// fix = debugger can&#39;t change = PIN</span>
         <span class="comment">// set = DFLT</span>
         <span class="kw">let</span> [<span class="ident">fix</span>, <span class="ident">set</span>] <span class="op">=</span> <span class="ident">value</span>;
-        <span class="kw">if</span> (<span class="ident">fix</span>, <span class="ident">set</span>) <span class="op">=</span><span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>) {
+        <span class="kw">if</span> (<span class="ident">fix</span>, <span class="ident">set</span>) <span class="op">==</span> (<span class="number">0</span>, <span class="number">0</span>) {
             <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">DebugAccess::Default</span>)
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">from_bit</span> <span class="op">=</span> <span class="op">|</span><span class="ident">bit</span>: <span class="ident">usize</span><span class="op">|</span> <span class="ident">DebugSetting::from</span>([
@@ -679,7 +679,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSettings</span><span class="op">&gt;</span> <span class="kw">for</span> [<span class="ident">u32</span>; <span class="number">2</span>] {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">settings</span>: <span class="ident">DebugSettings</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u32</span>; <span class="number">2</span>] {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">settings</span>: <span class="ident">DebugSettings</span>) -&gt; [<span class="ident">u32</span>; <span class="number">2</span>] {
         <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">are_all_default</span>() {
             <span class="kw">return</span> [<span class="number">0</span>, <span class="number">0</span>];
         };
