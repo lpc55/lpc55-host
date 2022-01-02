@@ -932,8 +932,7 @@ impl Version {
     pub fn minor_as_date(&self) -> NaiveDate {
         use chrono::Duration;
         let epoch = NaiveDate::from_ymd(2020, 1, 1);
-        let date = epoch + Duration::days(self.minor as _);
-        date
+        epoch + Duration::days(self.minor as _)
     }
 
     /// For end-user consumption.
