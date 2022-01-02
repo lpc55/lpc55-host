@@ -30,7 +30,7 @@ fn check_align(number: usize) -> anyhow::Result<()> {
     }
 }
 
-fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
+fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
 
     logger::Logger::init().unwrap();
 
@@ -320,7 +320,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
     if let Some(command) = args.subcommand_matches("write-memory") {
         let bootloader = bootloader()?;
-        let address = clap::value_t!(command.value_of("ADDRESS"), usize).unwrap();
+        let address = command.value_of_t("ADDRESS")?;
         check_align(address)?;
         let data = fs::read(command.value_of("INPUT").unwrap()).unwrap();
         check_align(data.len())?;
@@ -330,7 +330,7 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
     if let Some(command) = args.subcommand_matches("write-flash") {
         let bootloader = bootloader()?;
-        let address = clap::value_t!(command.value_of("ADDRESS"), usize)?;
+        let address = command.value_of_t("ADDRESS")?;
         check_align(address)?;
         let mut data = fs::read(command.value_of("INPUT").unwrap())?;
         let length = data.len();
@@ -345,8 +345,8 @@ fn try_main(args: clap::ArgMatches<'_>) -> anyhow::Result<()> {
 
     if let Some(command) = args.subcommand_matches("read-memory") {
         let bootloader = bootloader()?;
-        let address = clap::value_t!(command.value_of("ADDRESS"), usize).unwrap();
-        let length = clap::value_t!(command.value_of("LENGTH"), usize).unwrap();
+        let address = command.value_of_t("ADDRESS")?;
+        let length = command.value_of_t("LENGTH")?;
         // let data = bootloader.read_memory_at_most_512(address, length);
         let data = bootloader.read_memory(address, length);
 
