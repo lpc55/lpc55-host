@@ -11,7 +11,7 @@ pub fn sha256(data: &[u8]) -> [u8; 32] {
 
 pub fn hmac(mac_key: [u8; 32], data: &[u8]) -> [u8; 32] {
     use sha2::Sha256;
-    use hmac::{Hmac, Mac, NewMac};
+    use hmac::{Hmac, Mac};
 
     type HmacSha256 = Hmac<Sha256>;
 
