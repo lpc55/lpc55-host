@@ -21,7 +21,7 @@ lpc55
 
 #### Installation
 
-`cargo install --locked --version 0.1.0-alpha.8 lpc55`
+`cargo install --locked`
 
 Examples:
 
