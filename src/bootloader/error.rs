@@ -149,14 +149,24 @@ impl From<BootloaderError> for u32 {
 impl From<u32> for BootloaderError {
     fn from(status: u32) -> Self {
         use BootloaderError::*;
-        if let Ok(group) = ErrorGroup::try_from(status/100) {
+        if let Ok(group) = ErrorGroup::try_from(status / 100) {
             let code = (status % 100) as u8;
             match (group, code) {
-                (ErrorGroup::Generic, code) => GenericError::try_from(code).map_or(Unknown(status), Generic),
-                (ErrorGroup::FlashDriver, code) => FlashDriverError::try_from(code).map_or(Unknown(status), FlashDriver),
-                (ErrorGroup::PropertyStore, code) => PropertyStoreError::try_from(code).map_or(Unknown(status), PropertyStore),
-                (ErrorGroup::CrcChecker, code) => CrcCheckerError::try_from(code).map_or(Unknown(status), CrcChecker),
-                (ErrorGroup::SbLoader, code) => SbLoaderError::try_from(code).map_or(Unknown(status), SbLoader),
+                (ErrorGroup::Generic, code) => {
+                    GenericError::try_from(code).map_or(Unknown(status), Generic)
+                }
+                (ErrorGroup::FlashDriver, code) => {
+                    FlashDriverError::try_from(code).map_or(Unknown(status), FlashDriver)
+                }
+                (ErrorGroup::PropertyStore, code) => {
+                    PropertyStoreError::try_from(code).map_or(Unknown(status), PropertyStore)
+                }
+                (ErrorGroup::CrcChecker, code) => {
+                    CrcCheckerError::try_from(code).map_or(Unknown(status), CrcChecker)
+                }
+                (ErrorGroup::SbLoader, code) => {
+                    SbLoaderError::try_from(code).map_or(Unknown(status), SbLoader)
+                }
                 _ => Unknown(status),
             }
         } else {

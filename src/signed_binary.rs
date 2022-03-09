@@ -3,8 +3,8 @@ use std::fs;
 
 use anyhow::{Context as _, Result};
 
+use crate::pki::{Certificate, CertificateSlot, CertificateSource, Certificates, SigningKey};
 use crate::secure_binary::Config;
-use crate::pki::{Certificate, Certificates, CertificateSlot, CertificateSource, SigningKey};
 use crate::util::word_padded;
 
 pub struct SignedImage(pub Vec<u8>);
@@ -18,16 +18,18 @@ pub struct ImageSigningRequest {
 }
 
 impl ImageSigningRequest {
-
     // pub fn from(plain_image: Vec<u8>, certificates: Certificates, signing_key: SigningKey) -> Self {
     //     Self { plain_image, certificates, slot }
     // }
 
     /// Parse config, load all data checking for validity.
     pub fn try_from(config: &Config) -> Result<Self> {
-
-        let plain_image = fs::read(&config.firmware.image)
-            .with_context(|| format!("Failed to read firmware image from {}", config.firmware.image))?;
+        let plain_image = fs::read(&config.firmware.image).with_context(|| {
+            format!(
+                "Failed to read firmware image from {}",
+                config.firmware.image
+            )
+        })?;
 
         let certificate_sources = [
             CertificateSource::try_from(config.pki.certificates[0].as_ref())?,
@@ -71,7 +73,6 @@ impl ImageSigningRequest {
     }
 
     fn assemble_unsigned_image(&self, i: CertificateSlot) -> Vec<u8> {
-
         let mut image = word_padded(&self.plain_image);
 
         let certificate = word_padded(self.certificates.certificate_der(i));
@@ -132,7 +133,11 @@ fn modify_header(padded_image: &mut Vec<u8>, padded_certificate_length: usize) -
     total_image_size
 }
 
-fn certificate_block_header_bytes(total_image_length: usize, aligned_cert_length: usize, build_number: u32) -> Vec<u8> {
+fn certificate_block_header_bytes(
+    total_image_length: usize,
+    aligned_cert_length: usize,
+    build_number: u32,
+) -> Vec<u8> {
     let mut bytes = Vec::new();
 
     // UM 11126, Chap 7, Table 185
@@ -183,4 +188,3 @@ fn extendu(bytes: &mut Vec<u8>, value: usize) {
     // on desktop, usize is u64
     bytes.extend_from_slice((value as u32).to_le_bytes().as_ref());
 }
-

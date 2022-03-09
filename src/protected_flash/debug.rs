@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::util::is_default;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd,Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 /// Wrapper around the detailed debug access settings,
 /// allowing to completely enable or disable with ease.
 ///
@@ -26,7 +26,7 @@ pub enum DebugAccess {
     Custom(DebugSettings),
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd,Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 /// Controls access of debuggers to specific subsystems.
 ///
 /// To understand if access is possible:
@@ -148,7 +148,9 @@ impl From<[bool; 2]> for DebugSetting {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 #[serde(rename_all = "kebab-case")]
 // The `{non,}secure_{non,}invasive` settings pertain to CPU0,
 // whereas CPU1 has two separate settings.
@@ -216,8 +218,9 @@ impl DebugSettings {
             self.flash_mass_erase_command,
             self.isp_boot_command,
             self.fault_analysis_command,
-        ].iter()
-            .all(|&setting| setting != DebugSetting::Illegal)
+        ]
+        .iter()
+        .all(|&setting| setting != DebugSetting::Illegal)
     }
 
     pub fn are_all_non_default(&self) -> bool {
@@ -232,8 +235,9 @@ impl DebugSettings {
             self.flash_mass_erase_command,
             self.isp_boot_command,
             self.fault_analysis_command,
-        ].iter()
-            .all(|&setting| setting != DebugSetting::Default)
+        ]
+        .iter()
+        .all(|&setting| setting != DebugSetting::Default)
     }
 
     pub fn are_all_default(&self) -> bool {
@@ -261,13 +265,12 @@ impl From<DebugAccess> for DebugSettings {
             }
         }
         match value {
-
             DebugAccess::Default => filled_with(Default, false),
             DebugAccess::Disabled => filled_with(Disabled, true),
             DebugAccess::Enabled => filled_with(Enabled, false),
             DebugAccess::Authenticate => filled_with(Authenticate, false),
 
-            DebugAccess::Custom ( settings ) => settings,
+            DebugAccess::Custom(settings) => settings,
         }
     }
 }
@@ -298,10 +301,8 @@ impl From<[u32; 2]> for DebugSettings {
         if (fix, set) == (0, 0) {
             Self::from(DebugAccess::Default)
         } else {
-            let from_bit = |bit: usize| DebugSetting::from([
-                ((fix >> bit) & 1) != 0,
-                ((set >> bit) & 1) != 0,
-            ]);
+            let from_bit =
+                |bit: usize| DebugSetting::from([((fix >> bit) & 1) != 0, ((set >> bit) & 1) != 0]);
             Self {
                 nonsecure_noninvasive: from_bit(0),
                 nonsecure_invasive: from_bit(1),
@@ -356,4 +357,3 @@ impl From<DebugSettings> for [u32; 2] {
         [fixed, enabled]
     }
 }
-

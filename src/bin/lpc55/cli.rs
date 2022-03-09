@@ -420,5 +420,3 @@ pub fn long_version(revision_hash: Option<&str>) -> String {
     };
     format!("{}{}", crate_version!(), hash)
 }
-
-

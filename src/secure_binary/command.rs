@@ -1,13 +1,10 @@
 use core::convert::{TryFrom, TryInto};
-use std::fs;
 use serde::{Deserialize, Serialize};
+use std::fs;
 
 use nom::{
     // branch::alt,
-    bytes::complete::{
-        // tag, take, take_while_m_n,
-        take,
-    },
+    bytes::complete::take,
     // combinator::{
     //     map, value, verify,
     // },
@@ -15,7 +12,9 @@ use nom::{
     //     fill,
     // },
     number::complete::{
-        u8, le_u16, le_u32, //le_u64, le_u128,
+        le_u16,
+        le_u32, //le_u64, le_u128,
+        u8,
     },
     sequence::tuple,
 };
@@ -62,34 +61,35 @@ impl RawBootCommand {
         buffer.extend_from_slice(self.address.to_le_bytes().as_ref());
         buffer.extend_from_slice(self.count.to_le_bytes().as_ref());
         buffer.extend_from_slice(self.data.to_le_bytes().as_ref());
-        let checksum = buffer[1..].iter().fold(0x5au8, |acc, x| acc.wrapping_add(*x));
+        let checksum = buffer[1..]
+            .iter()
+            .fold(0x5au8, |acc, x| acc.wrapping_add(*x));
         buffer[0] = checksum;
         buffer.try_into().unwrap()
     }
 
     pub fn from_bytes(bytes: &[u8]) -> nom::IResult<&[u8], Self, ()> {
-        let (i, (
-            checksum,
-            tag,
-            flags,
-            address,
-            count,
-            data,
-        )) = tuple((
-            u8,
-            u8,
-            le_u16,
-            le_u32,
-            le_u32,
-            le_u32,
-        ))(bytes)?;
+        let (i, (checksum, tag, flags, address, count, data)) =
+            tuple((u8, u8, le_u16, le_u32, le_u32, le_u32))(bytes)?;
 
         // by previous, bytes.len() >= 16
         info!("raw boot command: {}", hex_str!(&bytes[..16]));
-        let calculated_checksum = bytes[1..16].iter().fold(0x5au8, |acc, x| acc.wrapping_add(*x));
+        let calculated_checksum = bytes[1..16]
+            .iter()
+            .fold(0x5au8, |acc, x| acc.wrapping_add(*x));
         assert_eq!(calculated_checksum, checksum);
 
-        Ok((i, Self { checksum, tag, flags, address, count, data }))
+        Ok((
+            i,
+            Self {
+                checksum,
+                tag,
+                flags,
+                address,
+                count,
+                data,
+            },
+        ))
     }
 }
 
@@ -134,7 +134,10 @@ impl RawBootCommand {
 #[serde(tag = "cmd")]
 pub enum SingleBootCommandDescription {
     /// Maps to `BootCommand::EraseRegion`, but `start` and `end` are given in bytes.
-    Erase { start: u32, end: u32 },
+    Erase {
+        start: u32,
+        end: u32,
+    },
     /// Load (part) of the data reference in `source` to flash.
     ///
     /// The syntax is such that if source data and destination flash were slices
@@ -219,27 +222,39 @@ impl<'a> TryFrom<&'a SingleBootCommandDescription> for BootCommand {
     type Error = anyhow::Error;
 
     fn try_from(cmd: &'a SingleBootCommandDescription) -> anyhow::Result<BootCommand> {
-
         use SingleBootCommandDescription::*;
         Ok(match cmd {
-            Erase { start, end } => BootCommand::EraseRegion { address: *start, bytes: core::cmp::max(0, *end - *start) },
-            Load { file, src, dst, len } => {
+            Erase { start, end } => BootCommand::EraseRegion {
+                address: *start,
+                bytes: core::cmp::max(0, *end - *start),
+            },
+            Load {
+                file,
+                src,
+                dst,
+                len,
+            } => {
                 let image = fs::read(file)?;
 
                 if let Some(len) = len {
                     if (image.len() as u32) < len + src {
                         return Err(anyhow::anyhow!("image too small!"));
                     }
-
                 }
                 let src_len = image.len() - *src as usize;
                 let len = len.unwrap_or(src_len as u32) as usize;
                 let data = Vec::from(&image[*src as usize..][..len]);
-                BootCommand::Load { address: *dst, data }
-
+                BootCommand::Load {
+                    address: *dst,
+                    data,
+                }
             }
-            CheckNonsecureFirmwareVersion { version } => BootCommand::CheckNonsecureFirmwareVersion { version: *version },
-            CheckSecureFirmwareVersion { version } => BootCommand::CheckSecureFirmwareVersion { version: *version },
+            CheckNonsecureFirmwareVersion { version } => {
+                BootCommand::CheckNonsecureFirmwareVersion { version: *version }
+            }
+            CheckSecureFirmwareVersion { version } => {
+                BootCommand::CheckSecureFirmwareVersion { version: *version }
+            }
         })
     }
 }
@@ -253,24 +268,43 @@ pub enum BootCommand {
     // example: 5A|00|0000|00000000|00000000|00000000
     Nop,
     // example: F3|01|0180|00000000|B2640000|01000000
-    Tag { last: bool, tag: u32, flags: u32, cipher_blocks: u32 },
+    Tag {
+        last: bool,
+        tag: u32,
+        flags: u32,
+        cipher_blocks: u32,
+    },
     // example: 8F|02|0000|00000000|00020000|A6D9585A
-    Load { address: u32, data: Vec<u8> },
+    Load {
+        address: u32,
+        data: Vec<u8>,
+    },
     // example?
     /// See ELFTOSB document for explanations of what is supposed to happen when
     /// address is not on a word boundary.
     ///
     /// In any case, if a byte is supposed to be repeated, it must be replicated
     /// four times in the `pattern`, e.g. "fill with 0xF1" => pattern = `0xf1f1_f1f1`.
-    Fill { address: u32, bytes: u32, pattern: u32 },
+    Fill {
+        address: u32,
+        bytes: u32,
+        pattern: u32,
+    },
     // example?
     EraseAll,
     // example: 01|07|0000|00000000|00980800|00000000
     // NB: this command is interpreted as "erase all flash sectors that intersect with the
     // specified region"
-    EraseRegion { address: u32, bytes: u32 },
-    CheckSecureFirmwareVersion { version: u32 },
-    CheckNonsecureFirmwareVersion { version: u32 },
+    EraseRegion {
+        address: u32,
+        bytes: u32,
+    },
+    CheckSecureFirmwareVersion {
+        version: u32,
+    },
+    CheckNonsecureFirmwareVersion {
+        version: u32,
+    },
 }
 
 impl BootCommand {
@@ -282,7 +316,12 @@ impl BootCommand {
                 cmd.tag = BootTag::Nop as u8;
                 Vec::from(cmd.to_bytes().as_ref())
             }
-            Tag { last, tag, flags, cipher_blocks } => {
+            Tag {
+                last,
+                tag,
+                flags,
+                cipher_blocks,
+            } => {
                 cmd.tag = BootTag::Tag as u8;
                 if *last {
                     cmd.flags = 1;
@@ -320,7 +359,7 @@ impl BootCommand {
                 // We're not actually encrypting anyway, and AES is supposed to be a... cipher ;)
                 // vec.resize(32 + 16*blocks, 0);
                 // vec.resize(16 + 4*blocks, 0);
-                vec.resize(16 + 16*blocks, 0);
+                vec.resize(16 + 16 * blocks, 0);
                 vec
             }
             EraseAll => {
@@ -362,40 +401,48 @@ impl BootCommand {
                 (i, Self::Nop)
             }
             // BootTag::Tag => {
-            1 => {
-                (i, Self::Tag {
+            1 => (
+                i,
+                Self::Tag {
                     last: (raw.flags & 1) != 0,
                     tag: raw.address,
                     flags: raw.data,
                     cipher_blocks: raw.count,
-                })
-            }
+                },
+            ),
             // BootTag::Load => {
             2 => {
                 let blocks = (raw.count as usize + 15) / 16;
                 let (i, data_ref) = take(blocks * 16)(i)?;
                 let data = Vec::from(&data_ref[..raw.count as usize]);
                 if raw.count as usize != data_ref.len() {
-                    info!("surplus random bytes skipped when reading: {}", hex_str!(&data_ref[raw.count as usize..]));
+                    info!(
+                        "surplus random bytes skipped when reading: {}",
+                        hex_str!(&data_ref[raw.count as usize..])
+                    );
                 }
                 // verify "CRC-32" calculation:
                 // raw.data == CRC over entire contents of `data_ref`, including padding
                 let calculated_crc = crc32(data_ref);
                 assert_eq!(calculated_crc, raw.data);
-                (i, Self::Load {
-                    address: raw.address,
-                    // bytes: data.len(),
-                    data,
-                })
+                (
+                    i,
+                    Self::Load {
+                        address: raw.address,
+                        // bytes: data.len(),
+                        data,
+                    },
+                )
             }
             // BootTag::Fill => {
-            3 => {
-                (i, Self::Fill {
+            3 => (
+                i,
+                Self::Fill {
                     address: raw.address,
                     bytes: raw.count,
                     pattern: raw.data,
-                })
-            }
+                },
+            ),
             // BootTag::Erase => {
             7 => {
                 let erase_all = (raw.flags & 1) != 0;
@@ -410,10 +457,13 @@ impl BootCommand {
                     // raw.address and raw.count are ignored
                     (i, Self::EraseAll)
                 } else {
-                    (i, Self::EraseRegion {
-                        address: raw.address,
-                        bytes: raw.count,
-                    })
+                    (
+                        i,
+                        Self::EraseRegion {
+                            address: raw.address,
+                            bytes: raw.count,
+                        },
+                    )
                 }
             }
             // BootTag::CheckFirmwareVersion => {
@@ -426,7 +476,10 @@ impl BootCommand {
                 // header.m_address = ENDIAN_HOST_TO_LITTLE_U32((uint32_t)m_versionType);
                 // header.m_count = ENDIAN_HOST_TO_LITTLE_U32(m_version);
                 if nonsecure_version {
-                    (i, Self::CheckNonsecureFirmwareVersion { version: raw.count })
+                    (
+                        i,
+                        Self::CheckNonsecureFirmwareVersion { version: raw.count },
+                    )
                 } else {
                     (i, Self::CheckSecureFirmwareVersion { version: raw.count })
                 }
@@ -435,4 +488,3 @@ impl BootCommand {
         })
     }
 }
-

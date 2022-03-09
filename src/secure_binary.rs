@@ -32,28 +32,33 @@ use std::fs;
 
 use anyhow::{Context as _, Result};
 pub use chrono::naive::NaiveDate;
+use rsa::pkcs1::FromRsaPublicKey;
 use serde::{Deserialize, Serialize};
 use x509_parser::{certificate::X509Certificate, traits::FromDer};
-use rsa::pkcs1::FromRsaPublicKey;
 
 use nom::{
     branch::alt,
     bytes::complete::{tag, take, take_while_m_n},
     combinator::{map, value, verify},
     multi::fill,
-    number::complete::{u8, be_u16, le_u16, be_u32, le_u32, le_u64, le_u128},
+    number::complete::{be_u16, be_u32, le_u128, le_u16, le_u32, le_u64, u8},
     sequence::tuple,
 };
 
 use crate::crypto::{crc32, hmac, nxp_aes_ctr_cipher, sha256};
+use crate::pki::{CertificateSlot, Certificates, Pki, Sha256Hash, SigningKey, SigningKeySource};
 use crate::protected_flash::{CustomerSettings, FactorySettings};
-use crate::pki::{Certificates, CertificateSlot, Pki, Sha256Hash, SigningKey, SigningKeySource};
-use crate::util::{is_default, hex_serialize, hex_deserialize_256, hex_deserialize_32, word_padded};
+use crate::util::{
+    hex_deserialize_256, hex_deserialize_32, hex_serialize, is_default, word_padded,
+};
 use signature::Signature as _;
 
 pub mod command;
 
-use command::{BootCommand, BootCommandDescription, SingleBootCommandDescription, BootCommandSequenceDescription};
+use command::{
+    BootCommand, BootCommandDescription, BootCommandSequenceDescription,
+    SingleBootCommandDescription,
+};
 
 /// Main configuration file format for chip configuration and secure/signed firmware
 /// image/container generation.
@@ -168,7 +173,6 @@ pub struct Reproducibility {
     pub sb_header_padding: [u8; 4],
 }
 
-
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Filetype {
     Elf,
@@ -187,21 +191,17 @@ pub fn sniff(file: &[u8]) -> Result<Filetype> {
         // https://interrupt.memfault.com/blog/zero-to-main-1
         // firmware starts with SP (4b) then PC (4B)
         // maybe: fallback to viewing as "bin" if not ELF or SB?
-        &[0x00, 0x00, 0x04, 0x20] => {
-            match file[0x20..0x24] {
-                [0x00, 0x00, 0x00, 0x00] => Filetype::UnsignedBin,
-                _ => Filetype::SignedBin,
-            }
-        }
+        &[0x00, 0x00, 0x04, 0x20] => match file[0x20..0x24] {
+            [0x00, 0x00, 0x00, 0x00] => Filetype::UnsignedBin,
+            _ => Filetype::SignedBin,
+        },
         _ => {
             match &file[20..24] {
                 // SB2.0 or SB2.1
-                b"STMP" => {
-                    match &file[52..56] {
-                        b"sgtl" => Filetype::Sb21,
-                        _ => Filetype::Sb20,
-                    }
-                }
+                b"STMP" => match &file[52..56] {
+                    b"sgtl" => Filetype::Sb21,
+                    _ => Filetype::Sb20,
+                },
                 // out of ideas
                 _ => {
                     return Err(anyhow::anyhow!("no clue"));
@@ -274,7 +274,6 @@ impl Sb21CommandPart {
         bytes.extend_from_slice(&self.encrypted_section);
         bytes
     }
-
 }
 
 #[derive(Clone, Debug)]
@@ -322,7 +321,6 @@ pub struct Sb21HeaderPart {
 }
 
 impl UnsignedSb21File {
-
     pub fn try_assemble_from(config: &Config) -> anyhow::Result<Self> {
         // // would like to have the decoded certificates here,
         // // but they're always "views". Maybe create our own X509Certificate struct,
@@ -354,30 +352,33 @@ impl UnsignedSb21File {
         let signing_key = SigningKey::try_from_uri(config.pki.signing_key.as_ref())?;
         let slot = certificates.index_of(signing_key.public_key())?;
 
-        let keyblob = Keyblob { dek: config.reproducibility.dek, mac: config.reproducibility.mac };
+        let keyblob = Keyblob {
+            dek: config.reproducibility.dek,
+            mac: config.reproducibility.mac,
+        };
 
         let mut commands: Vec<BootCommand> = Vec::new();
         for command_or_sequence in config.commands.iter() {
             match command_or_sequence {
-
-                BootCommandDescription::Single(command) =>
-                    commands.push(command.try_into()?),
+                BootCommandDescription::Single(command) => commands.push(command.try_into()?),
 
                 BootCommandDescription::Sequence(sequence) => {
                     match sequence {
-
                         BootCommandSequenceDescription::UploadSignedImage => {
-                            let mut image = fs::read(&config.firmware.signed_image)
-                                .with_context(|| format!(
-                                    "Failed to read signed firmware image from {}",
-                                    config.firmware.signed_image))?;
+                            let mut image =
+                                fs::read(&config.firmware.signed_image).with_context(|| {
+                                    format!(
+                                        "Failed to read signed firmware image from {}",
+                                        config.firmware.signed_image
+                                    )
+                                })?;
                             let unpadded_image_size = image.len();
 
                             // Pad size to make 512 aligned
                             let block_overshoot = unpadded_image_size % 512;
                             if block_overshoot != 0 {
                                 let padding = 512 - block_overshoot;
-                                image.resize(unpadded_image_size  + padding, 0);
+                                image.resize(unpadded_image_size + padding, 0);
                             }
 
                             let (first_block, remainder) = image.split_at(512);
@@ -403,28 +404,30 @@ impl UnsignedSb21File {
                                 address: 0,
                                 data: Vec::from(first_block),
                             });
-                        },
+                        }
                         BootCommandSequenceDescription::CheckDerivedFirmwareVersions => {
-
                             let version = config.firmware.product;
-                            if version.major >= 1024 || version.minor > 9999 || version.patch >= 64 {
+                            if version.major >= 1024 || version.minor > 9999 || version.patch >= 64
+                            {
                                 return Err(anyhow::anyhow!(
                                     "config.firmware.product can at most be 1023.9999.63 for CheckDerivedFirmwareVersions"));
                             }
-                            let version_to_check: u32 =
-                                ((version.major as u32) << 22) |
-                                ((version.minor as u32) << 6) | version.patch as u32;
+                            let version_to_check: u32 = ((version.major as u32) << 22)
+                                | ((version.minor as u32) << 6)
+                                | version.patch as u32;
 
-                            info!("Checking firmware versions against: {:08x}", version_to_check);
+                            info!(
+                                "Checking firmware versions against: {:08x}",
+                                version_to_check
+                            );
 
                             commands.push(BootCommand::CheckSecureFirmwareVersion {
-                                version: version_to_check
+                                version: version_to_check,
                             });
 
                             commands.push(BootCommand::CheckNonsecureFirmwareVersion {
-                                version: version_to_check
+                                version: version_to_check,
                             });
-
                         }
                     }
                 }
@@ -461,7 +464,7 @@ impl UnsignedSb21File {
         let mut padded_certificate0_der = Vec::from(self.certificates.certificate_der(self.slot));
         let unpadded_cert_length = padded_certificate0_der.len();
         // let padded_len = 16*((unpadded_cert_length + 15)/16);
-        let padded_len = 4*((unpadded_cert_length + 3)/4);
+        let padded_len = 4 * ((unpadded_cert_length + 3) / 4);
         // dbg!(padded_certificate0_der.len());
         padded_certificate0_der.resize(padded_len, 0);
         // dbg!(padded_certificate0_der.len());
@@ -472,7 +475,7 @@ impl UnsignedSb21File {
         let cert_table_len = 4 + padded_certificate0_der.len() as u32;
         // really?
         // let total_image_length_in_bytes = self.signed_data_length() as _;
-        let total_image_length_in_bytes = (((cert_table_len + 368) + 15)/16) * 16;
+        let total_image_length_in_bytes = (((cert_table_len + 368) + 15) / 16) * 16;
         let certificate_block_header = FullCertificateBlockHeader {
             header_length_in_bytes: 32,
             build_number: self.parameters.build,
@@ -496,7 +499,7 @@ impl UnsignedSb21File {
             // 6 entries that seem only here to "fit in" the general SB scheme
             boot_section_id: 0,
             // 16 * ( header(6) + digest(2) + keyblob(5))
-            certificate_block_header_offset_bytes: 16*13,
+            certificate_block_header_offset_bytes: 16 * 13,
             // "fact of life"
             header_size_blocks: 6,
             // header (6) + digest (2)
@@ -504,7 +507,6 @@ impl UnsignedSb21File {
             keyblob_size_blocks: 5,
             max_section_mac_count: 1,
             // end of "the 6 entries"
-
             timestamp_microseconds_since_millenium: self.parameters.timestamp,
             product_version: self.parameters.product,
             component_version: self.parameters.component,
@@ -528,19 +530,18 @@ impl UnsignedSb21File {
             // boot tag(1) + hmac table(2*2)
             + 5
             // the actual payload
-            + self.command_part().encrypted_section.len()/16
-        ;
+            + self.command_part().encrypted_section.len()/16;
 
-        blocks*16
+        blocks * 16
     }
 
     pub fn signed_data_length(&self) -> usize {
         // need "padded" length here
-        let certificate_length = 4*((self.certificates.certificate_der(self.slot).len() + 3)/4);
+        let certificate_length = 4 * ((self.certificates.certificate_der(self.slot).len() + 3) / 4);
 
         // let header_blocks = 16;
         // let keyblob_blocks = 5;
-        let signed_data_length = 16*(6 + 2 + 5 + 2) + 4 + certificate_length + 128;
+        let signed_data_length = 16 * (6 + 2 + 5 + 2) + 4 + certificate_length + 128;
 
         // pad 16
         16 * ((signed_data_length + 15) / 16)
@@ -569,7 +570,6 @@ impl UnsignedSb21File {
     // should be possible to cache this part. Alternatively, inject a "with rendered command part"
     // typestate between unsigned and signed image (we need the hmacs, and the length)
     pub fn command_part(&self) -> Sb21CommandPart {
-
         let mut section = Vec::new();
         for command in self.commands.iter() {
             section.append(&mut command.to_bytes());
@@ -604,7 +604,6 @@ impl UnsignedSb21File {
         // expected: DE010180 00000000 01000000 01000000
         // println!("expected: {}", hex_str!(&expected_decrypted, 4));
 
-
         // // let expected_encrypted = hex::decode("F24D0184C7177577157ECFACD1F7C24B").unwrap();
         // let expected_encrypted = hex::decode("F05E23DC886A4418F41996FD7E20F1E1").unwrap();
         // let expected_decrypted = nxp_aes_ctr_cipher(
@@ -625,7 +624,12 @@ impl UnsignedSb21File {
         // 0b01 = not cleartext bit 1 = "bootable", bit
         let flags = 0x1;
         let cipher_blocks = encrypted_section.len() as u32 / 16;
-        let boot_tag = BootCommand::Tag { last, tag, flags, cipher_blocks };
+        let boot_tag = BootCommand::Tag {
+            last,
+            tag,
+            flags,
+            cipher_blocks,
+        };
         // println!("boot tag: {}", hex_str!(&boot_tag.to_bytes(), 4));
         let encrypted_boot_tag = nxp_aes_ctr_cipher(
             &boot_tag.to_bytes(),
@@ -708,24 +712,27 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
     trace!("filetype: {:?}", filetype);
 
     if let Filetype::Sb21 = filetype {
-        let (i, header) = Sb2Header::inner_from_bytes(&data)?;//.unwrap();//.1;//.map_err(|_| anyhow::anyhow!("could not parse SB2 file"))?.1;
+        let (i, header) = Sb2Header::inner_from_bytes(&data)?; //.unwrap();//.1;//.map_err(|_| anyhow::anyhow!("could not parse SB2 file"))?.1;
         let (i, digest_hmac) = take::<_, _, ()>(32u8)(i)?;
         let (i, keyblob) = Keyblob::from_bytes(i)?;
         let (i, certificate_block_header) = FullCertificateBlockHeader::from_bytes(i)?;
         let (i, certificate_length) = le_u32::<_, ()>(i).unwrap();
         let (i, certificate_data) = take::<_, _, ()>(certificate_length)(i)?;
 
-        let unpadded_signed_data_length = 16*(6 + 2 + 5 + 2) + 4 + certificate_length + 128;
+        let unpadded_signed_data_length = 16 * (6 + 2 + 5 + 2) + 4 + certificate_length + 128;
 
         let (i, rot_key_hashes) = take::<_, _, ()>(128usize)(i)?;
         let i = if (unpadded_signed_data_length % 16) != 0 {
-             take::<_, _, ()>(16u8 - (unpadded_signed_data_length % 16) as u8)(i)?.0
+            take::<_, _, ()>(16u8 - (unpadded_signed_data_length % 16) as u8)(i)?.0
         } else {
             i
         };
         let (i, signature) = take::<_, _, ()>(256usize)(i)?;
 
-        info!("rotkh: {}", hex_str!(&crate::pki::Certificates::fingerprint_from_bytes(rot_key_hashes).0));
+        info!(
+            "rotkh: {}",
+            hex_str!(&crate::pki::Certificates::fingerprint_from_bytes(rot_key_hashes).0)
+        );
 
         // the weird sectionAllignment (sic!)
         info!("SB2 header: \n{:#?}", &header);
@@ -742,17 +749,25 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
             Ok((rem, cert)) => {
                 println!("remainder: {}", hex_str!(rem));
                 // assert!(rem.is_empty());
-                assert_eq!(cert.tbs_certificate.version, x509_parser::x509::X509Version::V3);
+                assert_eq!(
+                    cert.tbs_certificate.version,
+                    x509_parser::x509::X509Version::V3
+                );
                 cert
             }
-            _ => { panic!("invalid certificate"); }
+            _ => {
+                panic!("invalid certificate");
+            }
         };
         // info!("cert: \n{:?}", &certificate);
         println!("certificate length: {}", certificate_length);
 
         // now let's verify the signature
         // pad 16
-        println!("unpadded signed data length: 0x{:x}", unpadded_signed_data_length);
+        println!(
+            "unpadded signed data length: 0x{:x}",
+            unpadded_signed_data_length
+        );
         // let signed_data_length = signed_data_length + (16 - (signed_data_length % 16));
         let signed_data_length = 16 * ((unpadded_signed_data_length + 15) / 16);
 
@@ -765,18 +780,27 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
 
         let spki = certificate.tbs_certificate.subject_pki;
         trace!("alg: {:?}", spki.algorithm.algorithm);
-        assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
+        assert_eq!(
+            oid_registry::OID_PKCS1_RSAENCRYPTION,
+            spki.algorithm.algorithm
+        );
 
         println!("rsa pub key: {:?}", &spki.subject_public_key.data);
-        let public_key = rsa::RsaPublicKey::from_pkcs1_der(spki.subject_public_key.data).expect("can parse public key");
+        let public_key = rsa::RsaPublicKey::from_pkcs1_der(spki.subject_public_key.data)
+            .expect("can parse public key");
         println!("signature: {}", hexstr!(&signature));
         let padding_scheme = rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
         use rsa::PublicKey;
-        public_key.verify(padding_scheme, &signed_data_hash, signature).expect("signature valid");
+        public_key
+            .verify(padding_scheme, &signed_data_hash, signature)
+            .expect("signature valid");
         // let signature = secret_key.sign(padding_scheme, &hashed_image).expect("signatures work");
 
         let calculated_boot_tag_offset_bytes = signed_data_length + 256;
-        assert_eq!(calculated_boot_tag_offset_bytes, header.boot_tag_offset_blocks * 16);
+        assert_eq!(
+            calculated_boot_tag_offset_bytes,
+            header.boot_tag_offset_blocks * 16
+        );
 
         // alright, BootTag, Hmac, Section
         //
@@ -799,7 +823,8 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
 
         let deciphered_boot_tag = nxp_aes_ctr_cipher(
             enciphered_boot_tag,
-            keyblob.dek, header.nonce,
+            keyblob.dek,
+            header.nonce,
             header.boot_tag_offset_blocks,
         );
 
@@ -809,10 +834,8 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
 
         let (i, hmac_table) = take::<_, _, ()>(64u8)(i)?;
 
-        let (_, (boot_tag_hmac, section_hmac)) = tuple((
-            take::<_, _, ()>(32u8),
-            take::<_, _, ()>(32u8),
-        ))(hmac_table)?;
+        let (_, (boot_tag_hmac, section_hmac)) =
+            tuple((take::<_, _, ()>(32u8), take::<_, _, ()>(32u8)))(hmac_table)?;
 
         assert_eq!(boot_tag_hmac, calculated_boot_tag_hmac);
 
@@ -825,7 +848,8 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
 
         let deciphered_section = nxp_aes_ctr_cipher(
             enciphered_section,
-            keyblob.dek, header.nonce,
+            keyblob.dek,
+            header.nonce,
             header.boot_tag_offset_blocks + 5,
         );
 
@@ -906,7 +930,6 @@ fn bcd(x: u16) -> [u8; 2] {
     bcd[0] = (x % 10) as _;
 
     bcd
-
 }
 
 impl Version {
@@ -939,7 +962,12 @@ impl Version {
     ///
     /// Example: `1:20210624.0`
     pub fn to_calver(&self) -> String {
-        format!("{}:{}.{}", self.major, self.minor_as_date().format("%Y%m%d"), self.patch)
+        format!(
+            "{}:{}.{}",
+            self.major,
+            self.minor_as_date().format("%Y%m%d"),
+            self.patch
+        )
     }
 
     pub fn timestamp_micros(&self) -> u64 {
@@ -980,17 +1008,23 @@ impl From<[u8; 4]> for Version {
 
 // todo: be stricter about format errors?
 fn version_entry(input: &[u8]) -> nom::IResult<&[u8], u16, ()> {
-  let literal_u16 = |x: u16| verify(le_u16, move |y| *y == x);
-  map(
-    tuple((u8, u8, literal_u16(0))),
-    |(hi, lo, _padding)| ((hi & 0b1111)as u16)*100 + (((lo >> 4)*10 + (lo & 0b1111)) as u16)
-  )(input)
+    let literal_u16 = |x: u16| verify(le_u16, move |y| *y == x);
+    map(tuple((u8, u8, literal_u16(0))), |(hi, lo, _padding)| {
+        ((hi & 0b1111) as u16) * 100 + (((lo >> 4) * 10 + (lo & 0b1111)) as u16)
+    })(input)
 }
 
 fn parse_version(i: &[u8]) -> nom::IResult<&[u8], Version, ()> {
     let mut entries = [0u16; 3];
     let (i, ()) = fill(version_entry, &mut entries)(i)?;
-    Ok((i, Version { major: entries[0], minor: entries[1], patch: entries[2] }))
+    Ok((
+        i,
+        Version {
+            major: entries[0],
+            minor: entries[1],
+            patch: entries[2],
+        },
+    ))
 }
 
 #[cfg(test)]
@@ -1001,13 +1035,19 @@ pub mod bcd_tests {
     fn bcd() {
         // let version = Version { major: 123, minor: 456, patch: 999};
         let version = Version::from("123.456.999");
-        assert_eq!(version, Version { major: 123, minor: 456, patch: 999});
+        assert_eq!(
+            version,
+            Version {
+                major: 123,
+                minor: 456,
+                patch: 999
+            }
+        );
         let bcd_version = version.to_bytes();
-        assert_eq!([
-           0x01, 0x23, 0x00, 0x00,
-           0x04, 0x56, 0x00, 0x00,
-           0x09, 0x99, 0x00, 0x00,
-        ], bcd_version);
+        assert_eq!(
+            [0x01, 0x23, 0x00, 0x00, 0x04, 0x56, 0x00, 0x00, 0x09, 0x99, 0x00, 0x00,],
+            bcd_version
+        );
 
         let also_version: Version = parse_version(&bcd_version).unwrap().1;
         assert_eq!(version, also_version);
@@ -1062,8 +1102,8 @@ fn aes_wrap(key: [u8; 32], data: &[u8]) -> Vec<u8> {
         todo!();
     }
     assert!(data.len() % 8 == 0);
-    use aes::{BlockCipher, BlockEncrypt, NewBlockCipher};
     use aes::cipher::generic_array::GenericArray;
+    use aes::{BlockCipher, BlockEncrypt, NewBlockCipher};
     let aes = aes::Aes256::new(&key.into());
     let n = (data.len() as u64) / 8;
 
@@ -1082,7 +1122,7 @@ fn aes_wrap(key: [u8; 32], data: &[u8]) -> Vec<u8> {
             // i.e., B = AES(A | R[i])
             aes.encrypt_block(GenericArray::from_mut_slice(&mut B));
 
-            let t = (n*j + i) as u64;
+            let t = (n * j + i) as u64;
             A = u64::from_be_bytes(B[..8].try_into().unwrap());
             // i.e., MSB(64, B) ^ t
             A ^= t;
@@ -1105,8 +1145,8 @@ fn aes_unwrap(key: [u8; 32], wrapped: &[u8]) -> Vec<u8> {
     }
     assert!(wrapped.len() % 8 == 0);
     assert!(!wrapped.is_empty());
-    use aes::{BlockCipher, BlockDecrypt, NewBlockCipher};
     use aes::cipher::generic_array::GenericArray;
+    use aes::{BlockCipher, BlockDecrypt, NewBlockCipher};
     let aes = aes::Aes256::new(&key.into());
     let n = (wrapped.len() as u64) / 8 - 1;
     let mut A = u64::from_be_bytes(wrapped[..8].try_into().unwrap());
@@ -1118,8 +1158,8 @@ fn aes_unwrap(key: [u8; 32], wrapped: &[u8]) -> Vec<u8> {
     let mut B = [0u8; 16];
     for j in (0..=5).rev() {
         for i in (1..=n).rev() {
-            let t = (n*j + i) as u64;
-            B[..8].copy_from_slice(&(A ^t).to_be_bytes());
+            let t = (n * j + i) as u64;
+            B[..8].copy_from_slice(&(A ^ t).to_be_bytes());
             B[8..].copy_from_slice(&R[i as usize].to_be_bytes());
             // let mut B = ((A ^ t) | R[i as usize]).to_be_bytes();
             aes.decrypt_block(GenericArray::from_mut_slice(&mut B));
@@ -1172,9 +1212,11 @@ mod aes_keywrap {
         // ...256 bit data
         let kek = hex::decode("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F")
             .unwrap();
-        let msg = hex::decode("00112233445566778899AABBCCDDEEFF000102030405060708090A0B0C0D0E0F").unwrap();
+        let msg = hex::decode("00112233445566778899AABBCCDDEEFF000102030405060708090A0B0C0D0E0F")
+            .unwrap();
         let mut expected = String::from(
-            "28C9F404C4B810F4 CBCCB35CFB87F826 3F5786E2D80ED326 CBC7F0E71A99F43B FB988B9B7A02DD21");
+            "28C9F404C4B810F4 CBCCB35CFB87F826 3F5786E2D80ED326 CBC7F0E71A99F43B FB988B9B7A02DD21",
+        );
         expected.retain(|c| !c.is_whitespace());
         assert_eq!(
             hex::decode(expected).unwrap(),
@@ -1233,11 +1275,10 @@ impl Keyblob {
         // println!("wrapped: \n{}", hex_str!(
         //     &Aes256KeyWrap::new(Self::SBKEK).encapsulate(unwrapped).unwrap()));
 
-
         // let keywrap = rust_aes_keywrap::Aes256KeyWrap::new(Self::SBKEK);
         // let decapsulated = keywrap.decapsulate(encapsulated, 64).unwrap();
-        let decapsulated = aes_unwrap(*Self::SBKEK, encapsulated);//apsulate(encapsulated, 64).unwrap();
-        // let mut nonce = [0u32; 4];
+        let decapsulated = aes_unwrap(*Self::SBKEK, encapsulated); //apsulate(encapsulated, 64).unwrap();
+                                                                   // let mut nonce = [0u32; 4];
         println!("decapsulated = {}", hex_str!(&decapsulated));
         let mut dek = [0u8; 32];
         let mut mac = [0u8; 32];
@@ -1246,7 +1287,6 @@ impl Keyblob {
         Ok((i, Self { dek, mac }))
     }
 }
-
 
 /// full size: 0x60 = 96 bytes
 #[derive(Clone, Debug)]
@@ -1277,17 +1317,17 @@ pub struct Sb2Header {
     sb_header_padding: [u8; 4],
 }
 
-    // struct certificate_block_header_t {
-    //     uint8_t  signature[4];                  //!< Always set to 'cert'
-    //     uint16_t headerMajorVersion;            //!< Set to 1
-    //     uint16_t headerMinorVersion;            //!< Set to 0
-    //     uint32_t headerLengthInBytes;           //!< Starting from the signature and not including the certificate table.
-    //     uint32_t flags;                         //!< Reserved for future use.
-    //     uint32_t buildNumber;                   //!< Build number of the user code. Allows user to prevent reverting to old versions
-    //     uint32_t totalImageLengthInBytes;       //!< Length in bytes of the signed data
-    //     uint32_t certificateCount;              //!< Must be greater than 0
-    //     uint32_t certificateTableLengthInBytes; //!< Total length in bytes of the certificate table
-    // };
+// struct certificate_block_header_t {
+//     uint8_t  signature[4];                  //!< Always set to 'cert'
+//     uint16_t headerMajorVersion;            //!< Set to 1
+//     uint16_t headerMinorVersion;            //!< Set to 0
+//     uint32_t headerLengthInBytes;           //!< Starting from the signature and not including the certificate table.
+//     uint32_t flags;                         //!< Reserved for future use.
+//     uint32_t buildNumber;                   //!< Build number of the user code. Allows user to prevent reverting to old versions
+//     uint32_t totalImageLengthInBytes;       //!< Length in bytes of the signed data
+//     uint32_t certificateCount;              //!< Must be greater than 0
+//     uint32_t certificateTableLengthInBytes; //!< Total length in bytes of the certificate table
+// };
 
 #[derive(Clone, Debug)]
 pub struct FullCertificateBlockHeader {
@@ -1299,7 +1339,7 @@ pub struct FullCertificateBlockHeader {
 }
 
 impl FullCertificateBlockHeader {
-    fn to_bytes(&self) -> [u8; 2*16] {
+    fn to_bytes(&self) -> [u8; 2 * 16] {
         let mut bytes = Vec::from(b"cert".as_ref());
         bytes.extend_from_slice(&1u16.to_le_bytes());
         bytes.extend_from_slice(&0u16.to_le_bytes());
@@ -1332,13 +1372,16 @@ impl FullCertificateBlockHeader {
         let (i, certificate_count) = literal_u32(1)(i)?;
         let (i, certificate_table_length_in_bytes) = le_u32(i)?;
 
-        Ok((i, Self {
-            header_length_in_bytes,
-            build_number,
-            total_image_length_in_bytes,
-            certificate_count,
-            certificate_table_length_in_bytes,
-        }))
+        Ok((
+            i,
+            Self {
+                header_length_in_bytes,
+                build_number,
+                total_image_length_in_bytes,
+                certificate_count,
+                certificate_table_length_in_bytes,
+            },
+        ))
     }
 }
 
@@ -1346,8 +1389,8 @@ impl Sb2Header {
     /// 96 bytes
     pub const LEN: usize = 96;
     pub fn from_bytes(i: &[u8]) -> Result<Self> {
-        let (remainder_len, header) = Self::inner_from_bytes(i)
-            .map(|(remainder, header)| (remainder.len(), header))?;
+        let (remainder_len, header) =
+            Self::inner_from_bytes(i).map(|(remainder, header)| (remainder.len(), header))?;
         match remainder_len {
             0 => Ok(header),
             _ => Err(anyhow::anyhow!("spurious bytes")),
@@ -1372,7 +1415,7 @@ impl Sb2Header {
         for entry in self.nonce.iter() {
             bytes.extend_from_slice(&entry.to_le_bytes());
         }
-        bytes.extend_from_slice(&[0,0,0,0]);
+        bytes.extend_from_slice(&[0, 0, 0, 0]);
         bytes.extend_from_slice(b"STMP");
         bytes.push(2);
         bytes.push(self.header_version_minor);
@@ -1438,23 +1481,26 @@ impl Sb2Header {
         let (i, ()) = fill(u8, &mut sb_header_padding)(i)?;
         // nom::exact!(i, take(4u8));
 
-        Ok((i, Self {
-            nonce,
-            header_version_minor,
-            flags,
-            image_size_blocks,
-            boot_tag_offset_blocks,
-            boot_section_id,
-            certificate_block_header_offset_bytes,
-            header_size_blocks,
-            keyblob_offset_blocks,
-            keyblob_size_blocks,
-            max_section_mac_count,
-            timestamp_microseconds_since_millenium,
-            product_version,
-            component_version,
-            build_number,
-            sb_header_padding,
-        }))
+        Ok((
+            i,
+            Self {
+                nonce,
+                header_version_minor,
+                flags,
+                image_size_blocks,
+                boot_tag_offset_blocks,
+                boot_section_id,
+                certificate_block_header_offset_bytes,
+                header_size_blocks,
+                keyblob_offset_blocks,
+                keyblob_size_blocks,
+                max_section_mac_count,
+                timestamp_microseconds_since_millenium,
+                product_version,
+                component_version,
+                build_number,
+                sb_header_padding,
+            },
+        ))
     }
 }

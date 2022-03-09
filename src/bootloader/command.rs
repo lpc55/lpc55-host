@@ -4,25 +4,40 @@ use serde::{Deserialize, Serialize};
 
 use super::property::Property;
 
-
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(tag = "cmd")]
 pub enum Command {
     EraseFlashAll,
-    EraseFlash { address: usize, length: usize },
-    ReadMemory { address: usize, length: usize },
-    WriteMemory { address: usize, data: Vec<u8> },
+    EraseFlash {
+        address: usize,
+        length: usize,
+    },
+    ReadMemory {
+        address: usize,
+        length: usize,
+    },
+    WriteMemory {
+        address: usize,
+        data: Vec<u8>,
+    },
     /// Converts the words to little-endian, then delegates to `WriteMemory`
-    WriteMemoryWords { address: usize, words: Vec<u32> },
+    WriteMemoryWords {
+        address: usize,
+        words: Vec<u32>,
+    },
     FillMemory,
     /// cf. <https://www.nxp.com/docs/en/application-note/AN12527.pdf>
-    ConfigureMemory { address: usize },
+    ConfigureMemory {
+        address: usize,
+    },
     FlashSecurityDisable,
     // there is actually a second parameter, Memory ID
     // 0 = internal flash
     // 1 = QSPI0 memory (unused for LPC55)
-    GetProperty ( Property ),
-    ReceiveSbFile { data: Vec<u8> },
+    GetProperty(Property),
+    ReceiveSbFile {
+        data: Vec<u8>,
+    },
     Call,
     Reset,
     FlashReadResource,
@@ -30,7 +45,9 @@ pub enum Command {
 }
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
+#[derive(
+    Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd,
+)]
 pub enum CommandTag {
     EraseFlashAll = 0x01,
     EraseFlash = 0x02,
@@ -86,26 +103,30 @@ impl Command {
 
             (Command::WriteMemory { address: _, data }, _) => DataPhase::CommandData(data.clone()),
             (Command::WriteMemoryWords { address: _, words }, _) => {
-               use std::io::Write;
-               let mut bytes = Vec::with_capacity(words.len() * 4);
-               let cursor = &mut bytes;
+                use std::io::Write;
+                let mut bytes = Vec::with_capacity(words.len() * 4);
+                let cursor = &mut bytes;
 
-               for word in words.iter() {
-                   cursor.write_all(&word.to_le_bytes()).unwrap();
-               }
+                for word in words.iter() {
+                    cursor.write_all(&word.to_le_bytes()).unwrap();
+                }
 
                 DataPhase::CommandData(bytes)
-            },
+            }
             (Command::ReceiveSbFile { data }, _) => DataPhase::CommandData(data.clone()),
 
             (Command::Keystore(KeystoreOperation::Enroll), _) => DataPhase::None,
             (Command::Keystore(KeystoreOperation::ReadKeystore), _) => DataPhase::ResponseData,
-            (Command::Keystore(KeystoreOperation::SetKey { key: _, data }), _) => DataPhase::CommandData(data.clone()),
-            (Command::Keystore(KeystoreOperation::GenerateKey { key: _, len: _ }), _) => DataPhase::None,
+            (Command::Keystore(KeystoreOperation::SetKey { key: _, data }), _) => {
+                DataPhase::CommandData(data.clone())
+            }
+            (Command::Keystore(KeystoreOperation::GenerateKey { key: _, len: _ }), _) => {
+                DataPhase::None
+            }
             (Command::Keystore(KeystoreOperation::WriteNonVolatile), _) => DataPhase::None,
             (Command::Keystore(KeystoreOperation::ReadNonVolatile), _) => DataPhase::None,
 
-            _ => todo!()
+            _ => todo!(),
         }
     }
 
@@ -162,11 +183,10 @@ impl Command {
                     ReadNonVolatile => {
                         vec![u32::from(&operation), 0]
                     }
-                    _ => todo!()
-
+                    _ => todo!(),
                 }
             }
-            _ => todo!()
+            _ => todo!(),
         }
     }
 
@@ -175,10 +195,22 @@ impl Command {
         use CommandTag as Tag;
         match *self {
             EraseFlashAll => Tag::EraseFlashAll,
-            EraseFlash { address: _, length: _ } => Tag::EraseFlash,
-            ReadMemory { address: _, length: _ } => Tag::ReadMemory,
-            WriteMemory { address: _, data: _ } => Tag::WriteMemory,
-            WriteMemoryWords { address: _, words: _} => Tag::WriteMemory,
+            EraseFlash {
+                address: _,
+                length: _,
+            } => Tag::EraseFlash,
+            ReadMemory {
+                address: _,
+                length: _,
+            } => Tag::ReadMemory,
+            WriteMemory {
+                address: _,
+                data: _,
+            } => Tag::WriteMemory,
+            WriteMemoryWords {
+                address: _,
+                words: _,
+            } => Tag::WriteMemory,
             FillMemory => Tag::FillMemory,
             FlashSecurityDisable => Tag::FlashSecurityDisable,
             GetProperty(_) => Tag::GetProperty,
@@ -241,7 +273,9 @@ impl Command {
         let mut packet = Vec::new();
 
         packet.extend_from_slice(&self.header());
-        params.iter().for_each(|param| { packet.extend_from_slice(param.to_le_bytes().as_ref()) } );
+        params
+            .iter()
+            .for_each(|param| packet.extend_from_slice(param.to_le_bytes().as_ref()));
         packet.resize(32, 0);
 
         packet
@@ -252,7 +286,9 @@ impl Command {
 }
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
+#[derive(
+    Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd,
+)]
 pub enum ResponseTag {
     Generic = 0xA0,
     ReadMemory = 0xA3,
@@ -301,7 +337,9 @@ impl Response {
 }
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd)]
+#[derive(
+    Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd,
+)]
 // todo: rename to HidReportId? place in `mod hid` submodule?
 pub enum ReportId {
     Command = 1,
@@ -411,7 +449,6 @@ impl From<FlashReadMargin> for u8 {
             Factory => 2,
             // Unknown(unknown) => unknown,
         }
-
     }
 }
 
@@ -501,7 +538,7 @@ impl TryFrom<&str> for Key {
             "secure-boot-kek" => SecureBootKek,
             "unique-device-secret" => UniqueDeviceSecret,
             "user-key" => UserPsk,
-            _ => return Err(name.to_string())
+            _ => return Err(name.to_string()),
         })
     }
 }
@@ -546,7 +583,6 @@ impl From<&KeystoreOperation> for u32 {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     #[cfg(all(feature = "with-device", test))]
@@ -556,7 +592,9 @@ mod test {
     #[cfg(all(feature = "with-device", test))]
     fn command_packet() {
         // 7 0 0 2  1 0 0 0  0 0 0 0
-        insta::assert_debug_snapshot!(Command::GetProperty(Property::CurrentVersion).command_packet());
+        insta::assert_debug_snapshot!(
+            Command::GetProperty(Property::CurrentVersion).command_packet()
+        );
     }
 
     // #[test]
@@ -565,5 +603,4 @@ mod test {
         // 1 0 C 0  7 0 0 2  1 0 0 0  0 0 0 0
         insta::assert_debug_snapshot!(Command::GetProperty(Property::CurrentVersion).hid_packet());
     }
-
 }

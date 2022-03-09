@@ -8,7 +8,6 @@ use tiny_http as http;
 use crate::bootloader;
 use anyhow::Result;
 
-
 #[derive(Clone, Debug)]
 pub struct HttpConfig {
     pub addr: String,
@@ -35,9 +34,7 @@ pub struct Server {
 }
 
 impl Server {
-
     pub fn new(config: &HttpConfig, bootloader: bootloader::Bootloader) -> Result<Server> {
-
         let server = http::Server::http(format!("{}:{}", &config.addr, config.port))
             .map_err(|e| anyhow::format_err!("couldn't create HTTP server: {}", e))?;
 
@@ -46,7 +43,6 @@ impl Server {
             server,
             bootloader,
         })
-
     }
 
     pub fn run(&self) -> Result<()> {
@@ -65,11 +61,11 @@ impl Server {
                 "/pfr" => Some(self.pfr()?),
                 "/status" => Some(self.status()?),
                 _ => None,
-            }
+            },
             http::Method::Post => match request.url() {
                 // "/api" => Some(self.api(&mut request)?),
                 _ => None,
-            }
+            },
             _ => None,
         }
         .unwrap_or_else(|| {
@@ -87,11 +83,11 @@ impl Server {
     }
 
     fn pfr(&self) -> Result<http::Response<io::Cursor<Vec<u8>>>> {
-        info!("lpc55::http[{:04x}:{:04x}, {}:{}]: GET /pfr",
-            &self.bootloader.vid, &self.bootloader.pid,
-            &self.config.addr, &self.config.port,
+        info!(
+            "lpc55::http[{:04x}:{:04x}, {}:{}]: GET /pfr",
+            &self.bootloader.vid, &self.bootloader.pid, &self.config.addr, &self.config.port,
         );
-        let data = self.bootloader.read_memory(0x9_DE00, 7*512);
+        let data = self.bootloader.read_memory(0x9_DE00, 7 * 512);
         let pfr = crate::protected_flash::ProtectedFlash::try_from(&data[..]).unwrap();
         let json = serde_json::to_string_pretty(&pfr).unwrap();
 
@@ -99,9 +95,9 @@ impl Server {
     }
 
     fn status(&self) -> Result<http::Response<io::Cursor<Vec<u8>>>> {
-        info!("lpc55::http[{:04x}:{:04x}, {}:{}]: GET /status",
-            &self.bootloader.vid, &self.bootloader.pid,
-            &self.config.addr, &self.config.port,
+        info!(
+            "lpc55::http[{:04x}:{:04x}, {}:{}]: GET /status",
+            &self.bootloader.vid, &self.bootloader.pid, &self.config.addr, &self.config.port,
         );
 
         let status = [

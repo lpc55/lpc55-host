@@ -54,12 +54,7 @@ impl Log for Logger {
                 );
             }
             _ => {
-                eprintln!(
-                    "{}|{}: {}",
-                    record.level(),
-                    record.target(),
-                    record.args()
-                );
+                eprintln!("{}|{}: {}", record.level(), record.target(), record.args());
             }
         }
     }
@@ -68,4 +63,3 @@ impl Log for Logger {
         // We use eprintln! which is flushed on every call.
     }
 }
-

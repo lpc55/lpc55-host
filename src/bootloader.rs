@@ -15,7 +15,7 @@ pub mod command;
 pub use command::{Command, KeystoreOperation, Response};
 pub mod error;
 pub mod property;
-pub use property::{GetProperties, Property, Properties};
+pub use property::{GetProperties, Properties, Property};
 pub mod protocol;
 pub mod provision;
 use protocol::Protocol;
@@ -33,7 +33,8 @@ pub trait UuidSelectable: Sized {
     ///
     /// Default implementation; replace for better error messages.
     fn having(uuid: Uuid) -> anyhow::Result<Self> {
-        let mut candidates: Vec<Self> = Self::list().into_iter()
+        let mut candidates: Vec<Self> = Self::list()
+            .into_iter()
             // The Err variant is preventing a simple `Ok(uuid) == entry.try_uuid()`,
             // as there is no Eq on anyhow::Error.
             .filter_map(|mut entry| {
@@ -46,11 +47,16 @@ pub trait UuidSelectable: Sized {
                 } else {
                     None
                 }
-            }).collect();
+            })
+            .collect();
         match candidates.len() {
             0 => Err(anyhow!("No candidate has UUID {:X}", uuid.to_simple())),
             1 => Ok(candidates.remove(0)),
-            n => Err(anyhow!("Multiple ({}) candidates have UUID {:X}", n, uuid.to_simple())),
+            n => Err(anyhow!(
+                "Multiple ({}) candidates have UUID {:X}",
+                n,
+                uuid.to_simple()
+            )),
         }
     }
 }
@@ -70,7 +76,7 @@ impl fmt::Debug for Bootloader {
             .field("vid", &hexstr!(&self.vid.to_be_bytes()))
             .field("pid", &hexstr!(&self.pid.to_be_bytes()))
             .field("uuid", &hexstr!(&self.uuid.to_be_bytes()))
-        .finish()
+            .finish()
     }
 }
 
@@ -79,8 +85,6 @@ impl fmt::Display for Bootloader {
         fmt::Debug::fmt(self, f)
     }
 }
-
-
 
 /// Bootloader commands return a "status". The non-zero statii can be split
 /// as `100*group + code`. We map these groups into enum variants, containing
@@ -100,18 +104,27 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-
 impl UuidSelectable for Bootloader {
     fn try_uuid(&mut self) -> anyhow::Result<Uuid> {
         Ok(self.uuid())
     }
 
     fn having(uuid: Uuid) -> anyhow::Result<Self> {
-        let mut candidates: Vec<Self> = Self::list().into_iter().filter(|bootloader| bootloader.uuid() == uuid).collect();
+        let mut candidates: Vec<Self> = Self::list()
+            .into_iter()
+            .filter(|bootloader| bootloader.uuid() == uuid)
+            .collect();
         match candidates.len() {
-            0 => Err(anyhow!("No usable bootloader has UUID {:X}", uuid.to_simple())),
+            0 => Err(anyhow!(
+                "No usable bootloader has UUID {:X}",
+                uuid.to_simple()
+            )),
             1 => Ok(candidates.remove(0)),
-            n => Err(anyhow!("Multiple ({}) bootloaders have UUID {:X}", n, uuid.to_simple())),
+            n => Err(anyhow!(
+                "Multiple ({}) bootloaders have UUID {:X}",
+                n,
+                uuid.to_simple()
+            )),
         }
     }
 
@@ -132,21 +145,30 @@ impl UuidSelectable for Bootloader {
                 if device_info.product_string() != Some("USB COMPOSITE DEVICE") {
                     return None;
                 }
-                device_info.open_device(&api).ok()
+                device_info
+                    .open_device(&api)
+                    .ok()
                     .map(|device| (device, vid, pid))
             })
             .filter_map(|(device, vid, pid)| {
                 let protocol = Protocol::new(device);
-                GetProperties { protocol: &protocol }.device_uuid().ok()
-                    .map(|uuid| Self { protocol, vid, pid, uuid })
+                GetProperties {
+                    protocol: &protocol,
+                }
+                .device_uuid()
+                .ok()
+                .map(|uuid| Self {
+                    protocol,
+                    vid,
+                    pid,
+                    uuid,
+                })
             })
             .collect()
     }
-
 }
 
 impl Bootloader {
-
     fn uuid(&self) -> Uuid {
         Uuid::from_u128(self.uuid)
     }
@@ -157,12 +179,18 @@ impl Bootloader {
     }
 
     /// Attempt to find a unique ROM bootloader with the given VID, PID and UUID.
-    pub fn try_find(vid: Option<u16>, pid: Option<u16>, uuid: Option<Uuid>) -> anyhow::Result<Self> {
+    pub fn try_find(
+        vid: Option<u16>,
+        pid: Option<u16>,
+        uuid: Option<Uuid>,
+    ) -> anyhow::Result<Self> {
         let mut bootloaders = Self::find(vid, pid, uuid);
         if bootloaders.len() > 1 {
             Err(anyhow!("Muliple matching bootloaders found"))
         } else {
-            bootloaders.pop().ok_or_else(|| anyhow!("No matching bootloader found"))
+            bootloaders
+                .pop()
+                .ok_or_else(|| anyhow!("No matching bootloader found"))
         }
     }
 
@@ -193,7 +221,9 @@ impl Bootloader {
         // 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000030 FF5F0030 00000020 FF5F0020 00000000 00000000
         // second time i ran this:
         // 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-        self.protocol.call(&Command::Keystore(KeystoreOperation::Enroll)).expect("success");
+        self.protocol
+            .call(&Command::Keystore(KeystoreOperation::Enroll))
+            .expect("success");
         info!("PUF enrolled");
     }
 
@@ -246,7 +276,10 @@ impl Bootloader {
     }
 
     pub fn read_memory_at_most_512(&self, address: usize, length: usize) -> Vec<u8> {
-        let response = self.protocol.call(&Command::ReadMemory { address, length }).expect("success");
+        let response = self
+            .protocol
+            .call(&Command::ReadMemory { address, length })
+            .expect("success");
         if let Response::ReadMemory(data) = response {
             data
         } else {
@@ -255,15 +288,26 @@ impl Bootloader {
     }
 
     pub fn receive_sb_file(&self, data: &[u8]) {
-        let _response = self.protocol.call(&Command::ReceiveSbFile { data: data.to_vec() }).expect("success");
+        let _response = self
+            .protocol
+            .call(&Command::ReceiveSbFile {
+                data: data.to_vec(),
+            })
+            .expect("success");
     }
 
     pub fn erase_flash(&self, address: usize, length: usize) {
-        let _response = self.protocol.call(&Command::EraseFlash { address, length }).expect("success");
+        let _response = self
+            .protocol
+            .call(&Command::EraseFlash { address, length })
+            .expect("success");
     }
 
     pub fn write_memory(&self, address: usize, data: Vec<u8>) {
-        let _response = self.protocol.call(&Command::WriteMemory { address, data }).expect("success");
+        let _response = self
+            .protocol
+            .call(&Command::WriteMemory { address, data })
+            .expect("success");
     }
 
     fn property(&self, property: property::Property) -> Result<Vec<u32>> {
@@ -271,14 +315,19 @@ impl Bootloader {
     }
 
     pub fn properties(&self) -> property::GetProperties<'_> {
-        GetProperties { protocol: &self.protocol }
+        GetProperties {
+            protocol: &self.protocol,
+        }
     }
 
     pub fn all_properties(&self) -> Properties {
         self.properties().all()
     }
 
-    pub fn run_command(&self, cmd: Command) -> std::result::Result<command::Response, protocol::Error> {
+    pub fn run_command(
+        &self,
+        cmd: Command,
+    ) -> std::result::Result<command::Response, protocol::Error> {
         self.protocol.call(&cmd)
     }
 }

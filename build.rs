@@ -33,7 +33,8 @@ fn main() {
     fs::create_dir_all(&outdir).unwrap();
     println!("{:?}", &outdir);
 
-    #[cfg(feature = "cli")] {
+    #[cfg(feature = "cli")]
+    {
         use clap_complete::{generate_to, shells};
 
         // Use clap to build completion files.

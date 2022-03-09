@@ -24,7 +24,6 @@ pub fn split_once(s: &str, delimiter: char) -> Option<(&str, &str)> {
     Some((&s[..i], &s[i + 1..]))
 }
 
-
 /// Specification of PKI for secure (signed) boot.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
@@ -75,7 +74,6 @@ impl TryFrom<&'_ str> for Pki {
     }
 }
 
-
 impl TryFrom<&'_ str> for SigningKeySource {
     type Error = anyhow::Error;
     fn try_from(uri: &str) -> anyhow::Result<Self> {
@@ -83,7 +81,11 @@ impl TryFrom<&'_ str> for SigningKeySource {
         let key_source = match scheme {
             "file" => SigningKeySource::Pkcs1PemFile(std::path::PathBuf::from(content)),
             "pkcs11" => SigningKeySource::Pkcs11Uri(uri.to_string()),
-            _ => return Err(anyhow::anyhow!("only file and pkcs11 secret key URIs supported")),
+            _ => {
+                return Err(anyhow::anyhow!(
+                    "only file and pkcs11 secret key URIs supported"
+                ))
+            }
         };
         Ok(key_source)
     }
@@ -129,8 +131,12 @@ impl SigningKey {
         use SigningKeySource::*;
         Ok(match source {
             Pkcs1PemFile(path) => {
-                let pem = std::fs::read_to_string(path)
-                    .with_context(|| format!("Failed to read private key from PEM file {}", path.display()))?;
+                let pem = std::fs::read_to_string(path).with_context(|| {
+                    format!(
+                        "Failed to read private key from PEM file {}",
+                        path.display()
+                    )
+                })?;
                 // do this instead:
                 // https://docs.rs/rsa/0.3.0/rsa/struct.RsaPrivateKey.html?search=#example
                 let der = pem_parser::pem_to_der(&pem);
@@ -148,13 +154,15 @@ impl SigningKey {
         use SigningKey::*;
         let signature = match self {
             Pkcs1(key) => {
-                let padding_scheme = rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
+                let padding_scheme =
+                    rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
 
                 use sha2::Digest;
                 let mut hasher = sha2::Sha256::new();
                 hasher.update(data);
                 let hashed_data = hasher.finalize();
-                key.sign(padding_scheme, &hashed_data).expect("signatures work")
+                key.sign(padding_scheme, &hashed_data)
+                    .expect("signatures work")
             }
             Pkcs11Uri(uri) => {
                 let (context, session, object) = uri.identify_object().unwrap();
@@ -180,23 +188,23 @@ impl SigningKey {
     pub fn public_key(&self) -> PublicKey {
         use SigningKey::*;
         PublicKey(match self {
-            Pkcs1(key) => {
-                key.to_public_key()
-            }
+            Pkcs1(key) => key.to_public_key(),
             Pkcs11Uri(uri) => {
                 let (context, session, object) = uri.identify_object().unwrap();
 
-                use pkcs11::types::{CK_ATTRIBUTE, CKA_MODULUS, CKA_PUBLIC_EXPONENT};
+                use pkcs11::types::{CKA_MODULUS, CKA_PUBLIC_EXPONENT, CK_ATTRIBUTE};
 
-                let /*mut*/ n_buffer = [0u8; 256];  // rust-pkcs11 API is sloppy about mut here; 256B = 2048b is enough for RSA2k keys
-                let /*mut*/ e_buffer = [0u8; 3];    // always 0x10001 = u16::MAX + 2 anyway
+                let /*mut*/ n_buffer = [0u8; 256]; // rust-pkcs11 API is sloppy about mut here; 256B = 2048b is enough for RSA2k keys
+                let /*mut*/ e_buffer = [0u8; 3]; // always 0x10001 = u16::MAX + 2 anyway
                 let mut n_attribute = CK_ATTRIBUTE::new(CKA_MODULUS);
                 n_attribute.set_biginteger(&n_buffer);
                 let mut e_attribute = CK_ATTRIBUTE::new(CKA_PUBLIC_EXPONENT);
                 e_attribute.set_biginteger(&e_buffer);
                 let mut template = vec![n_attribute, e_attribute];
 
-                let (rv, attributes) = context.get_attribute_value(session, object, &mut template).unwrap();
+                let (rv, attributes) = context
+                    .get_attribute_value(session, object, &mut template)
+                    .unwrap();
                 assert_eq!(rv, 0);
                 let n = attributes[0].get_biginteger().unwrap();
                 let e = attributes[1].get_biginteger().unwrap();
@@ -289,7 +297,11 @@ impl TryFrom<&'_ str> for CertificateSource {
         let key_source = match scheme {
             "file" => CertificateSource::X509DerFile(std::path::PathBuf::from(content)),
             "pkcs11" => CertificateSource::Pkcs11Uri(uri.to_string()),
-            _ => return Err(anyhow::anyhow!("only file and pkcs11 certificate URIs supported")),
+            _ => {
+                return Err(anyhow::anyhow!(
+                    "only file and pkcs11 certificate URIs supported"
+                ))
+            }
         };
         Ok(key_source)
     }
@@ -305,11 +317,14 @@ impl Certificate {
     pub fn try_from(source: &CertificateSource) -> Result<Self> {
         use CertificateSource::*;
         let der = match source {
-            X509DerFile(filename) => fs::read(filename)
-                .with_context(|| format!(
-                    "Failed to read certificate from DER file {}", filename.display()))?,
+            X509DerFile(filename) => fs::read(filename).with_context(|| {
+                format!(
+                    "Failed to read certificate from DER file {}",
+                    filename.display()
+                )
+            })?,
             Pkcs11Uri(uri) => {
-                use pkcs11::types::{CK_ATTRIBUTE, CKA_VALUE};
+                use pkcs11::types::{CKA_VALUE, CK_ATTRIBUTE};
 
                 let uri = pkcs11_uri::Pkcs11Uri::try_from(uri)?;
                 let (context, session, object) = uri.identify_object()?;
@@ -317,7 +332,9 @@ impl Certificate {
                 let buffer = [0u8; 4096];
                 let /*mut*/ attribute = CK_ATTRIBUTE::new(CKA_VALUE).with_bytes(&buffer);
                 let mut template = vec![attribute];
-                let (rv, _attributes) = context.get_attribute_value(session, object, &mut template).unwrap();
+                let (rv, _attributes) = context
+                    .get_attribute_value(session, object, &mut template)
+                    .unwrap();
                 // compiler hint?
                 let attribute = _attributes[0];
                 assert_eq!(rv, 0);
@@ -325,7 +342,6 @@ impl Certificate {
                 let value = attribute.get_bytes()?;
                 trace!("certificate DER:\n{}", hex_str!(&value, 32));
                 value
-
             }
         };
         Certificate::try_from_der(&der)
@@ -335,16 +351,23 @@ impl Certificate {
     pub fn try_from_der(der: &[u8]) -> Result<Self> {
         // implicitly checks public key is RSA
         let _ = Self::cert_fingerprint(X509Certificate::from_der(der)?.1)?;
-        Ok(Self { der: Vec::from(der) })
+        Ok(Self {
+            der: Vec::from(der),
+        })
     }
 
     fn cert_fingerprint(certificate: X509Certificate<'_>) -> Result<Sha256Hash> {
         let spki = certificate.tbs_certificate.subject_pki;
         trace!("alg: {:?}", spki.algorithm.algorithm);
         // let OID_RSA_ENCRYPTION = oid!(1.2.840.113549.1.1.1);
-        assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
+        assert_eq!(
+            oid_registry::OID_PKCS1_RSAENCRYPTION,
+            spki.algorithm.algorithm
+        );
 
-        let public_key = PublicKey(rsa::RsaPublicKey::from_pkcs1_der(spki.subject_public_key.data)?);
+        let public_key = PublicKey(rsa::RsaPublicKey::from_pkcs1_der(
+            spki.subject_public_key.data,
+        )?);
         Ok(public_key.fingerprint())
     }
 
@@ -359,7 +382,10 @@ impl Certificate {
 
     pub fn public_key(&self) -> PublicKey {
         let spki = self.certificate().tbs_certificate.subject_pki;
-        assert_eq!(oid_registry::OID_PKCS1_RSAENCRYPTION, spki.algorithm.algorithm);
+        assert_eq!(
+            oid_registry::OID_PKCS1_RSAENCRYPTION,
+            spki.algorithm.algorithm
+        );
         PublicKey(rsa::RsaPublicKey::from_pkcs1_der(spki.subject_public_key.data).unwrap())
     }
 
@@ -394,32 +420,38 @@ impl Certificates {
 
     // todo: consider using pkcs11-uri here too
     pub fn try_from(sources: &[CertificateSource; 4]) -> Result<Self> {
-        Ok(Self { certificates: [
-            Certificate::try_from(&sources[0])?,
-            Certificate::try_from(&sources[1])?,
-            Certificate::try_from(&sources[2])?,
-            Certificate::try_from(&sources[3])?,
-        ] })
+        Ok(Self {
+            certificates: [
+                Certificate::try_from(&sources[0])?,
+                Certificate::try_from(&sources[1])?,
+                Certificate::try_from(&sources[2])?,
+                Certificate::try_from(&sources[3])?,
+            ],
+        })
     }
 
     /// Checks certificates are valid, and public keys are all RSA.
     pub fn try_from_ders(certificate_ders: [Vec<u8>; 4]) -> Result<Self> {
-        Ok(Self { certificates: [
-            Certificate::try_from_der(&certificate_ders[0])?,
-            Certificate::try_from_der(&certificate_ders[1])?,
-            Certificate::try_from_der(&certificate_ders[2])?,
-            Certificate::try_from_der(&certificate_ders[3])?,
-        ] })
+        Ok(Self {
+            certificates: [
+                Certificate::try_from_der(&certificate_ders[0])?,
+                Certificate::try_from_der(&certificate_ders[1])?,
+                Certificate::try_from_der(&certificate_ders[2])?,
+                Certificate::try_from_der(&certificate_ders[3])?,
+            ],
+        })
     }
 
     pub fn index_of(&self, public_key: PublicKey) -> Result<CertificateSlot> {
         for i in 0..4 {
             let slot = CertificateSlot(i);
             if public_key == self.certificate(slot).public_key() {
-                return Ok(slot)
+                return Ok(slot);
             }
         }
-        Err(anyhow::anyhow!("no matching certificate found for public key!"))
+        Err(anyhow::anyhow!(
+            "no matching certificate found for public key!"
+        ))
     }
 
     pub fn certificate(&self, i: CertificateSlot) -> &Certificate {
@@ -458,7 +490,6 @@ impl Certificates {
         Sha256Hash(hash)
     }
 }
-
 
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Sha256Hash(pub [u8; 32]);
@@ -501,5 +532,3 @@ pub(crate) fn format_bytes(bytes: &[u8], f: &mut fmt::Formatter<'_>) -> fmt::Res
     //     info,
     // ))
 }
-
-
