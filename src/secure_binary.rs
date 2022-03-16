@@ -885,7 +885,7 @@ pub struct CertificateBlockHeader {
 /// Further, the minor version is at times interpreted as a "calver" encoding
 /// days since 2020-01-01. This is optional to use, "semver" works as well.
 ///
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Version {
     pub major: u16,
     pub minor: u16,

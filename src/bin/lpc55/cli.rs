@@ -1,6 +1,6 @@
 //! Command-line interface to this crate's functionality
 
-use clap::{self, crate_authors, crate_version, App, Arg};
+use clap::{self, crate_authors, crate_version, Arg, Command};
 
 // duplicated here, because when using this `cli` module in build.rs
 // to generate shell completions, there is no `lpc55` crate yet
@@ -20,7 +20,7 @@ Use -h for short descriptions and --help for more details
 
 Project homepage: https://github.com/lpc55/lpc55-host
 ";
-pub fn app() -> clap::App<'static> {
+pub fn app() -> Command<'static> {
     // We need to specify our version in a static because we've painted clap
     // into a corner. We've told it that every string we give it will be
     // 'static, but we need to build the version string dynamically. We can
@@ -30,12 +30,12 @@ pub fn app() -> clap::App<'static> {
         // static ref LONG_VERSION: String = long_version(Some("47e1f"));
     }
 
-    let app = App::new("lpc55")
+    let app = Command::new("lpc55")
         .author(crate_authors!())
         .version(crate_version!())
         .long_version(LONG_VERSION.as_str())
         .about(ABOUT)
-        .setting(clap::AppSettings::SubcommandRequiredElseHelp)
+        .subcommand_required(true)
 
 
         .arg(Arg::new("VID")
@@ -71,7 +71,7 @@ pub fn app() -> clap::App<'static> {
               .global(true)
               .help("Sets the level of verbosity (use multiple times to increase: -v = INFO, -vv = DEBUG, -vvv = TRACE)"))
 
-        .subcommand(App::new("http")
+        .subcommand(Command::new("http")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .visible_alias("h")
@@ -88,13 +88,13 @@ pub fn app() -> clap::App<'static> {
              )
         )
 
-        .subcommand(App::new("configure")
+        .subcommand(Command::new("configure")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("configure factory and customer settings")
-            .setting(clap::AppSettings::SubcommandRequiredElseHelp)
+            .subcommand_required(true)
 
-            .subcommand(App::new("factory-settings")
+            .subcommand(Command::new("factory-settings")
                 .version(crate_version!())
                 .long_version(LONG_VERSION.as_str())
                 .about("make changes to factory settings page (CMPA)")
@@ -110,7 +110,7 @@ pub fn app() -> clap::App<'static> {
                      .required(true)
                 )
             )
-            .subcommand(App::new("customer-settings")
+            .subcommand(Command::new("customer-settings")
                 .version(crate_version!())
                 .long_version(LONG_VERSION.as_str())
                 .about("make changes to customer settings page (CFPA)")
@@ -140,7 +140,7 @@ pub fn app() -> clap::App<'static> {
             )
         )
 
-        .subcommand(App::new("provision")
+        .subcommand(Command::new("provision")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("Run a sequence of bootloader commands defined in the config file.")
@@ -150,28 +150,28 @@ pub fn app() -> clap::App<'static> {
             )
         )
 
-        .subcommand(App::new("reboot")
+        .subcommand(Command::new("reboot")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("reboot device")
         )
 
-        .subcommand(App::new("keystore")
+        .subcommand(Command::new("keystore")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("keystore interactions")
-            .setting(clap::AppSettings::SubcommandRequiredElseHelp)
+            .subcommand_required(true)
 
-            .subcommand(App::new("enroll-puf")
+            .subcommand(Command::new("enroll-puf")
                 .version(crate_version!())
                 .about("(re)initialize PUF, writing an activation code to the keystore")
             )
 
-            .subcommand(App::new("read")
+            .subcommand(Command::new("read")
                 .version(crate_version!())
             )
 
-            .subcommand(App::new("generate-key")
+            .subcommand(Command::new("generate-key")
                 .version(crate_version!())
                 .long_version(LONG_VERSION.as_str())
                 .about("generate \"intrinsic\" key")
@@ -191,7 +191,7 @@ pub fn app() -> clap::App<'static> {
                 )
             )
 
-            .subcommand(App::new("set-key")
+            .subcommand(Command::new("set-key")
                 .version(crate_version!())
                 .long_version(LONG_VERSION.as_str())
                 .about("set key")
@@ -205,30 +205,30 @@ pub fn app() -> clap::App<'static> {
                      .required(true))
             )
 
-            .subcommand(App::new("write-keys")
+            .subcommand(Command::new("write-keys")
                 .version(crate_version!())
                 .about("store any previously generated keys (including PUF activation codes) to non-volatile memory, i.e., PFR keystore")
             )
 
-            .subcommand(App::new("read-keys")
+            .subcommand(Command::new("read-keys")
                 .version(crate_version!())
                 .about("ReadNonVolatile")
             )
 
         )
 
-        .subcommand(App::new("info")
+        .subcommand(Command::new("info")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .visible_alias("i")
             .about("query all properties from bootloader")
         )
 
-        .subcommand(App::new("ls")
+        .subcommand(Command::new("ls")
             .about("list all available bootloaders")
         )
 
-        .subcommand(App::new("pfr")
+        .subcommand(Command::new("pfr")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("read out and parse PFR")
@@ -263,7 +263,7 @@ pub fn app() -> clap::App<'static> {
 
         )
 
-        .subcommand(App::new("read-memory")
+        .subcommand(Command::new("read-memory")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .visible_aliases(&["r", "read"])
@@ -281,7 +281,7 @@ pub fn app() -> clap::App<'static> {
                  .takes_value(true))
         )
 
-        .subcommand(App::new("write-memory")
+        .subcommand(Command::new("write-memory")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("write to memory")
@@ -294,7 +294,7 @@ pub fn app() -> clap::App<'static> {
                  .takes_value(true))
         )
 
-        .subcommand(App::new("write-flash")
+        .subcommand(Command::new("write-flash")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("write to flash (like write-memory, but pads to 512 bytes and erases first)")
@@ -309,7 +309,7 @@ pub fn app() -> clap::App<'static> {
                  .takes_value(true))
         )
 
-        .subcommand(App::new("receive-sb-file")
+        .subcommand(Command::new("receive-sb-file")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("send SB2.1 file to target")
@@ -318,7 +318,7 @@ pub fn app() -> clap::App<'static> {
                  .required(true))
         )
 
-        .subcommand(App::new("fingerprint-certificates")
+        .subcommand(Command::new("fingerprint-certificates")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("calculate fingerprint of root certificates (aka ROTKH)")
@@ -327,7 +327,7 @@ pub fn app() -> clap::App<'static> {
                  .required(true))
         )
 
-        .subcommand(App::new("sign-fw")
+        .subcommand(Command::new("sign-fw")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("sign firmware")
@@ -346,7 +346,7 @@ pub fn app() -> clap::App<'static> {
             )
         )
 
-        .subcommand(App::new("assemble-sb")
+        .subcommand(Command::new("assemble-sb")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("assemble SB2.1 image")
@@ -387,11 +387,11 @@ pub fn app() -> clap::App<'static> {
             )
         )
 
-        .subcommand(App::new("sb")
+        .subcommand(Command::new("sb")
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("firmware commands")
-            .subcommand(App::new("show")
+            .subcommand(Command::new("show")
                 .version(crate_version!())
                 .long_version(LONG_VERSION.as_str())
                 .about("show information about file")
