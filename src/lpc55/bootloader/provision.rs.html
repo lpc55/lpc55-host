@@ -26,23 +26,21 @@
 <span id="24">24</span>
 <span id="25">25</span>
 <span id="26">26</span>
-<span id="27">27</span>
-</pre><pre class="rust"><code><span class="doccomment">/// </span>
+</pre><pre class="rust"><code><span class="doccomment">///</span>
 <span class="doccomment">/// A &quot;porcelain&quot; layer for working with lpc55 bootloaders designed for custom provisioning.</span>
-<span class="doccomment">/// </span>
-
-<span class="kw">use</span> <span class="ident">std::convert</span>::{<span class="ident">TryFrom</span>};
+<span class="doccomment">///</span>
+<span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
 <span class="kw">use</span> <span class="ident">std::fs</span>;
 
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::command</span>::{<span class="ident">Command</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::command::Command</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Config</span> {
     <span class="doccomment">/// Commands for the bootloader</span>
-    <span class="kw">pub</span> <span class="ident">provisions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Command</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="ident">provisions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Command</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Config</span> {

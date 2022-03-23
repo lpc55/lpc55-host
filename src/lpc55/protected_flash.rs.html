@@ -1249,6 +1249,41 @@
 <span id="1247">1247</span>
 <span id="1248">1248</span>
 <span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The protected flash area (PFR) as Rust types</span>
 <span class="doccomment">//!</span>
 <span class="kw">use</span> <span class="ident">core::convert::TryInto</span>;
@@ -1256,16 +1291,12 @@
 <span class="kw">use</span> <span class="ident">std::io::Write</span> <span class="kw">as</span> <span class="kw">_</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pki</span>::{<span class="ident">format_bytes</span>, <span class="ident">Sha256Hash</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<span class="ident">hex_serialize</span>, <span class="ident">hex_deserialize_256</span>, <span class="ident">is_default</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<span class="ident">hex_deserialize_256</span>, <span class="ident">hex_serialize</span>, <span class="ident">is_default</span>};
 
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">sha2::Digest</span> <span class="kw">as</span> <span class="kw">_</span>;
 
-<span class="kw">use</span> <span class="ident">nom</span>::{
-    <span class="ident">IResult</span>,
-    <span class="ident">bytes::complete::take</span>,
-    <span class="ident">number::complete::le_u32</span>,
-};
+<span class="kw">use</span> <span class="ident">nom</span>::{<span class="ident">bytes::complete::take</span>, <span class="ident">number::complete::le_u32</span>, <span class="ident">IResult</span>};
 
 <span class="kw">use</span> <span class="ident">serde_big_array::big_array</span>;
 <span class="macro">big_array!</span> {
@@ -1299,10 +1330,12 @@
     <span class="kw">pub</span> <span class="ident">keystore</span>: <span class="ident">Keystore</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deny_unknown_fields</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span> <span class="op">=</span> <span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span> <span class="op">=</span> <span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">CustomerData</span>: <span class="ident">FactorySettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">FactorySettingsVendorUsage</span>,
@@ -1362,12 +1395,14 @@
     <span class="kw">pub</span> <span class="ident">seal</span>: <span class="ident">bool</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="doccomment">/// See `CustomerSettingsArea` documentation for how this part of the configuration is</span>
 <span class="doccomment">/// used and updated by the ROM bootloader.</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deny_unknown_fields</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span> <span class="op">=</span> <span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span> <span class="op">=</span> <span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
@@ -1415,8 +1450,7 @@
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">prince_ivs</span>: [
-        <span class="ident">PrinceIvCode</span>; <span class="number">3</span>],
+    <span class="kw">pub</span> <span class="ident">prince_ivs</span>: [<span class="ident">PrinceIvCode</span>; <span class="number">3</span>],
 
     <span class="comment">// customer_data: [u32; 4*14],  // or [u128, 14]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
@@ -1440,11 +1474,13 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="doccomment">/// Type enabling `lpc55 configure factory-settings` to share config file with the secure/signed</span>
 <span class="doccomment">/// firmware generation commands. Serializes `FactorySettings` with a `[factory-settings]` header.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WrappedFactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WrappedFactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span> <span class="op">=</span> <span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span> <span class="op">=</span> <span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">CustomerData</span>: <span class="ident">FactorySettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">FactorySettingsVendorUsage</span>,
@@ -1452,11 +1488,13 @@
     <span class="kw">pub</span> <span class="ident">factory_settings</span>: <span class="ident">FactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="doccomment">/// Type enabling `lpc55 configure customer-settings` to share config file with the secure/signed</span>
 <span class="doccomment">/// firmware generation commands. Serializes `CustomerSettings` with a `[customer-settings]` header.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WrappedCustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WrappedCustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span> <span class="op">=</span> <span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span> <span class="op">=</span> <span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
@@ -1464,7 +1502,9 @@
     <span class="kw">pub</span> <span class="ident">customer_settings</span>: <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeystoreHeader</span>(<span class="kw">pub</span> <span class="ident">u32</span>);
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
@@ -1484,10 +1524,7 @@
 <span class="doccomment">/// Presumably (entire paragraph is speculative), this is followed by 32B of input to be XOR&#39;d or</span>
 <span class="doccomment">/// whatnot with the 32B &quot;fingerprint&quot; derived from PUF &quot;startup data&quot; via error correction with</span>
 <span class="doccomment">/// the &quot;activation code&quot; (and then truncated to key length). Which would leave 16B hash.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Keycode</span>(
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;BigArray&quot;</span>)]</span>
-    [<span class="ident">u8</span>; <span class="number">56</span>]
-);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Keycode</span>(<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;BigArray&quot;</span>)]</span> [<span class="ident">u8</span>; <span class="number">56</span>]);
 
 <span class="kw">impl</span> <span class="ident">Keycode</span> {
     <span class="doccomment">/// Not sure if this is true (in analogy with &quot;header&quot;)</span>
@@ -1524,10 +1561,7 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ActivationCode</span>(
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;BigArray&quot;</span>)]</span>
-    [<span class="ident">u8</span>; <span class="number">1192</span>]
-);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ActivationCode</span>(<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;BigArray&quot;</span>)]</span> [<span class="ident">u8</span>; <span class="number">1192</span>]);
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ActivationCode</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
@@ -1550,7 +1584,9 @@
 <span class="doccomment">/// All the keys :)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// We &quot;unroll&quot; the prince_regions array to be able to serialize_with hex_serialize.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Keystore</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
@@ -1616,11 +1652,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Keystore</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">3</span><span class="kw-2">*</span><span class="number">512</span>] {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">3</span><span class="kw-2">*</span><span class="number">512</span>];
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">3</span> <span class="op">*</span> <span class="number">512</span>] {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">3</span> <span class="op">*</span> <span class="number">512</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">as_mut</span>();
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">header</span>.<span class="number">0</span>.<span class="ident">to_le_bytes</span>()).<span class="ident">ok</span>();
-        <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">puf_discharge_time_milliseconds</span>.<span class="ident">to_le_bytes</span>()).<span class="ident">ok</span>();
+        <span class="ident">cursor</span>
+            .<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">puf_discharge_time_milliseconds</span>.<span class="ident">to_le_bytes</span>())
+            .<span class="ident">ok</span>();
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">activation_code</span>.<span class="number">0</span>).<span class="ident">ok</span>();
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">secure_boot_kek</span>.<span class="number">0</span>).<span class="ident">ok</span>();
         <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">user_key</span>.<span class="number">0</span>).<span class="ident">ok</span>();
@@ -1704,9 +1742,12 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_factory</span><span class="op">&lt;</span><span class="ident">CustomerData</span>: <span class="ident">FactorySettingsCustomerData</span>, <span class="ident">VendorUsage</span>: <span class="ident">FactorySettingsVendorUsage</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>])
-    -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">FactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span><span class="op">&gt;</span>
-{
+<span class="kw">fn</span> <span class="ident">parse_factory</span><span class="op">&lt;</span>
+    <span class="ident">CustomerData</span>: <span class="ident">FactorySettingsCustomerData</span>,
+    <span class="ident">VendorUsage</span>: <span class="ident">FactorySettingsVendorUsage</span>,
+<span class="op">&gt;</span>(
+    <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
+) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">FactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">boot_cfg</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">_spi_flash_cfg</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="macro">assert_eq!</span>(<span class="ident">_spi_flash_cfg</span>, <span class="number">0</span>);
@@ -1756,7 +1797,6 @@
 
     <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">factory</span>))
 }
-
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
@@ -1836,7 +1876,9 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BootConfiguration</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
@@ -1874,7 +1916,6 @@
         <span class="ident">word</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">u8::from</span>(<span class="ident">cfg</span>.<span class="ident">mode</span>) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
 
         <span class="ident">word</span>
-
     }
 }
 
@@ -1947,7 +1988,9 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SecureBootConfiguration</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
@@ -2030,7 +2073,9 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrinceConfiguration</span> {
     <span class="kw">pub</span> <span class="ident">erase_checks</span>: [<span class="ident">bool</span>; <span class="number">3</span>],
     <span class="kw">pub</span> <span class="ident">locked</span>: [<span class="ident">bool</span>; <span class="number">3</span>],
@@ -2110,24 +2155,31 @@
 <span class="kw">impl</span> <span class="ident">core::convert::TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ProtectedFlash</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
     <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">factory</span> <span class="op">=</span> <span class="ident">FactorySettings::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">3</span><span class="kw-2">*</span><span class="number">512</span>..<span class="number">4</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">customer</span> <span class="op">=</span> <span class="ident">CustomerSettingsArea::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">3</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">keystore</span> <span class="op">=</span> <span class="ident">Keystore::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">4</span><span class="kw-2">*</span><span class="number">512</span>..<span class="number">7</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">factory</span> <span class="op">=</span> <span class="ident">FactorySettings::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">3</span> <span class="op">*</span> <span class="number">512</span>..<span class="number">4</span> <span class="op">*</span> <span class="number">512</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">customer</span> <span class="op">=</span> <span class="ident">CustomerSettingsArea::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">3</span> <span class="op">*</span> <span class="number">512</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">keystore</span> <span class="op">=</span> <span class="ident">Keystore::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">4</span> <span class="op">*</span> <span class="number">512</span>..<span class="number">7</span> <span class="op">*</span> <span class="number">512</span>]).<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="ident">pfr</span> <span class="op">=</span> <span class="ident">ProtectedFlash</span> { <span class="ident">customer</span>, <span class="ident">factory</span>, <span class="ident">keystore</span> };
+        <span class="kw">let</span> <span class="ident">pfr</span> <span class="op">=</span> <span class="ident">ProtectedFlash</span> {
+            <span class="ident">customer</span>,
+            <span class="ident">factory</span>,
+            <span class="ident">keystore</span>,
+        };
 
         <span class="prelude-val">Ok</span>(<span class="ident">pfr</span>)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CustomerSettingsCustomerData</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">14</span><span class="kw-2">*</span><span class="number">4</span><span class="kw-2">*</span><span class="number">4</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span> {}
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FactorySettingsCustomerData</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">14</span><span class="kw-2">*</span><span class="number">4</span><span class="kw-2">*</span><span class="number">4</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span> {}
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CustomerSettingsCustomerData</span>:
+    <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">14</span> <span class="op">*</span> <span class="number">4</span> <span class="op">*</span> <span class="number">4</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span>
+{
+}
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FactorySettingsCustomerData</span>:
+    <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">14</span> <span class="op">*</span> <span class="number">4</span> <span class="op">*</span> <span class="number">4</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span>
+{
+}
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawCustomerData</span>(
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;BigArray&quot;</span>)]</span>
-    [<span class="ident">u8</span>; <span class="number">4</span><span class="kw-2">*</span><span class="number">4</span><span class="kw-2">*</span><span class="number">14</span>]
-);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawCustomerData</span>(<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;BigArray&quot;</span>)]</span> [<span class="ident">u8</span>; <span class="number">4</span> <span class="op">*</span> <span class="number">4</span> <span class="op">*</span> <span class="number">14</span>]);
 
 <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RawCustomerData</span> {
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
@@ -2147,7 +2199,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">14</span><span class="kw-2">*</span><span class="number">4</span><span class="kw-2">*</span><span class="number">4</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RawCustomerData</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">14</span> <span class="op">*</span> <span class="number">4</span> <span class="op">*</span> <span class="number">4</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RawCustomerData</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">bytes</span>: [<span class="ident">u8</span>; <span class="number">224</span>]) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">bytes</span>)
     }
@@ -2156,7 +2208,9 @@
 <span class="kw">impl</span> <span class="ident">CustomerSettingsCustomerData</span> <span class="kw">for</span> <span class="ident">RawCustomerData</span> {}
 <span class="kw">impl</span> <span class="ident">FactorySettingsCustomerData</span> <span class="kw">for</span> <span class="ident">RawCustomerData</span> {}
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="doccomment">/// This is a bit of an interesting construction.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The scratch page &quot;remains outside the protected region&quot;, the intent is that the application</span>
@@ -2165,7 +2219,7 @@
 <span class="doccomment">/// During startup, bootloader selects one of ping or pong page, depending on which has higher</span>
 <span class="doccomment">/// &quot;version&quot; field. If scratch page has even higher &quot;version&quot;, the bootloader erases the older</span>
 <span class="doccomment">/// of ping/pong and overwrites with scratch.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CustomerSettingsArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span><span class="op">=</span><span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span><span class="op">=</span><span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CustomerSettingsArea</span><span class="op">&lt;</span><span class="ident">CustomerData</span> <span class="op">=</span> <span class="ident">RawCustomerData</span>, <span class="ident">VendorUsage</span> <span class="op">=</span> <span class="ident">RawVendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
@@ -2179,10 +2233,14 @@
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
     <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">scratch</span> <span class="op">=</span> <span class="ident">CustomerSettings::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="number">512</span>]).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">ping</span> <span class="op">=</span> <span class="ident">CustomerSettings::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">512</span>..<span class="number">2</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pong</span> <span class="op">=</span> <span class="ident">CustomerSettings::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">2</span><span class="kw-2">*</span><span class="number">512</span>..<span class="number">3</span><span class="kw-2">*</span><span class="number">512</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">ping</span> <span class="op">=</span> <span class="ident">CustomerSettings::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">512</span>..<span class="number">2</span> <span class="op">*</span> <span class="number">512</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">pong</span> <span class="op">=</span> <span class="ident">CustomerSettings::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">2</span> <span class="op">*</span> <span class="number">512</span>..<span class="number">3</span> <span class="op">*</span> <span class="number">512</span>]).<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="ident">customer_settings</span> <span class="op">=</span> <span class="ident">CustomerSettingsArea</span> { <span class="ident">scratch</span>, <span class="ident">ping</span>, <span class="ident">pong</span> };
+        <span class="kw">let</span> <span class="ident">customer_settings</span> <span class="op">=</span> <span class="ident">CustomerSettingsArea</span> {
+            <span class="ident">scratch</span>,
+            <span class="ident">ping</span>,
+            <span class="ident">pong</span>,
+        };
 
         <span class="prelude-val">Ok</span>(<span class="ident">customer_settings</span>)
     }
@@ -2203,15 +2261,22 @@
     }
 }
 
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Header</span>(<span class="ident">u32</span>);
 
 <span class="comment">// #[derive(Debug)]</span>
 <span class="comment">// pub struct Version(u32);</span>
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CustomerSettingsVendorUsage</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span> {}
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FactorySettingsVendorUsage</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span> {}
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CustomerSettingsVendorUsage</span>:
+    <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span>
+{
+}
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FactorySettingsVendorUsage</span>:
+    <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span>
+{
+}
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawVendorUsage</span>(<span class="ident">u32</span>);
 
@@ -2252,17 +2317,16 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RotKeysStatus</span>([<span class="ident">RotKeyStatus</span>; <span class="number">4</span>]);
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="doccomment">/// Generated and used only by bootloader.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Not to be modified by user.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrinceIvCode</span>(
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;BigArray&quot;</span>)]</span>
-    [<span class="ident">u8</span>; <span class="number">56</span>]
-);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrinceIvCode</span>(<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;BigArray&quot;</span>)]</span> [<span class="ident">u8</span>; <span class="number">56</span>]);
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">PrinceIvCode</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
@@ -2270,8 +2334,9 @@
     }
 }
 
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MonotonicCounter</span>(<span class="ident">u32</span>);
 
 <span class="kw">impl</span> <span class="ident">MonotonicCounter</span> {
@@ -2319,7 +2384,7 @@
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">statii</span>: <span class="ident">RotKeysStatus</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">status</span>) <span class="kw">in</span> <span class="ident">statii</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">value</span> <span class="op">+</span><span class="op">=</span> (<span class="kw-2">*</span><span class="ident">status</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="number">2</span><span class="kw-2">*</span><span class="ident">i</span>);
+            <span class="ident">value</span> <span class="op">+</span><span class="op">=</span> (<span class="kw-2">*</span><span class="ident">status</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="number">2</span> <span class="op">*</span> <span class="ident">i</span>);
         }
         <span class="ident">value</span>
     }
@@ -2346,7 +2411,6 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">512</span>]<span class="op">&gt;</span> {
-
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">512</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">as_mut</span>();
 
@@ -2403,12 +2467,14 @@
 
         <span class="prelude-val">Ok</span>(<span class="ident">buf</span>)
     }
-
 }
 
-<span class="kw">fn</span> <span class="ident">parse_customer_page</span><span class="op">&lt;</span><span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>, <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>])
-    -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span><span class="op">&gt;</span>
-{
+<span class="kw">fn</span> <span class="ident">parse_customer_page</span><span class="op">&lt;</span>
+    <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
+    <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
+<span class="op">&gt;</span>(
+    <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
+) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="macro">assert!</span>(<span class="ident">input</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">512</span>);
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">header</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">customer_version</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
@@ -2426,17 +2492,20 @@
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">enable_fa</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">factory_prog_in_progress</span>) <span class="op">=</span> <span class="ident">le_u32</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">prince_iv_code0</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="number">14</span><span class="kw-2">*</span><span class="number">4u8</span>)(<span class="ident">input</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">prince_iv_code0</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="number">14</span> <span class="op">*</span> <span class="number">4u8</span>)(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="macro">debug!</span>(<span class="string">&quot;prince IV code 0 = {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="ident">prince_iv_code0</span>));
-    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">prince_iv_code1</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="number">14</span><span class="kw-2">*</span><span class="number">4u8</span>)(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">prince_iv_code2</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="number">14</span><span class="kw-2">*</span><span class="number">4u8</span>)(<span class="ident">input</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">prince_iv_code1</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="number">14</span> <span class="op">*</span> <span class="number">4u8</span>)(<span class="ident">input</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">prince_iv_code2</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="number">14</span> <span class="op">*</span> <span class="number">4u8</span>)(<span class="ident">input</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// reserved</span>
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">_reserved</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="number">10</span> <span class="op">*</span> <span class="number">4u8</span>)(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="macro">debug!</span>(<span class="string">&quot;reserved raw = {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="ident">_reserved</span>));
 
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">customer_data</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="number">56</span> <span class="op">*</span> <span class="number">4u8</span>)(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="macro">debug!</span>(<span class="string">&quot;customer_data all zero = {}&quot;</span>, <span class="ident">customer_data</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">==</span> <span class="number">0</span>));
+    <span class="macro">debug!</span>(
+        <span class="string">&quot;customer_data all zero = {}&quot;</span>,
+        <span class="ident">customer_data</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">==</span> <span class="number">0</span>)
+    );
     <span class="macro">debug!</span>(<span class="string">&quot;customer_data raw = {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="ident">customer_data</span>));
 
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">sha256_hash</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="number">32u8</span>)(<span class="ident">input</span>)<span class="question-mark">?</span>;
@@ -2466,8 +2535,8 @@
     <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">page</span>))
 }
 
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span> <span class="ident">core::convert::TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span> <span class="ident">core::convert::TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">CustomerSettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">CustomerData</span>: <span class="ident">CustomerSettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">CustomerSettingsVendorUsage</span>,
@@ -2479,7 +2548,8 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span> <span class="ident">core::convert::TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span> <span class="ident">core::convert::TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">FactorySettings</span><span class="op">&lt;</span><span class="ident">CustomerData</span>, <span class="ident">VendorUsage</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">CustomerData</span>: <span class="ident">FactorySettingsCustomerData</span>,
     <span class="ident">VendorUsage</span>: <span class="ident">FactorySettingsVendorUsage</span>,

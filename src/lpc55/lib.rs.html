@@ -83,8 +83,8 @@
 <span class="comment">// modules</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bootloader</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">crypto</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">protected_flash</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pki</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">protected_flash</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">secure_binary</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">signed_binary</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">util</span>;
@@ -94,9 +94,9 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">http</span>;
 
 <span class="comment">// re-exports</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader</span>::{<span class="ident">Bootloader</span>, <span class="ident">UuidSelectable</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader::Error</span> <span class="kw">as</span> <span class="ident">BootloaderError</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader::protocol::Error</span> <span class="kw">as</span> <span class="ident">ProtocolError</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader::Error</span> <span class="kw">as</span> <span class="ident">BootloaderError</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader</span>::{<span class="ident">Bootloader</span>, <span class="ident">UuidSelectable</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">uuid</span>;
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>

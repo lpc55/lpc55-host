@@ -277,17 +277,37 @@
 <span id="275">275</span>
 <span id="276">276</span>
 <span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bootloader</span>::{
     <span class="ident">command</span>::{<span class="ident">CommandTag</span>, <span class="ident">Version</span>},
-    <span class="ident">Error</span>,
-    <span class="ident">Protocol</span>,
-    <span class="prelude-ty">Result</span>,
+    <span class="ident">Error</span>, <span class="ident">Protocol</span>, <span class="prelude-ty">Result</span>,
 };
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GetProperties</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">protocol</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Protocol</span>
+    <span class="kw">pub</span> <span class="ident">protocol</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Protocol</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
@@ -304,7 +324,7 @@
     <span class="kw">pub</span> <span class="ident">flash_page_size</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">flash_sector_size</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">verify_writes</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">flash_locked</span>:<span class="ident">bool</span>,
+    <span class="kw">pub</span> <span class="ident">flash_locked</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">max_packet_size</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">device_uuid</span>: <span class="ident">u128</span>,
     <span class="kw">pub</span> <span class="ident">system_uuid</span>: <span class="ident">u64</span>,
@@ -314,7 +334,19 @@
 }
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">enum_iterator::IntoEnumIterator</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>,
+    <span class="ident">Copy</span>,
+    <span class="ident">Debug</span>,
+    <span class="ident">Eq</span>,
+    <span class="ident">Hash</span>,
+    <span class="ident">enum_iterator::IntoEnumIterator</span>,
+    <span class="ident">Ord</span>,
+    <span class="ident">PartialEq</span>,
+    <span class="ident">PartialOrd</span>,
+    <span class="ident">Serialize</span>,
+    <span class="ident">Deserialize</span>,
+)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Property</span> {
     <span class="ident">CurrentVersion</span> <span class="op">=</span> <span class="number">0x1</span>,
     <span class="ident">AvailablePeripherals</span> <span class="op">=</span> <span class="number">0x2</span>,
@@ -424,7 +456,6 @@
     }
 }
 
-
 <span class="kw">impl</span> <span class="ident">GetProperties</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Properties</span> {
         <span class="ident">Properties</span> {
@@ -451,10 +482,14 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Version</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Version::from</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::CurrentVersion</span>)<span class="question-mark">?</span>[<span class="number">0</span>]))
+        <span class="prelude-val">Ok</span>(<span class="ident">Version::from</span>(
+            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::CurrentVersion</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+        ))
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target_version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Version</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Version::from</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::TargetVersion</span>)<span class="question-mark">?</span>[<span class="number">0</span>]))
+        <span class="prelude-val">Ok</span>(<span class="ident">Version::from</span>(
+            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::TargetVersion</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+        ))
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ram_start_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::RamStartAddress</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw">_</span>)
@@ -478,10 +513,14 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::MaxPacketSize</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw">_</span>)
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">available_peripherals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AvailablePeripherals</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">AvailablePeripherals::from_bits_truncate</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::AvailablePeripherals</span>)<span class="question-mark">?</span>[<span class="number">0</span>]))
+        <span class="prelude-val">Ok</span>(<span class="ident">AvailablePeripherals::from_bits_truncate</span>(
+            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::AvailablePeripherals</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+        ))
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">available_commands</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AvailableCommands</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">AvailableCommands::from_bits_truncate</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::AvailableCommands</span>)<span class="question-mark">?</span>[<span class="number">0</span>]))
+        <span class="prelude-val">Ok</span>(<span class="ident">AvailableCommands::from_bits_truncate</span>(
+            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::AvailableCommands</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+        ))
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pfr_keystore_update_option</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PfrKeystoreUpdateOptions</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::PfrKeystoreUpdateOptions</span>)<span class="question-mark">?</span>;
@@ -492,11 +531,13 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::VerifyWrites</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="op">==</span> <span class="number">1</span>)
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flash_locked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::FlashSecurityState</span>)<span class="question-mark">?</span>[<span class="number">0</span>] {
-            <span class="number">0x0</span> <span class="op">|</span> <span class="number">0x5AA55AA5</span> =&gt; <span class="bool-val">false</span>,
-            <span class="number">0x1</span> <span class="op">|</span> <span class="number">0xC33CC33C</span> =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
-        })
+        <span class="prelude-val">Ok</span>(
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::FlashSecurityState</span>)<span class="question-mark">?</span>[<span class="number">0</span>] {
+                <span class="number">0x0</span> <span class="op">|</span> <span class="number">0x5AA55AA5</span> =&gt; <span class="bool-val">false</span>,
+                <span class="number">0x1</span> <span class="op">|</span> <span class="number">0xC33CC33C</span> =&gt; <span class="bool-val">true</span>,
+                <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
+            },
+        )
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">device_uuid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::UniqueDeviceIdent</span>)<span class="question-mark">?</span>;
@@ -520,7 +561,9 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc_check_status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Error::from</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::CrcCheckStatus</span>)<span class="question-mark">?</span>[<span class="number">0</span>]))
+        <span class="prelude-val">Ok</span>(<span class="ident">Error::from</span>(
+            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::CrcCheckStatus</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+        ))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reserved_regions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -539,7 +582,9 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">irq_notification_pin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IrqNotificationPin</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">IrqNotificationPin::from</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::IrqNotificationPin</span>)<span class="question-mark">?</span>[<span class="number">0</span>]))
+        <span class="prelude-val">Ok</span>(<span class="ident">IrqNotificationPin::from</span>(
+            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::IrqNotificationPin</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+        ))
     }
 }
 
@@ -552,7 +597,6 @@
     <span class="kw">fn</span> <span class="ident">available_commands</span>() {
         <span class="macro">assert_eq!</span>(<span class="ident">AvailableCommands::ERASE_FLASH_ALL</span>.<span class="ident">bits</span>, (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>));
     }
-
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>

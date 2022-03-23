@@ -365,7 +365,7 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::is_default</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>,<span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="doccomment">/// Wrapper around the detailed debug access settings,</span>
 <span class="doccomment">/// allowing to completely enable or disable with ease.</span>
 <span class="doccomment">///</span>
@@ -387,7 +387,7 @@
     <span class="ident">Custom</span>(<span class="ident">DebugSettings</span>),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>,<span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
 <span class="doccomment">/// Controls access of debuggers to specific subsystems.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// To understand if access is possible:</span>
@@ -509,7 +509,9 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
+)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="comment">// The `{non,}secure_{non,}invasive` settings pertain to CPU0,</span>
 <span class="comment">// whereas CPU1 has two separate settings.</span>
@@ -577,8 +579,9 @@
             <span class="self">self</span>.<span class="ident">flash_mass_erase_command</span>,
             <span class="self">self</span>.<span class="ident">isp_boot_command</span>,
             <span class="self">self</span>.<span class="ident">fault_analysis_command</span>,
-        ].<span class="ident">iter</span>()
-            .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">setting</span><span class="op">|</span> <span class="ident">setting</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DebugSetting::Illegal</span>)
+        ]
+        .<span class="ident">iter</span>()
+        .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">setting</span><span class="op">|</span> <span class="ident">setting</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DebugSetting::Illegal</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_non_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
@@ -593,8 +596,9 @@
             <span class="self">self</span>.<span class="ident">flash_mass_erase_command</span>,
             <span class="self">self</span>.<span class="ident">isp_boot_command</span>,
             <span class="self">self</span>.<span class="ident">fault_analysis_command</span>,
-        ].<span class="ident">iter</span>()
-            .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">setting</span><span class="op">|</span> <span class="ident">setting</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DebugSetting::Default</span>)
+        ]
+        .<span class="ident">iter</span>()
+        .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">setting</span><span class="op">|</span> <span class="ident">setting</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DebugSetting::Default</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
@@ -622,13 +626,12 @@
             }
         }
         <span class="kw">match</span> <span class="ident">value</span> {
-
             <span class="ident">DebugAccess::Default</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Default</span>, <span class="bool-val">false</span>),
             <span class="ident">DebugAccess::Disabled</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Disabled</span>, <span class="bool-val">true</span>),
             <span class="ident">DebugAccess::Enabled</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Enabled</span>, <span class="bool-val">false</span>),
             <span class="ident">DebugAccess::Authenticate</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Authenticate</span>, <span class="bool-val">false</span>),
 
-            <span class="ident">DebugAccess::Custom</span> ( <span class="ident">settings</span> ) =&gt; <span class="ident">settings</span>,
+            <span class="ident">DebugAccess::Custom</span>(<span class="ident">settings</span>) =&gt; <span class="ident">settings</span>,
         }
     }
 }
@@ -659,10 +662,8 @@
         <span class="kw">if</span> (<span class="ident">fix</span>, <span class="ident">set</span>) <span class="op">==</span> (<span class="number">0</span>, <span class="number">0</span>) {
             <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">DebugAccess::Default</span>)
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">from_bit</span> <span class="op">=</span> <span class="op">|</span><span class="ident">bit</span>: <span class="ident">usize</span><span class="op">|</span> <span class="ident">DebugSetting::from</span>([
-                ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">bit</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
-                ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">bit</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
-            ]);
+            <span class="kw">let</span> <span class="ident">from_bit</span> <span class="op">=</span>
+                <span class="op">|</span><span class="ident">bit</span>: <span class="ident">usize</span><span class="op">|</span> <span class="ident">DebugSetting::from</span>([((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">bit</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>, ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">bit</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>]);
             <span class="self">Self</span> {
                 <span class="ident">nonsecure_noninvasive</span>: <span class="ident">from_bit</span>(<span class="number">0</span>),
                 <span class="ident">nonsecure_invasive</span>: <span class="ident">from_bit</span>(<span class="number">1</span>),
@@ -717,7 +718,6 @@
         [<span class="ident">fixed</span>, <span class="ident">enabled</span>]
     }
 }
-
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>
