@@ -5,16 +5,12 @@ use core::fmt;
 use std::io::Write as _;
 
 use crate::pki::{format_bytes, Sha256Hash};
-use crate::util::{hex_serialize, hex_deserialize_256, is_default};
+use crate::util::{hex_deserialize_256, hex_serialize, is_default};
 
 use serde::{Deserialize, Serialize};
 use sha2::Digest as _;
 
-use nom::{
-    IResult,
-    bytes::complete::take,
-    number::complete::le_u32,
-};
+use nom::{bytes::complete::take, number::complete::le_u32, IResult};
 
 use serde_big_array::big_array;
 big_array! {
@@ -48,10 +44,12 @@ pub struct ProtectedFlash {
     pub keystore: Keystore,
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 #[serde(rename_all = "kebab-case")]
 #[serde(deny_unknown_fields)]
-pub struct FactorySettings<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+pub struct FactorySettings<CustomerData = RawCustomerData, VendorUsage = RawVendorUsage>
 where
     CustomerData: FactorySettingsCustomerData,
     VendorUsage: FactorySettingsVendorUsage,
@@ -111,12 +109,14 @@ where
     pub seal: bool,
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 /// See `CustomerSettingsArea` documentation for how this part of the configuration is
 /// used and updated by the ROM bootloader.
 #[serde(rename_all = "kebab-case")]
 #[serde(deny_unknown_fields)]
-pub struct CustomerSettings<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+pub struct CustomerSettings<CustomerData = RawCustomerData, VendorUsage = RawVendorUsage>
 where
     CustomerData: CustomerSettingsCustomerData,
     VendorUsage: CustomerSettingsVendorUsage,
@@ -164,8 +164,7 @@ where
 
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub prince_ivs: [
-        PrinceIvCode; 3],
+    pub prince_ivs: [PrinceIvCode; 3],
 
     // customer_data: [u32; 4*14],  // or [u128, 14]
     #[serde(default)]
@@ -189,11 +188,13 @@ impl CustomerSettings {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 #[serde(rename_all = "kebab-case")]
 /// Type enabling `lpc55 configure factory-settings` to share config file with the secure/signed
 /// firmware generation commands. Serializes `FactorySettings` with a `[factory-settings]` header.
-pub struct WrappedFactorySettings<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+pub struct WrappedFactorySettings<CustomerData = RawCustomerData, VendorUsage = RawVendorUsage>
 where
     CustomerData: FactorySettingsCustomerData,
     VendorUsage: FactorySettingsVendorUsage,
@@ -201,11 +202,13 @@ where
     pub factory_settings: FactorySettings<CustomerData, VendorUsage>,
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 #[serde(rename_all = "kebab-case")]
 /// Type enabling `lpc55 configure customer-settings` to share config file with the secure/signed
 /// firmware generation commands. Serializes `CustomerSettings` with a `[customer-settings]` header.
-pub struct WrappedCustomerSettings<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+pub struct WrappedCustomerSettings<CustomerData = RawCustomerData, VendorUsage = RawVendorUsage>
 where
     CustomerData: CustomerSettingsCustomerData,
     VendorUsage: CustomerSettingsVendorUsage,
@@ -213,7 +216,9 @@ where
     pub customer_settings: CustomerSettings<CustomerData, VendorUsage>,
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct KeystoreHeader(pub u32);
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -233,10 +238,7 @@ pub struct KeystoreHeader(pub u32);
 /// Presumably (entire paragraph is speculative), this is followed by 32B of input to be XOR'd or
 /// whatnot with the 32B "fingerprint" derived from PUF "startup data" via error correction with
 /// the "activation code" (and then truncated to key length). Which would leave 16B hash.
-pub struct Keycode(
-    #[serde(with = "BigArray")]
-    [u8; 56]
-);
+pub struct Keycode(#[serde(with = "BigArray")] [u8; 56]);
 
 impl Keycode {
     /// Not sure if this is true (in analogy with "header")
@@ -273,10 +275,7 @@ impl AsRef<[u8]> for Keycode {
 }
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct ActivationCode(
-    #[serde(with = "BigArray")]
-    [u8; 1192]
-);
+pub struct ActivationCode(#[serde(with = "BigArray")] [u8; 1192]);
 
 impl Default for ActivationCode {
     fn default() -> Self {
@@ -299,7 +298,9 @@ impl AsRef<[u8]> for ActivationCode {
 /// All the keys :)
 ///
 /// We "unroll" the prince_regions array to be able to serialize_with hex_serialize.
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct Keystore {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
@@ -365,11 +366,13 @@ pub struct NxpArea {
 }
 
 impl Keystore {
-    pub fn to_bytes(&self) -> [u8; 3*512] {
-        let mut buf = [0u8; 3*512];
+    pub fn to_bytes(&self) -> [u8; 3 * 512] {
+        let mut buf = [0u8; 3 * 512];
         let mut cursor = buf.as_mut();
         cursor.write_all(&self.header.0.to_le_bytes()).ok();
-        cursor.write_all(&self.puf_discharge_time_milliseconds.to_le_bytes()).ok();
+        cursor
+            .write_all(&self.puf_discharge_time_milliseconds.to_le_bytes())
+            .ok();
         cursor.write_all(&self.activation_code.0).ok();
         cursor.write_all(&self.secure_boot_kek.0).ok();
         cursor.write_all(&self.user_key.0).ok();
@@ -453,9 +456,12 @@ where
     }
 }
 
-fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: FactorySettingsVendorUsage>(input: &[u8])
-    -> IResult<&[u8], FactorySettings<CustomerData, VendorUsage>>
-{
+fn parse_factory<
+    CustomerData: FactorySettingsCustomerData,
+    VendorUsage: FactorySettingsVendorUsage,
+>(
+    input: &[u8],
+) -> IResult<&[u8], FactorySettings<CustomerData, VendorUsage>> {
     let (input, boot_cfg) = le_u32(input)?;
     let (input, _spi_flash_cfg) = le_u32(input)?;
     assert_eq!(_spi_flash_cfg, 0);
@@ -505,7 +511,6 @@ fn parse_factory<CustomerData: FactorySettingsCustomerData, VendorUsage: Factory
 
     Ok((input, factory))
 }
-
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[repr(u8)]
@@ -585,7 +590,9 @@ impl From<IspMode> for u8 {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 #[serde(rename_all = "kebab-case")]
 pub struct BootConfiguration {
     #[serde(default)]
@@ -623,7 +630,6 @@ impl From<BootConfiguration> for u32 {
         word |= (u8::from(cfg.mode) as u32) << 4;
 
         word
-
     }
 }
 
@@ -696,7 +702,9 @@ impl From<u32> for TrustzoneMode {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 #[serde(rename_all = "kebab-case")]
 pub struct SecureBootConfiguration {
     #[serde(default)]
@@ -779,7 +787,9 @@ impl From<PrinceConfiguration> for u32 {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct PrinceConfiguration {
     pub erase_checks: [bool; 3],
     pub locked: [bool; 3],
@@ -859,24 +869,31 @@ bitflags::bitflags! {
 impl core::convert::TryFrom<&[u8]> for ProtectedFlash {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let factory = FactorySettings::try_from(&input[3*512..4*512]).unwrap();
-        let customer = CustomerSettingsArea::try_from(&input[..3*512]).unwrap();
-        let keystore = Keystore::try_from(&input[4*512..7*512]).unwrap();
+        let factory = FactorySettings::try_from(&input[3 * 512..4 * 512]).unwrap();
+        let customer = CustomerSettingsArea::try_from(&input[..3 * 512]).unwrap();
+        let keystore = Keystore::try_from(&input[4 * 512..7 * 512]).unwrap();
 
-        let pfr = ProtectedFlash { customer, factory, keystore };
+        let pfr = ProtectedFlash {
+            customer,
+            factory,
+            keystore,
+        };
 
         Ok(pfr)
     }
 }
 
-pub trait CustomerSettingsCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
-pub trait FactorySettingsCustomerData: AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14*4*4]> + PartialEq {}
+pub trait CustomerSettingsCustomerData:
+    AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14 * 4 * 4]> + PartialEq
+{
+}
+pub trait FactorySettingsCustomerData:
+    AsRef<[u8]> + fmt::Debug + Default + From<[u8; 14 * 4 * 4]> + PartialEq
+{
+}
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct RawCustomerData(
-    #[serde(with = "BigArray")]
-    [u8; 4*4*14]
-);
+pub struct RawCustomerData(#[serde(with = "BigArray")] [u8; 4 * 4 * 14]);
 
 impl AsRef<[u8]> for RawCustomerData {
     fn as_ref(&self) -> &[u8] {
@@ -896,7 +913,7 @@ impl fmt::Debug for RawCustomerData {
     }
 }
 
-impl From<[u8; 14*4*4]> for RawCustomerData {
+impl From<[u8; 14 * 4 * 4]> for RawCustomerData {
     fn from(bytes: [u8; 224]) -> Self {
         Self(bytes)
     }
@@ -905,7 +922,9 @@ impl From<[u8; 14*4*4]> for RawCustomerData {
 impl CustomerSettingsCustomerData for RawCustomerData {}
 impl FactorySettingsCustomerData for RawCustomerData {}
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 /// This is a bit of an interesting construction.
 ///
 /// The scratch page "remains outside the protected region", the intent is that the application
@@ -914,7 +933,7 @@ impl FactorySettingsCustomerData for RawCustomerData {}
 /// During startup, bootloader selects one of ping or pong page, depending on which has higher
 /// "version" field. If scratch page has even higher "version", the bootloader erases the older
 /// of ping/pong and overwrites with scratch.
-pub struct CustomerSettingsArea<CustomerData=RawCustomerData, VendorUsage=RawVendorUsage>
+pub struct CustomerSettingsArea<CustomerData = RawCustomerData, VendorUsage = RawVendorUsage>
 where
     CustomerData: CustomerSettingsCustomerData,
     VendorUsage: CustomerSettingsVendorUsage,
@@ -928,10 +947,14 @@ impl core::convert::TryFrom<&[u8]> for CustomerSettingsArea {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
         let scratch = CustomerSettings::try_from(&input[..512]).unwrap();
-        let ping = CustomerSettings::try_from(&input[512..2*512]).unwrap();
-        let pong = CustomerSettings::try_from(&input[2*512..3*512]).unwrap();
+        let ping = CustomerSettings::try_from(&input[512..2 * 512]).unwrap();
+        let pong = CustomerSettings::try_from(&input[2 * 512..3 * 512]).unwrap();
 
-        let customer_settings = CustomerSettingsArea { scratch, ping, pong };
+        let customer_settings = CustomerSettingsArea {
+            scratch,
+            ping,
+            pong,
+        };
 
         Ok(customer_settings)
     }
@@ -952,15 +975,22 @@ where
     }
 }
 
-
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct Header(u32);
 
 // #[derive(Debug)]
 // pub struct Version(u32);
 
-pub trait CustomerSettingsVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
-pub trait FactorySettingsVendorUsage: Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq {}
+pub trait CustomerSettingsVendorUsage:
+    Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq
+{
+}
+pub trait FactorySettingsVendorUsage:
+    Clone + Copy + fmt::Debug + Default + From<u32> + Into<u32> + PartialEq
+{
+}
 #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RawVendorUsage(u32);
 
@@ -1001,17 +1031,16 @@ impl fmt::Debug for FactorySettingsProgInProgress {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct RotKeysStatus([RotKeyStatus; 4]);
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 /// Generated and used only by bootloader.
 ///
 /// Not to be modified by user.
-pub struct PrinceIvCode(
-    #[serde(with = "BigArray")]
-    [u8; 56]
-);
+pub struct PrinceIvCode(#[serde(with = "BigArray")] [u8; 56]);
 
 impl Default for PrinceIvCode {
     fn default() -> Self {
@@ -1019,8 +1048,9 @@ impl Default for PrinceIvCode {
     }
 }
 
-
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct MonotonicCounter(u32);
 
 impl MonotonicCounter {
@@ -1068,7 +1098,7 @@ impl From<RotKeysStatus> for u32 {
     fn from(statii: RotKeysStatus) -> u32 {
         let mut value: u32 = 0;
         for (i, status) in statii.0.iter().enumerate() {
-            value += (*status as u8 as u32) << (2*i);
+            value += (*status as u8 as u32) << (2 * i);
         }
         value
     }
@@ -1095,7 +1125,6 @@ where
     }
 
     pub fn to_bytes(&mut self) -> anyhow::Result<[u8; 512]> {
-
         let mut buf = [0u8; 512];
         let mut cursor = buf.as_mut();
 
@@ -1152,12 +1181,14 @@ where
 
         Ok(buf)
     }
-
 }
 
-fn parse_customer_page<CustomerData: CustomerSettingsCustomerData, VendorUsage: CustomerSettingsVendorUsage>(input: &[u8])
-    -> IResult<&[u8], CustomerSettings<CustomerData, VendorUsage>>
-{
+fn parse_customer_page<
+    CustomerData: CustomerSettingsCustomerData,
+    VendorUsage: CustomerSettingsVendorUsage,
+>(
+    input: &[u8],
+) -> IResult<&[u8], CustomerSettings<CustomerData, VendorUsage>> {
     assert!(input.len() == 512);
     let (input, header) = le_u32(input)?;
     let (input, customer_version) = le_u32(input)?;
@@ -1175,17 +1206,20 @@ fn parse_customer_page<CustomerData: CustomerSettingsCustomerData, VendorUsage: 
     let (input, enable_fa) = le_u32(input)?;
     let (input, factory_prog_in_progress) = le_u32(input)?;
 
-    let (input, prince_iv_code0) = take(14*4u8)(input)?;
+    let (input, prince_iv_code0) = take(14 * 4u8)(input)?;
     debug!("prince IV code 0 = {}", hex_str!(prince_iv_code0));
-    let (input, prince_iv_code1) = take(14*4u8)(input)?;
-    let (input, prince_iv_code2) = take(14*4u8)(input)?;
+    let (input, prince_iv_code1) = take(14 * 4u8)(input)?;
+    let (input, prince_iv_code2) = take(14 * 4u8)(input)?;
 
     // reserved
     let (input, _reserved) = take(10 * 4u8)(input)?;
     debug!("reserved raw = {}", hex_str!(_reserved));
 
     let (input, customer_data) = take(56 * 4u8)(input)?;
-    debug!("customer_data all zero = {}", customer_data.iter().all(|x| *x == 0));
+    debug!(
+        "customer_data all zero = {}",
+        customer_data.iter().all(|x| *x == 0)
+    );
     debug!("customer_data raw = {}", hex_str!(customer_data));
 
     let (input, sha256_hash) = take(32u8)(input)?;
@@ -1215,8 +1249,8 @@ fn parse_customer_page<CustomerData: CustomerSettingsCustomerData, VendorUsage: 
     Ok((input, page))
 }
 
-
-impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]> for CustomerSettings<CustomerData, VendorUsage>
+impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]>
+    for CustomerSettings<CustomerData, VendorUsage>
 where
     CustomerData: CustomerSettingsCustomerData,
     VendorUsage: CustomerSettingsVendorUsage,
@@ -1228,7 +1262,8 @@ where
     }
 }
 
-impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]> for FactorySettings<CustomerData, VendorUsage>
+impl<CustomerData, VendorUsage> core::convert::TryFrom<&[u8]>
+    for FactorySettings<CustomerData, VendorUsage>
 where
     CustomerData: FactorySettingsCustomerData,
     VendorUsage: FactorySettingsVendorUsage,

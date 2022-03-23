@@ -33,9 +33,9 @@
 //  Device may abort data phase early by sending zero-length packet
 //  Host may abort data phase by sending generic response (?is this a thing?)
 
-use core::convert::{TryFrom, TryInto};
-use crate::bootloader::{command, property};
 use super::Error as BootloaderError;
+use crate::bootloader::{command, property};
+use core::convert::{TryFrom, TryInto};
 
 use hidapi::{HidDevice, HidResult};
 
@@ -105,9 +105,13 @@ impl TryFrom<ReceivedPacket> for Vec<u8> {
 pub const READ_TIMEOUT: i32 = 2000;
 
 impl Protocol {
-
-    pub fn property(&self, property: property::Property) -> core::result::Result<Vec<u32>, crate::bootloader::Error> {
-        let response = self.call(&command::Command::GetProperty(property)).expect("success");
+    pub fn property(
+        &self,
+        property: property::Property,
+    ) -> core::result::Result<Vec<u32>, crate::bootloader::Error> {
+        let response = self
+            .call(&command::Command::GetProperty(property))
+            .expect("success");
         if let command::Response::GetProperty(values) = response {
             Ok(values)
         } else {
@@ -116,7 +120,6 @@ impl Protocol {
     }
 
     pub fn call(&self, command: &command::Command) -> Result<command::Response> {
-
         // construct command packet
         let command_packet = command.hid_packet();
 
@@ -128,10 +131,8 @@ impl Protocol {
 
         // parse initial reponse packet
         match (command.clone(), command.tag(), command.data_phase()) {
-
             // case 1: no data phases
             (command, _tag, command::DataPhase::None) => {
-
                 // we expect a non-data packet, not signaling additional data packets, with
                 // successful status, mirroring our command header
                 let packet = ResponsePacket::try_from(initial_response)?;
@@ -143,18 +144,24 @@ impl Protocol {
 
                 use command::Command::*;
                 match command {
-                    Reset |
-                    EraseFlash { address: _, length: _ } |
-                    EraseFlashAll |
-                    ConfigureMemory { .. } |
-                    Keystore(command::KeystoreOperation::Enroll) |
-                    Keystore(command::KeystoreOperation::GenerateKey { key: _, len: _ }) |
-                    Keystore(command::KeystoreOperation::WriteNonVolatile) |
-                    Keystore(command::KeystoreOperation::ReadNonVolatile) => {
+                    Reset
+                    | EraseFlash {
+                        address: _,
+                        length: _,
+                    }
+                    | EraseFlashAll
+                    | ConfigureMemory { .. }
+                    | Keystore(command::KeystoreOperation::Enroll)
+                    | Keystore(command::KeystoreOperation::GenerateKey { key: _, len: _ })
+                    | Keystore(command::KeystoreOperation::WriteNonVolatile)
+                    | Keystore(command::KeystoreOperation::ReadNonVolatile) => {
                         assert_eq!(packet.tag, command::ResponseTag::Generic);
                         // general property of generic responses: 2 parameters, status and mirrored command header
                         assert_eq!(packet.parameters.len(), 1);
-                        assert_eq!(packet.parameters[0].to_le_bytes()[..2], command.header()[..2]);
+                        assert_eq!(
+                            packet.parameters[0].to_le_bytes()[..2],
+                            command.header()[..2]
+                        );
 
                         Ok(command::Response::Generic)
                     }
@@ -163,7 +170,7 @@ impl Protocol {
                         assert!(!packet.parameters.is_empty());
                         Ok(command::Response::GetProperty(packet.parameters))
                     }
-                    _ => todo!()
+                    _ => todo!(),
                 }
             }
 
@@ -175,7 +182,10 @@ impl Protocol {
                 // assert_eq!(packet.has_data, command.data_phase().has_command_data());
                 assert!(packet.status.is_none());
                 match command.clone() {
-                    command::Command::Keystore(command::KeystoreOperation::SetKey { key: _, data: _ }) => {
+                    command::Command::Keystore(command::KeystoreOperation::SetKey {
+                        key: _,
+                        data: _,
+                    }) => {
                         // todo: can we use bigger chunks?
                         for chunk in data.chunks(32) {
                             // // TODO: somewhere in here, should "peek" a read to see if device sent
@@ -187,12 +197,16 @@ impl Protocol {
                             // unhappy, so we'd find out after the fact. Although maybe sending
                             // might block?
 
-                            let mut data_packet = vec![command::ReportId::CommandData as u8, 0, chunk.len() as u8, 0];
+                            let mut data_packet = vec![
+                                command::ReportId::CommandData as u8,
+                                0,
+                                chunk.len() as u8,
+                                0,
+                            ];
                             data_packet.extend_from_slice(chunk);
                             data_packet.resize(4 + 32, 0);
                             trace!("--> {}", hex_str!(&data_packet, 4));
                             self.write(data_packet.as_slice())?;
-
                         }
 
                         let packet = ResponsePacket::try_from(self.read_packet()?)?;
@@ -216,9 +230,18 @@ impl Protocol {
 
                         Ok(command::Response::Generic)
                     }
-                    command::Command::WriteMemory { address: _, data: _ } | command::Command::WriteMemoryWords { .. } => {
+                    command::Command::WriteMemory {
+                        address: _,
+                        data: _,
+                    }
+                    | command::Command::WriteMemoryWords { .. } => {
                         for chunk in data.chunks(32) {
-                            let mut data_packet = vec![command::ReportId::CommandData as u8, 0, chunk.len() as u8, 0];
+                            let mut data_packet = vec![
+                                command::ReportId::CommandData as u8,
+                                0,
+                                chunk.len() as u8,
+                                0,
+                            ];
                             data_packet.extend_from_slice(chunk);
                             data_packet.resize(4 + 32, 0);
                             trace!("--> {}", hex_str!(&data_packet, 4));
@@ -237,13 +260,17 @@ impl Protocol {
                         Ok(command::Response::Generic)
                     }
                     command::Command::ReceiveSbFile { data } => {
-
                         #[cfg(feature = "progressbar")]
                         let bar = indicatif::ProgressBar::new(data.len() as u64);
                         for chunk in data.chunks(32) {
                             #[cfg(feature = "progressbar")]
                             bar.inc(32);
-                            let mut data_packet = vec![command::ReportId::CommandData as u8, 0, chunk.len() as u8, 0];
+                            let mut data_packet = vec![
+                                command::ReportId::CommandData as u8,
+                                0,
+                                chunk.len() as u8,
+                                0,
+                            ];
                             data_packet.extend_from_slice(chunk);
                             data_packet.resize(4 + 32, 0);
                             trace!("--> {}", hex_str!(&data_packet, 4));
@@ -270,7 +297,7 @@ impl Protocol {
 
                         Ok(command::Response::Generic)
                     }
-                    _ => todo!()
+                    _ => todo!(),
                 }
             }
 
@@ -279,7 +306,7 @@ impl Protocol {
                 let _packet = ResponsePacket::try_from(initial_response)?;
 
                 let mut data = Vec::new();
-                let length = 3*512;
+                let length = 3 * 512;
                 while data.len() < length {
                     let partial_data: Vec<u8> = self.read_packet()?.try_into()?;
                     assert!(data.len() + partial_data.len() <= length);
@@ -294,7 +321,6 @@ impl Protocol {
             }
 
             (command::Command::ReadMemory { address: _, length }, _, _) => {
-
                 let packet = ResponsePacket::try_from(initial_response)?;
                 // assert_eq!([0x03, 0x00, 0x0C, 0x00], &initial_generic_response[..4]);
                 assert!(!packet.has_data);
@@ -324,16 +350,18 @@ impl Protocol {
                 // contained (address + length)
                 // ooorrr, Table 4-11 ("The Command tag parameter identifies the response to the command sent by the host.")
                 // just means that the command tag is set
-                assert_eq!(packet.parameters[0].to_le_bytes()[..2], command.header()[..2]);
+                assert_eq!(
+                    packet.parameters[0].to_le_bytes()[..2],
+                    command.header()[..2]
+                );
 
                 Ok(command::Response::ReadMemory(data))
             }
-            _ => todo!()
+            _ => todo!(),
         }
     }
 
     pub fn read_packet(&self) -> Result<ReceivedPacket> {
-
         // read data with timeout
         let mut data = Vec::new();
         data.resize(256, 0);
@@ -358,11 +386,13 @@ impl Protocol {
                 if response_packet.is_empty() {
                     return Err(Error::AbortDataPhase);
                 }
-                let tag = command::ResponseTag::try_from(response_packet[0]).map_err(Error::UnknownResponseTag)?;
+                let tag = command::ResponseTag::try_from(response_packet[0])
+                    .map_err(Error::UnknownResponseTag)?;
                 let has_data = (response_packet[1] & 1) != 0;
                 let expected_param_count = response_packet[3] as usize;
 
-                let mut parameters: Vec<u32> = response_packet[4..].chunks(4)
+                let mut parameters: Vec<u32> = response_packet[4..]
+                    .chunks(4)
                     .map(|chunk| u32::from_le_bytes(chunk.try_into().unwrap()))
                     .collect();
                 assert_eq!(expected_param_count, parameters.len());
@@ -385,12 +415,9 @@ impl Protocol {
                     // mirrored_command_header,
                     parameters,
                 })
-
-            },
-            command::ReportId::ResponseData => {
-                ReceivedPacket::Data(response_packet)
-            },
-            _ => todo!()
+            }
+            command::ReportId::ResponseData => ReceivedPacket::Data(response_packet),
+            _ => todo!(),
         })
     }
 
@@ -411,7 +438,6 @@ impl Protocol {
         data.resize(read, 0);
         Ok(data)
     }
-
 }
 
 impl Protocol {
@@ -424,11 +450,10 @@ impl std::fmt::Debug for Protocol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Device")
             // .debug_struct("HidDevice")
-                .field("manufacturer", &self.device.get_manufacturer_string())
-                .field("product", &self.device.get_product_string())
-                .field("serial number", &self.device.get_serial_number_string())
+            .field("manufacturer", &self.device.get_manufacturer_string())
+            .field("product", &self.device.get_product_string())
+            .field("serial number", &self.device.get_serial_number_string())
             // .finish()
-        .finish()
+            .finish()
     }
 }
-

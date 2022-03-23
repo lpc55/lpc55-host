@@ -2,13 +2,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::bootloader::{
     command::{CommandTag, Version},
-    Error,
-    Protocol,
-    Result,
+    Error, Protocol, Result,
 };
 
 pub struct GetProperties<'a> {
-    pub protocol: &'a Protocol
+    pub protocol: &'a Protocol,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -25,7 +23,7 @@ pub struct Properties {
     pub flash_page_size: usize,
     pub flash_sector_size: usize,
     pub verify_writes: bool,
-    pub flash_locked:bool,
+    pub flash_locked: bool,
     pub max_packet_size: usize,
     pub device_uuid: u128,
     pub system_uuid: u64,
@@ -35,7 +33,19 @@ pub struct Properties {
 }
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    enum_iterator::IntoEnumIterator,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    Serialize,
+    Deserialize,
+)]
 pub enum Property {
     CurrentVersion = 0x1,
     AvailablePeripherals = 0x2,
@@ -145,7 +155,6 @@ impl From<u32> for IrqNotificationPin {
     }
 }
 
-
 impl GetProperties<'_> {
     pub fn all(&self) -> Properties {
         Properties {
@@ -172,10 +181,14 @@ impl GetProperties<'_> {
     }
 
     pub fn current_version(&self) -> Result<Version> {
-        Ok(Version::from(self.protocol.property(Property::CurrentVersion)?[0]))
+        Ok(Version::from(
+            self.protocol.property(Property::CurrentVersion)?[0],
+        ))
     }
     pub fn target_version(&self) -> Result<Version> {
-        Ok(Version::from(self.protocol.property(Property::TargetVersion)?[0]))
+        Ok(Version::from(
+            self.protocol.property(Property::TargetVersion)?[0],
+        ))
     }
     pub fn ram_start_address(&self) -> Result<usize> {
         Ok(self.protocol.property(Property::RamStartAddress)?[0] as _)
@@ -199,10 +212,14 @@ impl GetProperties<'_> {
         Ok(self.protocol.property(Property::MaxPacketSize)?[0] as _)
     }
     pub fn available_peripherals(&self) -> Result<AvailablePeripherals> {
-        Ok(AvailablePeripherals::from_bits_truncate(self.protocol.property(Property::AvailablePeripherals)?[0]))
+        Ok(AvailablePeripherals::from_bits_truncate(
+            self.protocol.property(Property::AvailablePeripherals)?[0],
+        ))
     }
     pub fn available_commands(&self) -> Result<AvailableCommands> {
-        Ok(AvailableCommands::from_bits_truncate(self.protocol.property(Property::AvailableCommands)?[0]))
+        Ok(AvailableCommands::from_bits_truncate(
+            self.protocol.property(Property::AvailableCommands)?[0],
+        ))
     }
     pub fn pfr_keystore_update_option(&self) -> Result<PfrKeystoreUpdateOptions> {
         let values = self.protocol.property(Property::PfrKeystoreUpdateOptions)?;
@@ -213,11 +230,13 @@ impl GetProperties<'_> {
         Ok(self.protocol.property(Property::VerifyWrites)?[0] == 1)
     }
     pub fn flash_locked(&self) -> Result<bool> {
-        Ok(match self.protocol.property(Property::FlashSecurityState)?[0] {
-            0x0 | 0x5AA55AA5 => false,
-            0x1 | 0xC33CC33C => true,
-            _ => panic!(),
-        })
+        Ok(
+            match self.protocol.property(Property::FlashSecurityState)?[0] {
+                0x0 | 0x5AA55AA5 => false,
+                0x1 | 0xC33CC33C => true,
+                _ => panic!(),
+            },
+        )
     }
     pub fn device_uuid(&self) -> Result<u128> {
         let values = self.protocol.property(Property::UniqueDeviceIdent)?;
@@ -241,7 +260,9 @@ impl GetProperties<'_> {
     }
 
     pub fn crc_check_status(&self) -> Result<Error> {
-        Ok(Error::from(self.protocol.property(Property::CrcCheckStatus)?[0]))
+        Ok(Error::from(
+            self.protocol.property(Property::CrcCheckStatus)?[0],
+        ))
     }
 
     pub fn reserved_regions(&self) -> Result<Vec<(usize, usize)>> {
@@ -260,7 +281,9 @@ impl GetProperties<'_> {
     }
 
     pub fn irq_notification_pin(&self) -> Result<IrqNotificationPin> {
-        Ok(IrqNotificationPin::from(self.protocol.property(Property::IrqNotificationPin)?[0]))
+        Ok(IrqNotificationPin::from(
+            self.protocol.property(Property::IrqNotificationPin)?[0],
+        ))
     }
 }
 
@@ -273,5 +296,4 @@ mod test {
     fn available_commands() {
         assert_eq!(AvailableCommands::ERASE_FLASH_ALL.bits, (1 << 2));
     }
-
 }

@@ -1,15 +1,15 @@
 //! Binary implementing the CLI in `cli.rs`
 
 use core::convert::TryFrom;
-use std::io::{self, Write as _};
 use std::fs;
+use std::io::{self, Write as _};
 
-use anyhow::{Context as _, anyhow};
+use anyhow::{anyhow, Context as _};
 use delog::hex_str;
-use log::{info, warn, trace};
+use log::{info, trace, warn};
 use uuid::Uuid;
 
-use lpc55::bootloader::{Bootloader, command, UuidSelectable as _};
+use lpc55::bootloader::{command, Bootloader, UuidSelectable as _};
 
 mod cli;
 mod logger;
@@ -31,7 +31,6 @@ fn check_align(number: usize) -> anyhow::Result<()> {
 }
 
 fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
-
     logger::Logger::init().unwrap();
 
     match args.occurrences_of("v") {
@@ -43,24 +42,35 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
     };
 
     let pid = match args.value_of("PID") {
-        Some(pid) => Some(u16::from_str_radix(pid.trim_start_matches("0x"), 16).map_err(|_| anyhow!("Could not parse PID"))?),
-        _ => None
+        Some(pid) => Some(
+            u16::from_str_radix(pid.trim_start_matches("0x"), 16)
+                .map_err(|_| anyhow!("Could not parse PID"))?,
+        ),
+        _ => None,
     };
 
     let vid = match args.value_of("VID") {
-        Some(vid) => Some(u16::from_str_radix(vid.trim_start_matches("0x"), 16).map_err(|_| anyhow!("Could not parse VID"))?),
-        _ => None
+        Some(vid) => Some(
+            u16::from_str_radix(vid.trim_start_matches("0x"), 16)
+                .map_err(|_| anyhow!("Could not parse VID"))?,
+        ),
+        _ => None,
     };
 
     let uuid = args.value_of("UUID").map(Uuid::parse_str).transpose()?;
 
-    let bootloader = || Bootloader::try_find(vid, pid, uuid).context("Could not attach to a bootloader");
+    let bootloader =
+        || Bootloader::try_find(vid, pid, uuid).context("Could not attach to a bootloader");
 
     if let Some(command) = args.subcommand_matches("http") {
         let bootloader = bootloader()?;
         let addr = command.value_of("ADDR").unwrap().to_string();
         let port = command.value_of("PORT").unwrap().parse::<u16>().unwrap();
-        let http_config = lpc55::http::HttpConfig { addr, port, timeout_ms: 5000 };
+        let http_config = lpc55::http::HttpConfig {
+            addr,
+            port,
+            timeout_ms: 5000,
+        };
         let server = lpc55::http::Server::new(&http_config, bootloader)?;
         server.run()?;
         return Ok(());
@@ -72,7 +82,6 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
         for bootloader in bootloaders {
             println!("{:?}", &bootloader);
         }
-
     }
 
     if let Some(_command) = args.subcommand_matches("info") {
@@ -91,25 +100,26 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
         if let Some(subcommand) = subcommand.subcommand_matches("factory-settings") {
             let config_path = std::path::Path::new(subcommand.value_of("CONFIG").unwrap());
             let settings = fs::read_to_string(&config_path)?;
-            let mut wrapped_settings: lpc55::protected_flash::WrappedFactorySettings = match config_path.extension() {
-                Some(extension) => match extension {
-                    os_str if os_str == "yaml" => {
-                        serde_yaml::from_str(&settings)?
+            let mut wrapped_settings: lpc55::protected_flash::WrappedFactorySettings =
+                match config_path.extension() {
+                    Some(extension) => match extension {
+                        os_str if os_str == "yaml" => serde_yaml::from_str(&settings)?,
+                        os_str if os_str == "toml" => toml::from_str(&settings)?,
+                        extension => todo!("extension {:?} not implemented", extension),
+                    },
+                    None => {
+                        return Err(anyhow::anyhow!(
+                            "no extension detected in path {:?}",
+                            &config_path
+                        ))
                     }
-                    os_str if os_str == "toml" => {
-                        toml::from_str(&settings)?
-                    }
-                    extension => todo!("extension {:?} not implemented", extension),
-                }
-                None => return Err(anyhow::anyhow!("no extension detected in path {:?}", &config_path)),
-            };
+                };
 
             info!("settings: {:#?}", &wrapped_settings.factory_settings);
 
             let settings = Vec::from(wrapped_settings.factory_settings.to_bytes()?.as_ref());
 
             trace!("binary settings:\n{}", hex_str!(&settings, 4, sep: "\n"));
-
 
             if subcommand.value_of("OUTPUT").is_none() {
                 let bootloader = bootloader()?;
@@ -129,18 +139,20 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
         if let Some(subcommand) = subcommand.subcommand_matches("customer-settings") {
             let config_path = std::path::Path::new(subcommand.value_of("CONFIG").unwrap());
             let settings = fs::read_to_string(&config_path)?;
-            let wrapped_settings: lpc55::protected_flash::WrappedCustomerSettings = match config_path.extension() {
-                Some(extension) => match extension {
-                    os_str if os_str == "yaml" => {
-                        serde_yaml::from_str(&settings)?
+            let wrapped_settings: lpc55::protected_flash::WrappedCustomerSettings =
+                match config_path.extension() {
+                    Some(extension) => match extension {
+                        os_str if os_str == "yaml" => serde_yaml::from_str(&settings)?,
+                        os_str if os_str == "toml" => toml::from_str(&settings)?,
+                        extension => todo!("extension {:?} not implemented", extension),
+                    },
+                    None => {
+                        return Err(anyhow::anyhow!(
+                            "no extension detected in path {:?}",
+                            &config_path
+                        ))
                     }
-                    os_str if os_str == "toml" => {
-                        toml::from_str(&settings)?
-                    }
-                    extension => todo!("extension {:?} not implemented", extension),
-                }
-                None => return Err(anyhow::anyhow!("no extension detected in path {:?}", &config_path)),
-            };
+                };
 
             let mut settings = wrapped_settings.customer_settings;
             info!("settings: {:#?}", &wrapped_settings.customer_settings);
@@ -148,14 +160,17 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
             if subcommand.value_of("OUTPUT").is_none() {
                 let bootloader = bootloader()?;
 
-                let current_pfr_raw = bootloader.read_memory(0x9_DE00, 512*7);
-                let current_pfr = lpc55::protected_flash::ProtectedFlash::try_from(&current_pfr_raw[..]).unwrap();
+                let current_pfr_raw = bootloader.read_memory(0x9_DE00, 512 * 7);
+                let current_pfr =
+                    lpc55::protected_flash::ProtectedFlash::try_from(&current_pfr_raw[..]).unwrap();
                 let latest_pfr = current_pfr.customer.most_recent();
 
-                if ! subcommand.is_present("dont-increment") {
-
+                if !subcommand.is_present("dont-increment") {
                     if settings.customer_version.read() != 0 {
-                        warn!("Ignoring customer version {} from settings file.", settings.customer_version.read());
+                        warn!(
+                            "Ignoring customer version {} from settings file.",
+                            settings.customer_version.read()
+                        );
                     }
 
                     info!("auto incrementing");
@@ -165,7 +180,7 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
 
                 let mut settings = Vec::from(settings.to_bytes()?.as_ref());
 
-                if ! subcommand.is_present("overwrite") {
+                if !subcommand.is_present("overwrite") {
                     info!("preserving firmware, prince-iv, and reserved fields.");
 
                     // Do not overwrite firmware versions
@@ -184,14 +199,11 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
                 );
             } else {
                 let output_name = subcommand.value_of("OUTPUT").unwrap();
-                fs::write(
-                    &output_name,
-                    Vec::from(settings.to_bytes()?.as_ref())
-                ).expect("Unable to write file");
+                fs::write(&output_name, Vec::from(settings.to_bytes()?.as_ref()))
+                    .expect("Unable to write file");
                 println!("outputing to {}", output_name);
             }
         }
-
     }
 
     if let Some(subcommand) = args.subcommand_matches("keystore") {
@@ -205,9 +217,7 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
             let bootloader = bootloader()?;
             // let data = bootloader.read_memory(0x9_DE60, 3*512);
 
-            let command = command::Command::Keystore(
-                command::KeystoreOperation::ReadKeystore
-            );
+            let command = command::Command::Keystore(command::KeystoreOperation::ReadKeystore);
             let response = bootloader.protocol.call(&command).expect("success");
 
             let data = if let command::Response::Data(data) = response {
@@ -226,9 +236,8 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
             let key = command::Key::try_from(command.value_of("KEY").unwrap()).unwrap();
             let len: u32 = command.value_of("LENGTH").unwrap().parse()?;
 
-            let command = command::Command::Keystore(
-                command::KeystoreOperation::GenerateKey { key, len }
-            );
+            let command =
+                command::Command::Keystore(command::KeystoreOperation::GenerateKey { key, len });
 
             bootloader.protocol.call(&command).expect("success");
             return Ok(());
@@ -240,9 +249,8 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
             let keydata_filename = command.value_of("KEYDATA_FILENAME").unwrap();
             let data = fs::read(keydata_filename)?;
 
-            let command = command::Command::Keystore(
-                command::KeystoreOperation::SetKey { key, data }
-            );
+            let command =
+                command::Command::Keystore(command::KeystoreOperation::SetKey { key, data });
 
             bootloader.protocol.call(&command).expect("success");
             return Ok(());
@@ -251,9 +259,7 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
         if subcommand.subcommand_matches("write-keys").is_some() {
             let bootloader = bootloader()?;
 
-            let command = command::Command::Keystore(
-                command::KeystoreOperation::WriteNonVolatile
-            );
+            let command = command::Command::Keystore(command::KeystoreOperation::WriteNonVolatile);
 
             bootloader.protocol.call(&command).expect("success");
             return Ok(());
@@ -262,19 +268,16 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
         if subcommand.subcommand_matches("read-keys").is_some() {
             let bootloader = bootloader()?;
 
-            let command = command::Command::Keystore(
-                command::KeystoreOperation::ReadNonVolatile
-            );
+            let command = command::Command::Keystore(command::KeystoreOperation::ReadNonVolatile);
 
             bootloader.protocol.call(&command).expect("success");
             return Ok(());
         }
-
     }
 
     if let Some(command) = args.subcommand_matches("pfr") {
         let bootloader = bootloader()?;
-        let data = bootloader.read_memory(0x9_DE00, 7*512);
+        let data = bootloader.read_memory(0x9_DE00, 7 * 512);
         // let empty = data.iter().all(|&byte| byte == 0);
         // if empty {
         //     println!("PFR region is completely zeroed out");
@@ -303,18 +306,11 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
             _ => panic!(),
         }
         if let Some(filename) = command.value_of("OUTPUT FACTORY") {
-            fs::write(
-                &filename,
-                &data[512*3..512*4],
-            ).expect("Unable to write file");
+            fs::write(&filename, &data[512 * 3..512 * 4]).expect("Unable to write file");
         }
 
         if let Some(filename) = command.value_of("OUTPUT CUSTOMER") {
-
-            fs::write(
-                &filename,
-                &data[0..512*3],
-            ).expect("Unable to write file");
+            fs::write(&filename, &data[0..512 * 3]).expect("Unable to write file");
         }
     }
 
@@ -371,7 +367,6 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
     }
 
     if let Some(command) = args.subcommand_matches("provision") {
-
         let config_filename = command.value_of("CONFIG").unwrap();
         let config = lpc55::bootloader::provision::Config::try_from(config_filename)?;
 
@@ -384,8 +379,6 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
         return Ok(());
     }
 
-
-
     if let Some(command) = args.subcommand_matches("fingerprint-certificates") {
         use lpc55::pki::{Certificates, Pki};
         let config_filename = command.value_of("CONFIG").unwrap();
@@ -396,10 +389,7 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
     }
 
     if let Some(command) = args.subcommand_matches("sign-fw") {
-        use lpc55::{
-            secure_binary::Config,
-            signed_binary::ImageSigningRequest,
-        };
+        use lpc55::{secure_binary::Config, signed_binary::ImageSigningRequest};
         let config_filename = command.value_of("CONFIG").unwrap();
         let mut config = Config::try_from(config_filename)?;
         if let Some(image) = command.value_of("image") {
@@ -432,7 +422,8 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
             config.firmware.secure_boot_image = secure_boot_image.to_string();
         }
         if let Some(product_version) = command.value_of("product-version") {
-            config.firmware.product = lpc55::secure_binary::Version::from(product_version.to_string().as_str());
+            config.firmware.product =
+                lpc55::secure_binary::Version::from(product_version.to_string().as_str());
         }
         if let Some(product_major) = command.value_of("product-major") {
             config.firmware.product.major = product_major.parse()?;
@@ -447,7 +438,10 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
                 .or_else(|_| NaiveDate::parse_from_str(product_date, "%y%m%d"))?;
             let days_since_twenties = (date - NaiveDate::from_ymd(2020, 1, 1)).num_days();
             assert!(days_since_twenties > 0);
-            info!("overriding product.major with date {}, i.e. {}", &date, days_since_twenties);
+            info!(
+                "overriding product.major with date {}, i.e. {}",
+                &date, days_since_twenties
+            );
             config.firmware.product.minor = days_since_twenties as u16;
         }
         let unsigned_image = UnsignedSb21File::try_assemble_from(&config)?;
@@ -470,29 +464,28 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
 }
 
 ////////
-        // bootloader.info();
+// bootloader.info();
 
-        // println!("current version: {}", bootloader.properties().current_version().unwrap());
-        // println!("target version: {}", bootloader.properties().target_version().unwrap());
-        // println!("available commands: {:?}", bootloader.properties().available_commands().unwrap());
-        // println!("available peripherals: {:?}", bootloader.properties().available_peripherals().unwrap());
-        // println!("PFR (protected flash region) keystore update options: {:?}",
-        //     bootloader.properties().pfr_keystore_update_option().unwrap());
-        // println!("RAM start address: 0x{:08X}", bootloader.properties().ram_start_address().unwrap());
-        // println!("RAM size: {}", bootloader.properties().ram_size().unwrap());
-        // println!("flash start address: 0x{:08X}", bootloader.properties().flash_start_address().unwrap());
-        // println!("flash size: {}", bootloader.properties().flash_size().unwrap());
-        // println!("flash page size: {}", bootloader.properties().flash_page_size().unwrap());
-        // println!("flash sector size: {}", bootloader.properties().flash_sector_size().unwrap());
-        // println!("verify writes: {}", bootloader.properties().verify_writes().unwrap());
-        // println!("flash locked: {}", bootloader.properties().flash_locked().unwrap());
-        // println!("max packet size: {}", bootloader.properties().max_packet_size().unwrap());
-        // println!("device UUID: 0x{:16X}", bootloader.properties().device_uuid().unwrap());
-        // println!("system UUID: 0x{:08X}", bootloader.properties().system_uuid().unwrap());
-        // println!("CRC check status: {:?}", bootloader.properties().crc_check_status().unwrap());
-        // println!("reserved regions:");
-        // for (left, right) in bootloader.properties().reserved_regions().unwrap().iter() {
-        //     println!("  0x{:08X} - 0x{:08X} ({:.2} KB)", left, right, ((*right + 1) as f64 - *left as f64)/1024.);
-        // }
-        // println!("IRQ notification PIN: {:?}", bootloader.properties().irq_notification_pin().unwrap());
-
+// println!("current version: {}", bootloader.properties().current_version().unwrap());
+// println!("target version: {}", bootloader.properties().target_version().unwrap());
+// println!("available commands: {:?}", bootloader.properties().available_commands().unwrap());
+// println!("available peripherals: {:?}", bootloader.properties().available_peripherals().unwrap());
+// println!("PFR (protected flash region) keystore update options: {:?}",
+//     bootloader.properties().pfr_keystore_update_option().unwrap());
+// println!("RAM start address: 0x{:08X}", bootloader.properties().ram_start_address().unwrap());
+// println!("RAM size: {}", bootloader.properties().ram_size().unwrap());
+// println!("flash start address: 0x{:08X}", bootloader.properties().flash_start_address().unwrap());
+// println!("flash size: {}", bootloader.properties().flash_size().unwrap());
+// println!("flash page size: {}", bootloader.properties().flash_page_size().unwrap());
+// println!("flash sector size: {}", bootloader.properties().flash_sector_size().unwrap());
+// println!("verify writes: {}", bootloader.properties().verify_writes().unwrap());
+// println!("flash locked: {}", bootloader.properties().flash_locked().unwrap());
+// println!("max packet size: {}", bootloader.properties().max_packet_size().unwrap());
+// println!("device UUID: 0x{:16X}", bootloader.properties().device_uuid().unwrap());
+// println!("system UUID: 0x{:08X}", bootloader.properties().system_uuid().unwrap());
+// println!("CRC check status: {:?}", bootloader.properties().crc_check_status().unwrap());
+// println!("reserved regions:");
+// for (left, right) in bootloader.properties().reserved_regions().unwrap().iter() {
+//     println!("  0x{:08X} - 0x{:08X} ({:.2} KB)", left, right, ((*right + 1) as f64 - *left as f64)/1024.);
+// }
+// println!("IRQ notification PIN: {:?}", bootloader.properties().irq_notification_pin().unwrap());
