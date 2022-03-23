@@ -35,7 +35,8 @@ pub fn app() -> clap::Command<'static> {
         .version(crate_version!())
         .long_version(LONG_VERSION.as_str())
         .about(ABOUT)
-        .setting(clap::AppSettings::SubcommandRequiredElseHelp)
+        .subcommand_required(true)
+        .arg_required_else_help(true)
 
 
         .arg(Arg::new("VID")
@@ -92,7 +93,8 @@ pub fn app() -> clap::Command<'static> {
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("configure factory and customer settings")
-            .setting(clap::AppSettings::SubcommandRequiredElseHelp)
+            .subcommand_required(true)
+            .arg_required_else_help(true)
 
             .subcommand(Command::new("factory-settings")
                 .version(crate_version!())
@@ -160,7 +162,8 @@ pub fn app() -> clap::Command<'static> {
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("keystore interactions")
-            .setting(clap::AppSettings::SubcommandRequiredElseHelp)
+            .subcommand_required(true)
+            .arg_required_else_help(true)
 
             .subcommand(Command::new("enroll-puf")
                 .version(crate_version!())
