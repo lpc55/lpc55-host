@@ -716,7 +716,7 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
         let (i, digest_hmac) = take::<_, _, ()>(32u8)(i)?;
         let (i, keyblob) = Keyblob::from_bytes(i)?;
         let (i, certificate_block_header) = FullCertificateBlockHeader::from_bytes(i)?;
-        let (mut i, mut certificates) = (i, Vec::new());
+        let (mut i, mut certificates): (_, Vec<X509Certificate<'_>>) = (i, Vec::new());
         for _ in 0..certificate_block_header.certificate_count {
             let (itmp, certificate_length) = le_u32::<_, ()>(i).unwrap();
             let (itmp, certificate_data) = take::<_, _, ()>(certificate_length)(itmp)?;
@@ -730,11 +730,19 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
                         cert.tbs_certificate.version,
                         x509_parser::x509::X509Version::V3
                     );
+                    if certificates.len() != 0 {
+                        assert!(cert
+                            .verify_signature(Some(
+                                certificates[certificates.len() - 1].public_key()
+                            ))
+                            .is_ok());
+                    } else {
+                        assert!(cert.verify_signature(None).is_ok());
+                    }
                     certificates.push(cert);
                 }
                 _ => panic!("Invalid certificate"),
             }
-            // TODO validate chain?
         }
 
         let (i, rot_key_hashes) = take::<_, _, ()>(128usize)(i)?;
