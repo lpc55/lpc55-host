@@ -32,7 +32,7 @@ use std::fs;
 
 use anyhow::{Context as _, Result};
 pub use chrono::naive::NaiveDate;
-use rsa::pkcs1::FromRsaPublicKey;
+use rsa::{pkcs1::FromRsaPublicKey, PublicKeyParts};
 use serde::{Deserialize, Serialize};
 use x509_parser::{certificate::X509Certificate, traits::FromDer};
 
@@ -716,18 +716,28 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
         let (i, digest_hmac) = take::<_, _, ()>(32u8)(i)?;
         let (i, keyblob) = Keyblob::from_bytes(i)?;
         let (i, certificate_block_header) = FullCertificateBlockHeader::from_bytes(i)?;
-        let (i, certificate_length) = le_u32::<_, ()>(i).unwrap();
-        let (i, certificate_data) = take::<_, _, ()>(certificate_length)(i)?;
-
-        let unpadded_signed_data_length = 16 * (6 + 2 + 5 + 2) + 4 + certificate_length + 128;
+        let (mut i, mut certificates) = (i, Vec::new());
+        for _ in 0..certificate_block_header.certificate_count {
+            let (itmp, certificate_length) = le_u32::<_, ()>(i).unwrap();
+            let (itmp, certificate_data) = take::<_, _, ()>(certificate_length)(itmp)?;
+            println!("certificate length: {}", certificate_length);
+            println!("end of cert data: {:>16x}", hex_str!(&certificate_data));
+            i = itmp;
+            match X509Certificate::from_der(certificate_data) {
+                Ok((rem, cert)) => {
+                    println!("Remainder: {}", hex_str!(rem));
+                    assert_eq!(
+                        cert.tbs_certificate.version,
+                        x509_parser::x509::X509Version::V3
+                    );
+                    certificates.push(cert);
+                }
+                _ => panic!("Invalid certificate"),
+            }
+            // TODO validate chain?
+        }
 
         let (i, rot_key_hashes) = take::<_, _, ()>(128usize)(i)?;
-        let i = if (unpadded_signed_data_length % 16) != 0 {
-            take::<_, _, ()>(16u8 - (unpadded_signed_data_length % 16) as u8)(i)?.0
-        } else {
-            i
-        };
-        let (i, signature) = take::<_, _, ()>(256usize)(i)?;
 
         info!(
             "rotkh: {}",
@@ -745,40 +755,30 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
         info!("  MAC: {}", hexstr!(&keyblob.mac));
         info!("CTH:        \n{:?}", &certificate_block_header);
 
-        let certificate = match X509Certificate::from_der(certificate_data) {
-            Ok((rem, cert)) => {
-                println!("remainder: {}", hex_str!(rem));
-                // assert!(rem.is_empty());
-                assert_eq!(
-                    cert.tbs_certificate.version,
-                    x509_parser::x509::X509Version::V3
-                );
-                cert
-            }
-            _ => {
-                panic!("invalid certificate");
-            }
-        };
+        let certificate = &certificates[certificates.len() - 1];
+
         // info!("cert: \n{:?}", &certificate);
-        println!("certificate length: {}", certificate_length);
 
         // now let's verify the signature
         // pad 16
-        println!(
-            "unpadded signed data length: 0x{:x}",
-            unpadded_signed_data_length
-        );
+        //println!("unpadded signed data length: 0x{:x}", unpadded_signed_data_length);
         // let signed_data_length = signed_data_length + (16 - (signed_data_length % 16));
-        let signed_data_length = 16 * ((unpadded_signed_data_length + 15) / 16);
+        //let signed_data_length = 16 * ((unpadded_signed_data_length + 15) / 16);
+        let unpadded_signed_data_length = data.len() - i.len();
+        let i = if (unpadded_signed_data_length % 16) != 0 {
+            take::<_, _, ()>(16u8 - (unpadded_signed_data_length % 16) as u8)(i)?.0
+        } else {
+            i
+        };
+        let signed_data_length = data.len() - i.len();
 
         // let signed_data_length = 0x5f0;
-        println!("end of cert data: {:>16x}", hex_str!(&certificate_data));
         println!("signed data length: 0x{:x}", signed_data_length);
 
-        let signed_data_hash = sha256(&data[..signed_data_length as usize]);
+        let signed_data_hash = sha256(&data[..signed_data_length]);
         println!("data hash: {}", hex_str!(&signed_data_hash, 4));
 
-        let spki = certificate.tbs_certificate.subject_pki;
+        let spki = &certificate.tbs_certificate.subject_pki;
         trace!("alg: {:?}", spki.algorithm.algorithm);
         assert_eq!(
             oid_registry::OID_PKCS1_RSAENCRYPTION,
@@ -788,6 +788,7 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
         println!("rsa pub key: {:?}", &spki.subject_public_key.data);
         let public_key = rsa::RsaPublicKey::from_pkcs1_der(spki.subject_public_key.data)
             .expect("can parse public key");
+        let (i, signature) = take::<_, _, ()>(public_key.size())(i)?;
         println!("signature: {}", hexstr!(&signature));
         let padding_scheme = rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
         use rsa::PublicKey;
@@ -796,10 +797,10 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
             .expect("signature valid");
         // let signature = secret_key.sign(padding_scheme, &hashed_image).expect("signatures work");
 
-        let calculated_boot_tag_offset_bytes = signed_data_length + 256;
+        let calculated_boot_tag_offset_bytes = signed_data_length + public_key.size();
         assert_eq!(
             calculated_boot_tag_offset_bytes,
-            header.boot_tag_offset_blocks * 16
+            (header.boot_tag_offset_blocks * 16) as usize
         );
 
         // alright, BootTag, Hmac, Section
@@ -909,7 +910,7 @@ pub struct CertificateBlockHeader {
 /// Further, the minor version is at times interpreted as a "calver" encoding
 /// days since 2020-01-01. This is optional to use, "semver" works as well.
 ///
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub struct Version {
     pub major: u16,
     pub minor: u16,
@@ -1360,7 +1361,6 @@ impl FullCertificateBlockHeader {
     fn from_bytes(i: &[u8]) -> nom::IResult<&[u8], Self, ()> {
         // let literal_u8 = |x: u8| verify(u8, move |y| *y == x);
         let literal_u16 = |x: u16| verify(le_u16, move |y| *y == x);
-        let literal_u32 = |x: u32| verify(le_u32, move |y| *y == x);
 
         let (i, _signature) = tag("cert")(i)?;
         let (i, _header_major_version) = literal_u16(1)(i)?;
@@ -1369,7 +1369,7 @@ impl FullCertificateBlockHeader {
         let (i, _flags) = le_u32(i)?;
         let (i, build_number) = le_u32(i)?;
         let (i, total_image_length_in_bytes) = le_u32(i)?;
-        let (i, certificate_count) = literal_u32(1)(i)?;
+        let (i, certificate_count) = verify(le_u32, move |i| *i > 0)(i)?;
         let (i, certificate_table_length_in_bytes) = le_u32(i)?;
 
         Ok((
