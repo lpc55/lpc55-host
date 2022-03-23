@@ -20,7 +20,7 @@ Use -h for short descriptions and --help for more details
 
 Project homepage: https://github.com/lpc55/lpc55-host
 ";
-pub fn app() -> Command<'static> {
+pub fn app() -> clap::Command<'static> {
     // We need to specify our version in a static because we've painted clap
     // into a corner. We've told it that every string we give it will be
     // 'static, but we need to build the version string dynamically. We can
@@ -35,7 +35,7 @@ pub fn app() -> Command<'static> {
         .version(crate_version!())
         .long_version(LONG_VERSION.as_str())
         .about(ABOUT)
-        .subcommand_required(true)
+        .setting(clap::AppSettings::SubcommandRequiredElseHelp)
 
 
         .arg(Arg::new("VID")
@@ -92,7 +92,7 @@ pub fn app() -> Command<'static> {
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("configure factory and customer settings")
-            .subcommand_required(true)
+            .setting(clap::AppSettings::SubcommandRequiredElseHelp)
 
             .subcommand(Command::new("factory-settings")
                 .version(crate_version!())
@@ -160,7 +160,7 @@ pub fn app() -> Command<'static> {
             .version(crate_version!())
             .long_version(LONG_VERSION.as_str())
             .about("keystore interactions")
-            .subcommand_required(true)
+            .setting(clap::AppSettings::SubcommandRequiredElseHelp)
 
             .subcommand(Command::new("enroll-puf")
                 .version(crate_version!())
