@@ -730,15 +730,11 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
                         cert.tbs_certificate.version,
                         x509_parser::x509::X509Version::V3
                     );
-                    if certificates.len() != 0 {
-                        assert!(cert
-                            .verify_signature(Some(
-                                certificates[certificates.len() - 1].public_key()
-                            ))
-                            .is_ok());
-                    } else {
-                        assert!(cert.verify_signature(None).is_ok());
-                    }
+
+                    // Verify that the certificate is signed by the previous certificate, or by
+                    // itself if it is the first.
+                    let prev_public_key = certificates.last().map(|c| c.public_key());
+                    assert!(cert.verify_signature(prev_public_key).is_ok());
                     certificates.push(cert);
                 }
                 _ => panic!("Invalid certificate"),
