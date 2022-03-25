@@ -74,6 +74,20 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -qq libudev-dev > /dev/null
         if: matrix.os == 'ubuntu-latest'
 
+      - name: cargo fmt
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: cargo clippy
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
+
       - name: cargo build
         uses: actions-rs/cargo@v1
         with:
