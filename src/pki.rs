@@ -116,10 +116,8 @@ impl PublicKey {
     }
 }
 
-const SIGNATURE_LENGTH: usize = 256;
-
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub struct Signature(pub [u8; SIGNATURE_LENGTH]);
+#[derive(Clone, Debug, PartialEq)]
+pub struct Signature(pub Vec<u8>);
 
 impl SigningKey {
     pub fn try_from_uri(uri: &str) -> anyhow::Result<Self> {
@@ -179,10 +177,7 @@ impl SigningKey {
                 context.sign(session, data).unwrap()
             }
         };
-        assert_eq!(256, signature.len());
-        let mut array = [0u8; SIGNATURE_LENGTH];
-        array.copy_from_slice(&signature);
-        Signature(array)
+        Signature(signature)
     }
 
     pub fn public_key(&self) -> PublicKey {
@@ -229,12 +224,7 @@ impl<'a> core::convert::TryFrom<&'a [u8]> for Signature {
     type Error = signature::Error;
 
     fn try_from(bytes: &'a [u8]) -> Result<Self, Self::Error> {
-        if bytes.len() != SIGNATURE_LENGTH {
-            return Err(signature::Error::new());
-        }
-        let mut array = [0u8; SIGNATURE_LENGTH];
-        array.copy_from_slice(bytes);
-        Ok(Signature(array))
+        Ok(Signature(Vec::from(bytes)))
     }
 }
 
