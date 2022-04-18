@@ -550,7 +550,14 @@ impl UnsignedSb21File {
     pub fn boot_tag_offset_blocks(&self) -> usize {
         // entire header section is "data to be signed" + signature
         // a block is 16 bytes
-        (self.signed_data_length() + 256) / 16
+        (self.signed_data_length()
+            + self
+                .certificates
+                .certificate(self.slot)
+                .public_key()
+                .0
+                .size())
+            / 16
     }
 
     // alright, BootTag, Hmac, Section
