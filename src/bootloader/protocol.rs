@@ -323,7 +323,7 @@ impl Protocol {
             (command::Command::ReadMemory { address: _, length }, _, _) => {
                 let packet = ResponsePacket::try_from(initial_response)?;
                 // assert_eq!([0x03, 0x00, 0x0C, 0x00], &initial_generic_response[..4]);
-                assert!(!packet.has_data);
+                assert!(packet.has_data);
                 assert!(packet.status.is_none());
                 assert_eq!(packet.tag, command::ResponseTag::ReadMemory);
 
