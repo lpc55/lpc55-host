@@ -300,7 +300,7 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
                     io::stdout().write_all(&data).unwrap()
                 }
             }
-            "toml" => println!("{}", toml::to_string(&pfr).unwrap()),
+            "toml" => println!("{}", toml::Value::try_from(&pfr).unwrap()),
             "yaml" => println!("{}", serde_yaml::to_string(&pfr).unwrap()),
             // "yaml-pretty" => println!("{}", serde_yaml::to_string_pretty(&pfr).unwrap()),
             _ => panic!(),
