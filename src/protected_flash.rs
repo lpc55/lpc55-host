@@ -32,13 +32,14 @@ pub const CUSTOMER_SETTINGS_SCRATCH_ADDRESS: usize = 0x9_DE00;
 /// - factory page: one flash page (512B) of configuration data, to be set during manufacturing process
 /// - keystore: three flash pages, technically considered part of the factory configuration data,
 /// containing activation and key codes for the PUF keys.
+#[serde(rename_all = "kebab-case")]
 pub struct ProtectedFlash {
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub customer: CustomerSettingsArea,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    pub factory: FactorySettings,
+    pub factory_settings: FactorySettings,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
     pub keystore: Keystore,
@@ -95,7 +96,6 @@ where
     pub rot_fingerprint: Sha256Hash,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_default")]
-    #[serde(serialize_with = "hex_serialize")]
     /// 224 bytes that the customer can use.
     pub customer_data: CustomerData,
     #[serde(default)]
@@ -869,13 +869,13 @@ bitflags::bitflags! {
 impl core::convert::TryFrom<&[u8]> for ProtectedFlash {
     type Error = ();
     fn try_from(input: &[u8]) -> ::std::result::Result<Self, Self::Error> {
-        let factory = FactorySettings::try_from(&input[3 * 512..4 * 512]).unwrap();
+        let factory_settings = FactorySettings::try_from(&input[3 * 512..4 * 512]).unwrap();
         let customer = CustomerSettingsArea::try_from(&input[..3 * 512]).unwrap();
         let keystore = Keystore::try_from(&input[4 * 512..7 * 512]).unwrap();
 
         let pfr = ProtectedFlash {
             customer,
-            factory,
+            factory_settings,
             keystore,
         };
 
