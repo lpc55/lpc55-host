@@ -420,14 +420,14 @@ pub struct CertificateChain {
 }
 
 impl CertificateChain {
-    fn from_root(root: Certificate) -> Self {
+    pub fn from_root(root: Certificate) -> Self {
         Self {
             root,
             chain: vec![],
         }
     }
 
-    fn try_from(uris: &CertificateUriChain) -> Result<Self> {
+    pub fn try_from(uris: &CertificateUriChain) -> Result<Self> {
         let root = Certificate::try_from(&uris.root().try_into()?)?;
         let chain: Result<Vec<_>, _> = uris
             .chain()
@@ -443,12 +443,21 @@ impl CertificateChain {
         })
     }
 
-    fn signer(&self) -> &Certificate {
+    pub fn signer(&self) -> &Certificate {
         self.chain.last().unwrap_or(&self.root)
     }
 
-    fn root(&self) -> &Certificate {
+    pub fn root(&self) -> &Certificate {
         &self.root
+    }
+
+    /// Returns an iterator over the chain, starting with the root certificate
+    pub fn all(&self) -> impl Iterator<Item = &Certificate> {
+        std::iter::once(&self.root).chain(self.chain.iter())
+    }
+
+    pub fn len(&self) -> usize {
+        1 + self.chain.len()
     }
 }
 
@@ -512,6 +521,15 @@ impl Certificates {
 
     pub fn certificate_der(&self, i: CertificateSlot) -> &[u8] {
         self.certificate(i).der()
+    }
+
+    /// Returns an iterator of the DER serialization of the certificate chain starting at the root
+    pub fn chain_der(&self, i: CertificateSlot) -> impl Iterator<Item = &[u8]> {
+        self.chains[usize::from(i)].all().map(|c| c.der())
+    }
+
+    pub fn chain(&self, i: CertificateSlot) -> &CertificateChain {
+        &self.chains[usize::from(i)]
     }
 
     /// Get the fingerprint of the 4 root certificates
