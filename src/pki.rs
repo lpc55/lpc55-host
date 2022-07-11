@@ -69,8 +69,8 @@ pub enum CertificateUriChain {
 impl CertificateUriChain {
     pub fn root(&self) -> &str {
         match self {
-            Self::Root(r) => &r,
-            Self::Chain { root, chain: _ } => &root,
+            Self::Root(r) => r,
+            Self::Chain { root, chain: _ } => root,
         }
     }
 
@@ -456,6 +456,7 @@ impl CertificateChain {
         std::iter::once(&self.root).chain(self.chain.iter())
     }
 
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         1 + self.chain.len()
     }
@@ -516,7 +517,7 @@ impl Certificates {
 
     /// Get the end of chain certificate from the chain
     pub fn certificate(&self, i: CertificateSlot) -> &Certificate {
-        &self.chains[usize::from(i)].signer()
+        self.chains[usize::from(i)].signer()
     }
 
     pub fn certificate_der(&self, i: CertificateSlot) -> &[u8] {
