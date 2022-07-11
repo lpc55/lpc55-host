@@ -1,9 +1,8 @@
-use core::convert::TryFrom;
 use std::fs;
 
 use anyhow::{Context as _, Result};
 
-use crate::pki::{Certificate, CertificateSlot, CertificateSource, Certificates, SigningKey};
+use crate::pki::{Certificate, CertificateSlot, Certificates, SigningKey};
 use crate::secure_binary::Config;
 use crate::util::word_padded;
 
@@ -30,14 +29,7 @@ impl ImageSigningRequest {
                 config.firmware.image
             )
         })?;
-
-        let certificate_sources = [
-            CertificateSource::try_from(config.pki.certificates[0].as_ref())?,
-            CertificateSource::try_from(config.pki.certificates[1].as_ref())?,
-            CertificateSource::try_from(config.pki.certificates[2].as_ref())?,
-            CertificateSource::try_from(config.pki.certificates[3].as_ref())?,
-        ];
-        let certificates = Certificates::try_from(&certificate_sources)?;
+        let certificates = Certificates::try_from_pki(&config.pki)?;
 
         let signing_key = SigningKey::try_from_uri(config.pki.signing_key.as_ref())?;
 

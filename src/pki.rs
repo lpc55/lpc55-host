@@ -51,7 +51,7 @@ pub struct Pki {
     /// using the signing key's public key.
     ///
     /// Encoded as X.509 DER files.
-    pub certificates: [String; 4],
+    pub certificates: [CertificateUriChain; 4],
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -427,7 +427,7 @@ impl CertificateChain {
         }
     }
 
-    fn try_from(uris: CertificateUriChain) -> Result<Self> {
+    fn try_from(uris: &CertificateUriChain) -> Result<Self> {
         let root = Certificate::try_from(&uris.root().try_into()?)?;
         let chain: Result<Vec<_>, _> = uris
             .chain()
@@ -442,39 +442,41 @@ impl CertificateChain {
             chain: chain?,
         })
     }
+
+    fn signer(&self) -> &Certificate {
+        self.chain.last().unwrap_or(&self.root)
+    }
+
+    fn root(&self) -> &Certificate {
+        &self.root
+    }
 }
 
 #[derive(Clone, Debug)]
 pub struct Certificates {
-    certificates: [Certificate; 4],
+    chains: [CertificateChain; 4],
 }
 
 impl Certificates {
     pub fn try_from_pki(pki: &Pki) -> Result<Self> {
-        let sources = [
-            CertificateSource::try_from(pki.certificates[0].as_ref())?,
-            CertificateSource::try_from(pki.certificates[1].as_ref())?,
-            CertificateSource::try_from(pki.certificates[2].as_ref())?,
-            CertificateSource::try_from(pki.certificates[3].as_ref())?,
-        ];
-        let certificates = [
-            Certificate::try_from(&sources[0])?,
-            Certificate::try_from(&sources[1])?,
-            Certificate::try_from(&sources[2])?,
-            Certificate::try_from(&sources[3])?,
+        let chains = [
+            CertificateChain::try_from(&pki.certificates[0])?,
+            CertificateChain::try_from(&pki.certificates[1])?,
+            CertificateChain::try_from(&pki.certificates[2])?,
+            CertificateChain::try_from(&pki.certificates[3])?,
         ];
 
-        Ok(Certificates { certificates })
+        Ok(Certificates { chains })
     }
 
     // todo: consider using pkcs11-uri here too
     pub fn try_from(sources: &[CertificateSource; 4]) -> Result<Self> {
         Ok(Self {
-            certificates: [
-                Certificate::try_from(&sources[0])?,
-                Certificate::try_from(&sources[1])?,
-                Certificate::try_from(&sources[2])?,
-                Certificate::try_from(&sources[3])?,
+            chains: [
+                CertificateChain::from_root(Certificate::try_from(&sources[0])?),
+                CertificateChain::from_root(Certificate::try_from(&sources[1])?),
+                CertificateChain::from_root(Certificate::try_from(&sources[2])?),
+                CertificateChain::from_root(Certificate::try_from(&sources[3])?),
             ],
         })
     }
@@ -482,11 +484,11 @@ impl Certificates {
     /// Checks certificates are valid, and public keys are all RSA.
     pub fn try_from_ders(certificate_ders: [Vec<u8>; 4]) -> Result<Self> {
         Ok(Self {
-            certificates: [
-                Certificate::try_from_der(&certificate_ders[0])?,
-                Certificate::try_from_der(&certificate_ders[1])?,
-                Certificate::try_from_der(&certificate_ders[2])?,
-                Certificate::try_from_der(&certificate_ders[3])?,
+            chains: [
+                CertificateChain::from_root(Certificate::try_from_der(&certificate_ders[0])?),
+                CertificateChain::from_root(Certificate::try_from_der(&certificate_ders[1])?),
+                CertificateChain::from_root(Certificate::try_from_der(&certificate_ders[2])?),
+                CertificateChain::from_root(Certificate::try_from_der(&certificate_ders[3])?),
             ],
         })
     }
@@ -503,21 +505,23 @@ impl Certificates {
         ))
     }
 
+    /// Get the end of chain certificate from the chain
     pub fn certificate(&self, i: CertificateSlot) -> &Certificate {
-        &self.certificates[usize::from(i)]
+        &self.chains[usize::from(i)].signer()
     }
 
     pub fn certificate_der(&self, i: CertificateSlot) -> &[u8] {
-        self.certificates[usize::from(i)].der()
+        self.certificate(i).der()
     }
 
+    /// Get the fingerprint of the 4 root certificates
     pub fn fingerprints(&self) -> [Sha256Hash; 4] {
         // array_map when? :)
         [
-            self.certificates[0].fingerprint(),
-            self.certificates[1].fingerprint(),
-            self.certificates[2].fingerprint(),
-            self.certificates[3].fingerprint(),
+            self.chains[0].root().fingerprint(),
+            self.chains[1].root().fingerprint(),
+            self.chains[2].root().fingerprint(),
+            self.chains[3].root().fingerprint(),
         ]
     }
 
