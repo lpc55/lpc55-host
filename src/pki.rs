@@ -54,6 +54,18 @@ pub struct Pki {
     pub certificates: [String; 4],
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+#[serde(untagged)]
+pub enum CertificateUriChain {
+    Root(String),
+    Chain {
+        root: String,
+        #[serde(default)]
+        chain: Vec<String>,
+    },
+}
+
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 /// Type enabling `lpc55 rotkh` to share config file with the secure/signed
