@@ -292,9 +292,10 @@ impl Sb21HeaderPart {
         bytes.extend_from_slice(&self.digest);
         bytes.extend_from_slice(&self.encrypted_keyblob);
         cert_block.extend_from_slice(&self.certificate_block_header.to_bytes());
-        cert_block.extend_from_slice(&(self.padded_certificate0_der.len() as u32).to_le_bytes());
-        assert!(self.padded_certificate0_der.len() > 100);
-        cert_block.extend_from_slice(&self.padded_certificate0_der);
+        for c in &self.padded_certs {
+            cert_block.extend_from_slice(&(c.len() as u32).to_le_bytes());
+            cert_block.extend_from_slice(c);
+        }
         for fp in self.rot_fingerprints.iter() {
             cert_block.extend_from_slice(fp.0.as_ref());
         }
@@ -314,7 +315,7 @@ pub struct Sb21HeaderPart {
     // not sure if the 8 bytes padding can be set to zero or not
     encrypted_keyblob: [u8; 80],
     certificate_block_header: FullCertificateBlockHeader,
-    padded_certificate0_der: Vec<u8>,
+    padded_certs: Vec<Vec<u8>>,
     rot_fingerprints: [Sha256Hash; 4],
 }
 
@@ -459,27 +460,38 @@ impl UnsignedSb21File {
 
         let encrypted_keyblob = self.keyblob.to_bytes();
 
-        let mut padded_certificate0_der = Vec::from(self.certificates.certificate_der(self.slot));
-        let unpadded_cert_length = padded_certificate0_der.len();
-        // let padded_len = 16*((unpadded_cert_length + 15)/16);
-        let padded_len = 4 * ((unpadded_cert_length + 3) / 4);
-        // dbg!(padded_certificate0_der.len());
-        padded_certificate0_der.resize(padded_len, 0);
+        let mut padded_certs = Vec::new();
+
+        for mut certificate_der in self.certificates.chain_der(self.slot).map(Vec::from) {
+            let unpadded_cert_length = certificate_der.len();
+            let padded_len = 4 * ((unpadded_cert_length + 3) / 4);
+            dbg!((padded_len, unpadded_cert_length));
+            certificate_der.resize(padded_len, 0);
+            padded_certs.push(certificate_der);
+        }
+
+        //let mut padded_certificate0_der = Vec::from(self.certificates.certificate_der(self.slot));
+        //let unpadded_cert_length = padded_certificate0_der.len();
+        //// let padded_len = 16*((unpadded_cert_length + 15)/16);
+        //let padded_len = 4 * ((unpadded_cert_length + 3) / 4);
+        //// dbg!(padded_certificate0_der.len());
+        //padded_certificate0_der.resize(padded_len, 0);
         // dbg!(padded_certificate0_der.len());
         // panic!();
 
         // really?
         // let cert_table_len = 4 + padded_certificate0_der.len() as u32 + 4;
-        let cert_table_len = 4 + padded_certificate0_der.len() as u32;
+        let cert_table_len =
+            padded_certs.len() * 4 + padded_certs.iter().fold(0, |acc, c| acc + c.len());
         // really?
         // let total_image_length_in_bytes = self.signed_data_length() as _;
         let total_image_length_in_bytes = (((cert_table_len + 368) + 15) / 16) * 16;
         let certificate_block_header = FullCertificateBlockHeader {
             header_length_in_bytes: 32,
             build_number: self.parameters.build,
-            total_image_length_in_bytes,
-            certificate_count: 1,
-            certificate_table_length_in_bytes: cert_table_len,
+            total_image_length_in_bytes: total_image_length_in_bytes as u32,
+            certificate_count: padded_certs.len().try_into().unwrap(),
+            certificate_table_length_in_bytes: cert_table_len as u32,
         };
 
         let rot_fingerprints = self.certificates.fingerprints();
@@ -516,7 +528,7 @@ impl UnsignedSb21File {
             digest,
             encrypted_keyblob,
             certificate_block_header,
-            padded_certificate0_der,
+            padded_certs,
             rot_fingerprints,
         }
     }
