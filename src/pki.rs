@@ -66,6 +66,22 @@ pub enum CertificateUriChain {
     },
 }
 
+impl CertificateUriChain {
+    pub fn root(&self) -> &str {
+        match self {
+            Self::Root(r) => &r,
+            Self::Chain { root, chain: _ } => &root,
+        }
+    }
+
+    pub fn chain(&self) -> &[String] {
+        match self {
+            Self::Root(_) => &[],
+            Self::Chain { root: _, chain } => &**chain,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 /// Type enabling `lpc55 rotkh` to share config file with the secure/signed
@@ -394,6 +410,37 @@ impl Certificate {
     pub fn fingerprint(&self) -> Sha256Hash {
         // no panic, DER is verified in constructor
         Self::cert_fingerprint(self.certificate()).unwrap()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct CertificateChain {
+    root: Certificate,
+    chain: Vec<Certificate>,
+}
+
+impl CertificateChain {
+    fn from_root(root: Certificate) -> Self {
+        Self {
+            root,
+            chain: vec![],
+        }
+    }
+
+    fn try_from(uris: CertificateUriChain) -> Result<Self> {
+        let root = Certificate::try_from(&uris.root().try_into()?)?;
+        let chain: Result<Vec<_>, _> = uris
+            .chain()
+            .iter()
+            .map(|uri| {
+                let s: &str = &*uri;
+                Certificate::try_from(&s.try_into()?)
+            })
+            .collect();
+        Ok(CertificateChain {
+            root,
+            chain: chain?,
+        })
     }
 }
 
