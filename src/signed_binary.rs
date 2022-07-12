@@ -87,11 +87,9 @@ impl ImageSigningRequest {
         image.extend_from_slice(&certificate);
 
         // ROT key hash table
-        for i in 0..4 {
-            let fingerprint = self.certificates.certificate(i.into()).fingerprint();
-            image.extend_from_slice(&fingerprint.0);
+        for h in self.certificates.fingerprints() {
+            image.extend_from_slice(&h.0);
         }
-
         image
     }
 }
