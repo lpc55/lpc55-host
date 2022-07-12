@@ -64,11 +64,15 @@ where
     Ok(t)
 }
 
+/// Length after block padding
+pub fn block_pad_len(len: usize) -> usize {
+    16 * ((len + 15) / 16)
+}
+
 /// Pad to multiple of AES block (16 bytes = 128 bits)
 pub fn block_pad(data: &mut Vec<u8>) {
     let size = data.len();
-    let aligned_size = 16 * ((size + 15) / 16);
-    data.resize(aligned_size, 0);
+    data.resize(block_pad_len(size), 0);
 }
 
 /// Padded to multiple of AES block (16 bytes = 128 bits)
@@ -78,11 +82,15 @@ pub fn block_padded(data: &[u8]) -> Vec<u8> {
     data
 }
 
+/// Length after word-padding
+pub fn word_pad_len(len: usize) -> usize {
+    4 * ((len + 3) / 4)
+}
+
 /// Pad to multiple of machine word (4 bytes = 32 bits)
 pub fn word_pad(data: &mut Vec<u8>) {
     let size = data.len();
-    let aligned_size = 4 * ((size + 3) / 4);
-    data.resize(aligned_size, 0);
+    data.resize(word_pad_len(size), 0);
 }
 
 /// Padded to multiple of machine word (4 bytes = 32 bits)
