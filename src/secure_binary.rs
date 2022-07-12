@@ -465,7 +465,6 @@ impl UnsignedSb21File {
         for mut certificate_der in self.certificates.chain_der(self.slot).map(Vec::from) {
             let unpadded_cert_length = certificate_der.len();
             let padded_len = 4 * ((unpadded_cert_length + 3) / 4);
-            dbg!((padded_len, unpadded_cert_length));
             certificate_der.resize(padded_len, 0);
             padded_certs.push(certificate_der);
         }
@@ -546,7 +545,10 @@ impl UnsignedSb21File {
 
     pub fn signed_data_length(&self) -> usize {
         // need "padded" length here
-        let certificate_length = 4 * ((self.certificates.certificate_der(self.slot).len() + 3) / 4);
+        let certificate_length = self
+            .certificates
+            .chain_der(self.slot)
+            .fold(0, |acc, der| acc + 4 * ((der.len() + 3) / 4));
 
         // let header_blocks = 16;
         // let keyblob_blocks = 5;
