@@ -49,7 +49,7 @@ use crate::crypto::{crc32, hmac, nxp_aes_ctr_cipher, sha256};
 use crate::pki::{CertificateSlot, Certificates, Pki, Sha256Hash, SigningKey, SigningKeySource};
 use crate::protected_flash::{CustomerSettings, FactorySettings};
 use crate::util::{
-    hex_deserialize_256, hex_deserialize_32, hex_serialize, is_default, word_padded,
+    hex_deserialize_256, hex_deserialize_32, hex_serialize, is_default, word_pad_len, word_padded,
 };
 use signature::Signature as _;
 
@@ -462,11 +462,8 @@ impl UnsignedSb21File {
 
         let mut padded_certs = Vec::new();
 
-        for mut certificate_der in self.certificates.chain_der(self.slot).map(Vec::from) {
-            let unpadded_cert_length = certificate_der.len();
-            let padded_len = 4 * ((unpadded_cert_length + 3) / 4);
-            certificate_der.resize(padded_len, 0);
-            padded_certs.push(certificate_der);
+        for certificate_der in self.certificates.chain_der(self.slot) {
+            padded_certs.push(word_padded(certificate_der));
         }
 
         //let mut padded_certificate0_der = Vec::from(self.certificates.certificate_der(self.slot));
@@ -478,8 +475,7 @@ impl UnsignedSb21File {
         // dbg!(padded_certificate0_der.len());
         // panic!();
 
-        // really?
-        // let cert_table_len = 4 + padded_certificate0_der.len() as u32 + 4;
+        // Length prefix is 4 byte before each certificate
         let cert_table_len =
             padded_certs.len() * 4 + padded_certs.iter().fold(0, |acc, c| acc + c.len());
         // really?
@@ -548,7 +544,7 @@ impl UnsignedSb21File {
         let certificate_length = self
             .certificates
             .chain_der(self.slot)
-            .fold(0, |acc, der| acc + 4 * ((der.len() + 3) / 4));
+            .fold(0, |acc, der| acc + word_pad_len(der.len()));
 
         // let header_blocks = 16;
         // let keyblob_blocks = 5;
