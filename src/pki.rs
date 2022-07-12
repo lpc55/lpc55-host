@@ -520,6 +520,7 @@ impl Certificates {
         self.chains[usize::from(i)].signer()
     }
 
+    /// Get the DER reprensentation for the end of chain certificate from the chain
     pub fn certificate_der(&self, i: CertificateSlot) -> &[u8] {
         self.certificate(i).der()
     }
