@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["PfrKeystoreUpdateOptions",""],["Property",""]],"struct":[["AvailableCommands",""],["AvailablePeripherals",""],["GetProperties",""],["IrqNotificationPin",""],["Properties",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["PfrKeystoreUpdateOptions",""],["Property",""]],"struct":[["AvailableCommands",""],["AvailablePeripherals",""],["GetProperties",""],["IrqNotificationPin",""],["Properties",""]]};

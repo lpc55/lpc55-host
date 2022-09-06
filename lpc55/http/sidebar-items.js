@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["DEFAULT_TIMEOUT_MILLISECONDS",""]],"struct":[["HttpConfig",""],["Server",""]]});
+window.SIDEBAR_ITEMS = {"constant":[["DEFAULT_TIMEOUT_MILLISECONDS",""]],"struct":[["HttpConfig",""],["Server",""]]};
