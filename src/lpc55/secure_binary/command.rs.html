@@ -521,7 +521,7 @@
 <span class="kw">const</span> <span class="ident">START_OF_PROTECTED_FLASH</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x9_DE00</span>;
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BootTag</span> {
     <span class="ident">Nop</span> <span class="op">=</span> <span class="number">0</span>,
     <span class="ident">Tag</span> <span class="op">=</span> <span class="number">1</span>,
@@ -540,7 +540,7 @@
 }
 
 <span class="comment">// struct boot_command_t</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawBootCommand</span> {
     <span class="kw">pub</span> <span class="ident">checksum</span>: <span class="ident">u8</span>,
     <span class="kw">pub</span> <span class="ident">tag</span>: <span class="ident">u8</span>,
@@ -626,7 +626,7 @@
 <span class="doccomment">/// file = &quot;example.sb2&quot;</span>
 <span class="doccomment">/// len = 512</span>
 <span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;cmd&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SingleBootCommandDescription</span> {
     <span class="doccomment">/// Maps to `BootCommand::EraseRegion`, but `start` and `end` are given in bytes.</span>
@@ -680,7 +680,7 @@
 <span class="doccomment">/// image = &quot;Signed&quot;</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;seq&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BootCommandSequenceDescription</span> {
     <span class="doccomment">/// Takes the filename specified in image from `config.firmware`,</span>
@@ -707,7 +707,7 @@
     <span class="ident">CheckDerivedFirmwareVersions</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">untagged</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BootCommandDescription</span> {
     <span class="ident">Single</span>(<span class="ident">SingleBootCommandDescription</span>),
@@ -755,7 +755,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
 <span class="comment">// The LPC55xx ROM loader provides the support for the following bootloader commands:</span>
 <span class="comment">// * WriteMemory, FillMemory, ConfigureMemory, FlashEraseAll, FlashEraseRegion,</span>
 <span class="comment">// SB 2.1 introduces two new commands that can be used to prevent firmware roll-back:</span>
