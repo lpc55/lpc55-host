@@ -62,10 +62,6 @@ impl Server {
                 "/status" => Some(self.status()?),
                 _ => None,
             },
-            http::Method::Post => match request.url() {
-                // "/api" => Some(self.api(&mut request)?),
-                _ => None,
-            },
             _ => None,
         }
         .unwrap_or_else(|| {

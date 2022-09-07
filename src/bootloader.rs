@@ -92,7 +92,7 @@ impl fmt::Display for Bootloader {
 ///
 /// TODO: To implement StdError via thiserror::Error, we need to
 /// add error messages to all the error variants.
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum Error {
     Generic(error::GenericError),
     FlashDriver(error::FlashDriverError),

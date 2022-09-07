@@ -48,7 +48,7 @@ macro_rules! generate {
     ($Error:ident: $($error:ident = $code:literal,)*) => {
 
         #[repr(u8)]
-        #[derive(Copy, Clone, Debug, Deserialize, enum_iterator::IntoEnumIterator, PartialEq, Serialize)]
+        #[derive(Copy, Clone, Debug, Deserialize, enum_iterator::IntoEnumIterator, Eq, PartialEq, Serialize)]
         pub enum $Error { $(
             $error = $code,
         )* }

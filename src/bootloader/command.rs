@@ -362,7 +362,7 @@ impl TryFrom<u8> for ReportId {
     }
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Version {
     pub mark: Option<char>,
     pub major: u8,
