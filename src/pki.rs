@@ -165,7 +165,7 @@ impl SigningKey {
                 })?;
                 // do this instead:
                 // https://docs.rs/rsa/0.3.0/rsa/struct.RsaPrivateKey.html?search=#example
-                let der = pem_parser::pem_to_der(&pem);
+                let der = pem::parse(&pem)?.contents;
                 let key = rsa::RsaPrivateKey::from_pkcs1_der(&der)?;
                 SigningKey::Pkcs1(key)
             }
