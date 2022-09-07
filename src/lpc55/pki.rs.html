@@ -778,7 +778,7 @@
                 })<span class="question-mark">?</span>;
                 <span class="comment">// do this instead:</span>
                 <span class="comment">// https://docs.rs/rsa/0.3.0/rsa/struct.RsaPrivateKey.html?search=#example</span>
-                <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="ident">pem_parser::pem_to_der</span>(<span class="kw-2">&amp;</span><span class="ident">pem</span>);
+                <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="ident">pem::parse</span>(<span class="kw-2">&amp;</span><span class="ident">pem</span>)<span class="question-mark">?</span>.<span class="ident">contents</span>;
                 <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">rsa::RsaPrivateKey::from_pkcs1_der</span>(<span class="kw-2">&amp;</span><span class="ident">der</span>)<span class="question-mark">?</span>;
                 <span class="ident">SigningKey::Pkcs1</span>(<span class="ident">key</span>)
             }
