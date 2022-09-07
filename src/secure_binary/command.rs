@@ -25,7 +25,7 @@ use crate::util::is_default;
 const START_OF_PROTECTED_FLASH: u32 = 0x9_DE00;
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BootTag {
     Nop = 0,
     Tag = 1,
@@ -44,7 +44,7 @@ pub enum BootTag {
 }
 
 // struct boot_command_t
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct RawBootCommand {
     pub checksum: u8,
     pub tag: u8,
@@ -130,7 +130,7 @@ impl RawBootCommand {
 /// file = "example.sb2"
 /// len = 512
 /// ```
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "cmd")]
 pub enum SingleBootCommandDescription {
     /// Maps to `BootCommand::EraseRegion`, but `start` and `end` are given in bytes.
@@ -184,7 +184,7 @@ pub enum SingleBootCommandDescription {
 /// image = "Signed"
 /// ```
 ///
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "seq")]
 pub enum BootCommandSequenceDescription {
     /// Takes the filename specified in image from `config.firmware`,
@@ -211,7 +211,7 @@ pub enum BootCommandSequenceDescription {
     CheckDerivedFirmwareVersions,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum BootCommandDescription {
     Single(SingleBootCommandDescription),
@@ -259,7 +259,7 @@ impl<'a> TryFrom<&'a SingleBootCommandDescription> for BootCommand {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 // The LPC55xx ROM loader provides the support for the following bootloader commands:
 // * WriteMemory, FillMemory, ConfigureMemory, FlashEraseAll, FlashEraseRegion,
 // SB 2.1 introduces two new commands that can be used to prevent firmware roll-back:

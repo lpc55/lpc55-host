@@ -9,7 +9,7 @@ pub struct GetProperties<'a> {
     pub protocol: &'a Protocol,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Properties {
     pub current_version: Version,
     pub target_version: Version,
@@ -121,7 +121,7 @@ bitflags::bitflags! {
 }
 
 #[repr(u32)]
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum PfrKeystoreUpdateOptions {
     Keystore = 0x00,
     WriteMemory = 0x01,
@@ -138,7 +138,7 @@ impl From<u32> for PfrKeystoreUpdateOptions {
     }
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct IrqNotificationPin {
     pub pin: u8,
     pub port: u8,

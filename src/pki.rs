@@ -13,7 +13,7 @@ use rsa::pkcs1::FromRsaPublicKey;
 
 use crate::util::is_default;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SigningKeySource {
     Pkcs1PemFile(std::path::PathBuf),
     Pkcs11Uri(std::string::String),
@@ -25,7 +25,7 @@ pub fn split_once(s: &str, delimiter: char) -> Option<(&str, &str)> {
 }
 
 /// Specification of PKI for secure (signed) boot.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(deny_unknown_fields)]
 pub struct Pki {
@@ -54,7 +54,7 @@ pub struct Pki {
     pub certificates: [CertificateUriChain; 4],
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
 pub enum CertificateUriChain {
@@ -82,7 +82,7 @@ impl CertificateUriChain {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 /// Type enabling `lpc55 rotkh` to share config file with the secure/signed
 /// firmware generation commands. Serializes `Pki` with a `[pki]` header.
@@ -126,7 +126,7 @@ pub enum SigningKey {
 }
 
 /// An RSA2k public key
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PublicKey(pub rsa::RsaPublicKey);
 
 impl PublicKey {
@@ -144,7 +144,7 @@ impl PublicKey {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Signature(pub Vec<u8>);
 
 impl SigningKey {
@@ -278,7 +278,7 @@ impl signature::Signer<Signature> for SigningKey {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CertificateSlot(usize);
 
 // This should not be necessary; not having it would prevent
@@ -301,7 +301,7 @@ impl From<CertificateSlot> for usize {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CertificateSource {
     X509DerFile(std::path::PathBuf),
     Pkcs11Uri(std::string::String),
@@ -433,7 +433,7 @@ impl CertificateChain {
             .chain()
             .iter()
             .map(|uri| {
-                let s: &str = &*uri;
+                let s: &str = uri;
                 Certificate::try_from(&s.try_into()?)
             })
             .collect();
