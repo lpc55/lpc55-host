@@ -190,7 +190,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Error</span> <span class="kw">as</span> <span class="ident">BootloaderError</span>;
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">enum_iterator::Sequence</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">enum_iterator::IntoEnumIterator</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ErrorGroup</span> {
     <span class="ident">Generic</span> <span class="op">=</span> <span class="number">0</span>,
     <span class="ident">FlashDriver</span> <span class="op">=</span> <span class="number">1</span>,
@@ -230,7 +230,7 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Error</span>:<span class="ident">ident</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">error</span>:<span class="ident">ident</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">literal</span>,)<span class="kw-2">*</span>) =&gt; {
 
         <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">enum_iterator::Sequence</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
+        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">enum_iterator::IntoEnumIterator</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Error</span> { $(
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">error</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>,
         )<span class="op">*</span> }
