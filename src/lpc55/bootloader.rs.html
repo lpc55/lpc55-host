@@ -342,9 +342,6 @@
 <span id="336">336</span>
 <span id="337">337</span>
 <span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The bootloader interface</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Construct a `Bootloader` from a VID/PID pair (optionally a UUID to disambiguate),</span>
@@ -353,7 +350,7 @@
 <span class="kw">use</span> <span class="ident">core::fmt</span>;
 
 <span class="kw">use</span> <span class="ident">anyhow::anyhow</span>;
-<span class="kw">use</span> <span class="ident">enum_iterator::IntoEnumIterator</span>;
+<span class="kw">use</span> <span class="ident">enum_iterator::all</span>;
 <span class="kw">use</span> <span class="ident">hidapi::HidApi</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">uuid::Uuid</span>;
@@ -397,12 +394,12 @@
             })
             .<span class="ident">collect</span>();
         <span class="kw">match</span> <span class="ident">candidates</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;No candidate has UUID {:X}&quot;</span>, <span class="ident">uuid</span>.<span class="ident">to_simple</span>())),
+            <span class="number">0</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;No candidate has UUID {:X}&quot;</span>, <span class="ident">uuid</span>.<span class="ident">simple</span>())),
             <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">candidates</span>.<span class="ident">remove</span>(<span class="number">0</span>)),
             <span class="ident">n</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(
                 <span class="string">&quot;Multiple ({}) candidates have UUID {:X}&quot;</span>,
                 <span class="ident">n</span>,
-                <span class="ident">uuid</span>.<span class="ident">to_simple</span>()
+                <span class="ident">uuid</span>.<span class="ident">simple</span>()
             )),
         }
     }
@@ -462,15 +459,12 @@
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">bootloader</span><span class="op">|</span> <span class="ident">bootloader</span>.<span class="ident">uuid</span>() <span class="op">==</span> <span class="ident">uuid</span>)
             .<span class="ident">collect</span>();
         <span class="kw">match</span> <span class="ident">candidates</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(
-                <span class="string">&quot;No usable bootloader has UUID {:X}&quot;</span>,
-                <span class="ident">uuid</span>.<span class="ident">to_simple</span>()
-            )),
+            <span class="number">0</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;No usable bootloader has UUID {:X}&quot;</span>, <span class="ident">uuid</span>.<span class="ident">simple</span>())),
             <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">candidates</span>.<span class="ident">remove</span>(<span class="number">0</span>)),
             <span class="ident">n</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(
                 <span class="string">&quot;Multiple ({}) bootloaders have UUID {:X}&quot;</span>,
                 <span class="ident">n</span>,
-                <span class="ident">uuid</span>.<span class="ident">to_simple</span>()
+                <span class="ident">uuid</span>.<span class="ident">simple</span>()
             )),
         }
     }
@@ -552,7 +546,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="ident">Property::into_enum_iter</span>() {
+        <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="ident">all</span>::<span class="op">&lt;</span><span class="ident">Property</span><span class="op">&gt;</span>() {
             <span class="comment">// println!(&quot;\n{:?}&quot;, property);</span>
             <span class="self">self</span>.<span class="ident">property</span>(<span class="ident">property</span>).<span class="ident">ok</span>();
         }

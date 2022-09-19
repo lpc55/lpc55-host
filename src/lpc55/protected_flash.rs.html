@@ -1284,10 +1284,6 @@
 <span id="1278">1278</span>
 <span id="1279">1279</span>
 <span id="1280">1280</span>
-<span id="1281">1281</span>
-<span id="1282">1282</span>
-<span id="1283">1283</span>
-<span id="1284">1284</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The protected flash area (PFR) as Rust types</span>
 <span class="doccomment">//!</span>
 <span class="kw">use</span> <span class="ident">core::convert::TryInto</span>;
@@ -1302,11 +1298,7 @@
 
 <span class="kw">use</span> <span class="ident">nom</span>::{<span class="ident">bytes::complete::take</span>, <span class="ident">number::complete::le_u32</span>, <span class="ident">IResult</span>};
 
-<span class="kw">use</span> <span class="ident">serde_big_array::big_array</span>;
-<span class="macro">big_array!</span> {
-    <span class="ident">BigArray</span>;
-    <span class="op">+</span><span class="number">1192</span>,
-}
+<span class="kw">use</span> <span class="ident">serde_big_array::BigArray</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">debug</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">debug</span>::{<span class="ident">DebugAccess</span>, <span class="ident">DebugSettings</span>};
