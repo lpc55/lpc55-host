@@ -45,9 +45,7 @@ pub enum Command {
 }
 
 #[repr(u8)]
-#[derive(
-    Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::Sequence, Ord, PartialEq, PartialOrd)]
 pub enum CommandTag {
     EraseFlashAll = 0x01,
     EraseFlash = 0x02,
@@ -286,9 +284,7 @@ impl Command {
 }
 
 #[repr(u8)]
-#[derive(
-    Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::Sequence, Ord, PartialEq, PartialOrd)]
 pub enum ResponseTag {
     Generic = 0xA0,
     ReadMemory = 0xA3,
@@ -337,9 +333,7 @@ impl Response {
 }
 
 #[repr(u8)]
-#[derive(
-    Clone, Copy, Debug, Eq, Hash, enum_iterator::IntoEnumIterator, Ord, PartialEq, PartialOrd,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::Sequence, Ord, PartialEq, PartialOrd)]
 // todo: rename to HidReportId? place in `mod hid` submodule?
 pub enum ReportId {
     Command = 1,

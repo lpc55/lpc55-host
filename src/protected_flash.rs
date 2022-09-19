@@ -12,11 +12,7 @@ use sha2::Digest as _;
 
 use nom::{bytes::complete::take, number::complete::le_u32, IResult};
 
-use serde_big_array::big_array;
-big_array! {
-    BigArray;
-    +1192,
-}
+use serde_big_array::BigArray;
 
 pub mod debug;
 pub use debug::{DebugAccess, DebugSettings};

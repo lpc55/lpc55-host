@@ -1,5 +1,7 @@
 //! NXP's CRC32 and AES-CTR algorithms
 
+use ctr::cipher::KeyIvInit as _;
+
 pub fn sha256(data: &[u8]) -> [u8; 32] {
     use sha2::Digest;
     let mut hasher = sha2::Sha256::new();
@@ -34,7 +36,6 @@ pub fn nxp_aes_ctr_cipher(
     offset_blocks: u32,
 ) -> Vec<u8> {
     type Aes256Ctr = ctr::Ctr32BE<aes::Aes256>;
-    use ctr::cipher::NewCipher;
     use ctr::cipher::StreamCipher;
 
     let mut plaintext = Vec::from(ciphertext);
