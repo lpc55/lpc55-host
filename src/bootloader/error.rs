@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use super::Error as BootloaderError;
 
 #[repr(u8)]
-#[derive(Clone, Debug, enum_iterator::IntoEnumIterator)]
+#[derive(Clone, Debug, enum_iterator::Sequence)]
 pub enum ErrorGroup {
     Generic = 0,
     FlashDriver = 1,
@@ -48,7 +48,7 @@ macro_rules! generate {
     ($Error:ident: $($error:ident = $code:literal,)*) => {
 
         #[repr(u8)]
-        #[derive(Copy, Clone, Debug, Deserialize, enum_iterator::IntoEnumIterator, Eq, PartialEq, Serialize)]
+        #[derive(Copy, Clone, Debug, Deserialize, enum_iterator::Sequence, Eq, PartialEq, Serialize)]
         pub enum $Error { $(
             $error = $code,
         )* }

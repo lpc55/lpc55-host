@@ -39,7 +39,7 @@ pub struct Properties {
     Debug,
     Eq,
     Hash,
-    enum_iterator::IntoEnumIterator,
+    enum_iterator::Sequence,
     Ord,
     PartialEq,
     PartialOrd,

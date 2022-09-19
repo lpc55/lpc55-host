@@ -1,6 +1,6 @@
 [package]
 name = "lpc55"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Nicolas Stalder <n@stalder.io>"]
 edition = "2021"
 description = "Host-side tooling to interact with LPC55 chips via the ROM bootloader"
@@ -18,43 +18,43 @@ name = "lpc55"
 required-features = ["cli"]
 
 [dependencies]
-aes = "0.7"
+aes = "0.8"
 anyhow = "1"
 atty = "0.2.14"
 base64 = "0.13"
 bitflags = "1.2.1"
 chrono = "0.4.19"
 clap = { version = "3", features = ["cargo"], optional = true }
-ctr = "0.8"
+ctr = "0.9"
 delog = "0.1.0-alpha.2"
-enum-iterator = "0.7.0"
+enum-iterator = "1"
 hex = "0.4.2"
 hmac = "0.12"
 hidapi = { version = "1.2.3", default-features = false, features = ["linux-static-hidraw"] }
 nom = { version = "7" }
 serde = { version = "1", features = ["derive"] }
-serde-big-array = "0.3.0"
+serde-big-array = "0.4.0"
 serde_json = "1"
-serde_yaml = "0.8.14"
+serde_yaml = "0.9"
 signature = "1.3.0"
 log = "0.4.11"
 lazy_static = "1.4.0"
-oid-registry = "0.2"
+oid-registry = "0.6"
 pem = "1.1"
 rand = "0.8.1"
-rsa = "0.5"
+rsa = "0.6"
 sha2 = "0.10"
 thiserror = "1"
-tiny_http = { version = "0.9", optional = true }
+tiny_http = { version = "0.11", optional = true }
 toml = "0.5.7"
-x509-parser = { version = "0.12", features = ["verify"] }
+x509-parser = { version = "0.14", features = ["verify"] }
 uriparse = "0.6.3"
-uuid = "0.8.2"
+uuid = "1"
 pkcs11 = "0.5.0"
 pkcs11-uri = "0.1.2"
 
 # progressbar
-indicatif = { version = "0.16.2", optional = true }
+indicatif = { version = "0.17", optional = true }
 
 [dev-dependencies]
 insta = "1.1.0"

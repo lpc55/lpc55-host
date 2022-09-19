@@ -5,11 +5,9 @@ use std::convert::{TryFrom, TryInto};
 use std::{fmt, fs};
 
 use anyhow::{Context as _, Result};
+use rsa::pkcs1::{DecodeRsaPrivateKey as _, DecodeRsaPublicKey as _};
 use serde::{Deserialize, Serialize};
-use x509_parser::{certificate::X509Certificate, traits::FromDer};
-
-use rsa::pkcs1::FromRsaPrivateKey;
-use rsa::pkcs1::FromRsaPublicKey;
+use x509_parser::{certificate::X509Certificate, prelude::FromDer as _};
 
 use crate::util::is_default;
 
@@ -384,7 +382,7 @@ impl Certificate {
         );
 
         let public_key = PublicKey(rsa::RsaPublicKey::from_pkcs1_der(
-            spki.subject_public_key.data,
+            &spki.subject_public_key.data,
         )?);
         Ok(public_key.fingerprint())
     }
@@ -404,7 +402,7 @@ impl Certificate {
             oid_registry::OID_PKCS1_RSAENCRYPTION,
             spki.algorithm.algorithm
         );
-        PublicKey(rsa::RsaPublicKey::from_pkcs1_der(spki.subject_public_key.data).unwrap())
+        PublicKey(rsa::RsaPublicKey::from_pkcs1_der(&spki.subject_public_key.data).unwrap())
     }
 
     pub fn fingerprint(&self) -> Sha256Hash {

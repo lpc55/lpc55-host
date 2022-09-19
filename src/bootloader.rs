@@ -6,7 +6,7 @@
 use core::fmt;
 
 use anyhow::anyhow;
-use enum_iterator::IntoEnumIterator;
+use enum_iterator::all;
 use hidapi::HidApi;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -50,12 +50,12 @@ pub trait UuidSelectable: Sized {
             })
             .collect();
         match candidates.len() {
-            0 => Err(anyhow!("No candidate has UUID {:X}", uuid.to_simple())),
+            0 => Err(anyhow!("No candidate has UUID {:X}", uuid.simple())),
             1 => Ok(candidates.remove(0)),
             n => Err(anyhow!(
                 "Multiple ({}) candidates have UUID {:X}",
                 n,
-                uuid.to_simple()
+                uuid.simple()
             )),
         }
     }
@@ -115,15 +115,12 @@ impl UuidSelectable for Bootloader {
             .filter(|bootloader| bootloader.uuid() == uuid)
             .collect();
         match candidates.len() {
-            0 => Err(anyhow!(
-                "No usable bootloader has UUID {:X}",
-                uuid.to_simple()
-            )),
+            0 => Err(anyhow!("No usable bootloader has UUID {:X}", uuid.simple())),
             1 => Ok(candidates.remove(0)),
             n => Err(anyhow!(
                 "Multiple ({}) bootloaders have UUID {:X}",
                 n,
-                uuid.to_simple()
+                uuid.simple()
             )),
         }
     }
@@ -205,7 +202,7 @@ impl Bootloader {
     }
 
     pub fn info(&self) {
-        for property in Property::into_enum_iter() {
+        for property in all::<Property>() {
             // println!("\n{:?}", property);
             self.property(property).ok();
         }

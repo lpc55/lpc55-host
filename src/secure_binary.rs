@@ -32,9 +32,13 @@ use std::fs;
 
 use anyhow::{Context as _, Result};
 pub use chrono::naive::NaiveDate;
-use rsa::{pkcs1::FromRsaPublicKey, PublicKeyParts};
+use ctr::cipher::{BlockDecrypt as _, BlockEncrypt as _, KeyInit as _};
+use rsa::{
+    pkcs1::{DecodeRsaPrivateKey as _, DecodeRsaPublicKey as _},
+    PublicKeyParts,
+};
 use serde::{Deserialize, Serialize};
-use x509_parser::{certificate::X509Certificate, traits::FromDer};
+use x509_parser::{certificate::X509Certificate, prelude::FromDer as _};
 
 use nom::{
     branch::alt,
@@ -804,7 +808,7 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
         );
 
         println!("rsa pub key: {:?}", &spki.subject_public_key.data);
-        let public_key = rsa::RsaPublicKey::from_pkcs1_der(spki.subject_public_key.data)
+        let public_key = rsa::RsaPublicKey::from_pkcs1_der(&spki.subject_public_key.data)
             .expect("can parse public key");
         let (i, signature) = take::<_, _, ()>(public_key.size())(i)?;
         println!("signature: {}", hexstr!(&signature));
@@ -1122,7 +1126,6 @@ fn aes_wrap(key: [u8; 32], data: &[u8]) -> Vec<u8> {
     }
     assert!(data.len() % 8 == 0);
     use aes::cipher::generic_array::GenericArray;
-    use aes::{BlockCipher, BlockEncrypt, NewBlockCipher};
     let aes = aes::Aes256::new(&key.into());
     let n = (data.len() as u64) / 8;
 
@@ -1165,7 +1168,6 @@ fn aes_unwrap(key: [u8; 32], wrapped: &[u8]) -> Vec<u8> {
     assert!(wrapped.len() % 8 == 0);
     assert!(!wrapped.is_empty());
     use aes::cipher::generic_array::GenericArray;
-    use aes::{BlockCipher, BlockDecrypt, NewBlockCipher};
     let aes = aes::Aes256::new(&key.into());
     let n = (wrapped.len() as u64) / 8 - 1;
     let mut A = u64::from_be_bytes(wrapped[..8].try_into().unwrap());
