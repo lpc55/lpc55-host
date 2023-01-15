@@ -69,9 +69,8 @@ lazy_static = "1.4.0"
 
 [features]
 default = ["cli"]
-cli = ["clap", "http", "progressbar"]
+cli = ["clap", "http", "indicatif"]
 http = ["tiny_http"]
-progressbar = ["indicatif"]
 # Enable tests that require a mcuboot device attached
 with-device = []
 

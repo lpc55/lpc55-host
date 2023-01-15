@@ -212,7 +212,7 @@ impl Command {
             FillMemory => Tag::FillMemory,
             FlashSecurityDisable => Tag::FlashSecurityDisable,
             GetProperty(_) => Tag::GetProperty,
-            ReceiveSbFile { data: _ } => Tag::ReceiveSbFile,
+            ReceiveSbFile { .. } => Tag::ReceiveSbFile,
             Call => Tag::Call,
             Reset => Tag::Reset,
             FlashReadResource => Tag::FlashReadResource,

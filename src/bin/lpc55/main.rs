@@ -362,7 +362,9 @@ fn try_main(args: clap::ArgMatches) -> anyhow::Result<()> {
         let bootloader = bootloader()?;
         let filename = command.value_of("SB-FILE").unwrap();
         let image = fs::read(&filename)?;
-        bootloader.receive_sb_file(&image);
+        let bar = indicatif::ProgressBar::new(image.len() as u64);
+        let progress = |bytes: usize| bar.set_position(bytes as u64);
+        bootloader.receive_sb_file(&image, Some(&progress));
         return Ok(());
     }
 
