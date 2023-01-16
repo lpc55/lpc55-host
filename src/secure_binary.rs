@@ -812,7 +812,9 @@ pub fn show(filename: &str) -> Result<Vec<u8>> {
             .expect("can parse public key");
         let (i, signature) = take::<_, _, ()>(public_key.size())(i)?;
         println!("signature: {}", hexstr!(&signature));
+
         let padding_scheme = rsa::PaddingScheme::new_pkcs1v15_sign(Some(rsa::Hash::SHA2_256));
+
         use rsa::PublicKey;
         public_key
             .verify(padding_scheme, &signed_data_hash, signature)
@@ -977,7 +979,7 @@ impl Version {
     /// The minor version component in its interpretation as days since 2020-01-01
     pub fn minor_as_date(&self) -> NaiveDate {
         use chrono::Duration;
-        let epoch = NaiveDate::from_ymd(2020, 1, 1);
+        let epoch = NaiveDate::from_ymd_opt(2020, 1, 1).unwrap();
         epoch + Duration::days(self.minor as _)
     }
 
@@ -995,7 +997,10 @@ impl Version {
 
     pub fn timestamp_micros(&self) -> u64 {
         use chrono::Duration;
-        let epoch = NaiveDate::from_ymd(2020, 1, 1).and_hms(12, 0, 0);
+        let epoch = NaiveDate::from_ymd_opt(2020, 1, 1)
+            .unwrap()
+            .and_hms_opt(12, 0, 0)
+            .unwrap();
         let date = epoch + Duration::days(self.minor as _);
 
         (date.timestamp_millis() * 1000) as _
@@ -1144,7 +1149,7 @@ fn aes_wrap(key: [u8; 32], data: &[u8]) -> Vec<u8> {
             // i.e., B = AES(A | R[i])
             aes.encrypt_block(GenericArray::from_mut_slice(&mut B));
 
-            let t = (n * j + i) as u64;
+            let t = n * j + i;
             A = u64::from_be_bytes(B[..8].try_into().unwrap());
             // i.e., MSB(64, B) ^ t
             A ^= t;
@@ -1179,7 +1184,7 @@ fn aes_unwrap(key: [u8; 32], wrapped: &[u8]) -> Vec<u8> {
     let mut B = [0u8; 16];
     for j in (0..=5).rev() {
         for i in (1..=n).rev() {
-            let t = (n * j + i) as u64;
+            let t = n * j + i;
             B[..8].copy_from_slice(&(A ^ t).to_be_bytes());
             B[8..].copy_from_slice(&R[i as usize].to_be_bytes());
             // let mut B = ((A ^ t) | R[i as usize]).to_be_bytes();

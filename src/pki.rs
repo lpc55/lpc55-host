@@ -75,7 +75,7 @@ impl CertificateUriChain {
     pub fn chain(&self) -> &[String] {
         match self {
             Self::Root(_) => &[],
-            Self::Chain { root: _, chain } => &**chain,
+            Self::Chain { root: _, chain } => chain,
         }
     }
 }
@@ -163,7 +163,7 @@ impl SigningKey {
                 })?;
                 // do this instead:
                 // https://docs.rs/rsa/0.3.0/rsa/struct.RsaPrivateKey.html?search=#example
-                let der = pem::parse(&pem)?.contents;
+                let der = pem::parse(pem)?.contents;
                 let key = rsa::RsaPrivateKey::from_pkcs1_der(&der)?;
                 SigningKey::Pkcs1(key)
             }
@@ -547,7 +547,7 @@ impl Certificates {
         use sha2::Digest;
         let mut hash = sha2::Sha256::new();
         for fingerprint in self.fingerprints().iter() {
-            hash.update(&fingerprint);
+            hash.update(fingerprint);
         }
         let hash = <[u8; 32]>::try_from(hash.finalize()).unwrap();
         Sha256Hash(hash)
@@ -556,7 +556,7 @@ impl Certificates {
     pub fn fingerprint_from_bytes(fingerprints: &[u8]) -> Sha256Hash {
         use sha2::Digest;
         let mut hash = sha2::Sha256::new();
-        hash.update(&fingerprints);
+        hash.update(fingerprints);
         let hash = <[u8; 32]>::try_from(hash.finalize()).unwrap();
         Sha256Hash(hash)
     }

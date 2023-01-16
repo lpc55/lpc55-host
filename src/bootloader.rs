@@ -287,9 +287,12 @@ impl Bootloader {
     pub fn receive_sb_file<'a>(&self, data: &[u8], progress: Option<&'a dyn Fn(usize)>) {
         let _response = self
             .protocol
-            .call_progress(&Command::ReceiveSbFile {
-                data: data.to_vec(),
-            }, progress)
+            .call_progress(
+                &Command::ReceiveSbFile {
+                    data: data.to_vec(),
+                },
+                progress,
+            )
             .expect("success");
     }
 

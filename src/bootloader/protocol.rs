@@ -123,7 +123,11 @@ impl Protocol {
         self.call_progress(command, None)
     }
 
-    pub fn call_progress<'a>(&self, command: &command::Command, progress: Option<&'a dyn Fn(usize)>) -> Result<command::Response> {
+    pub fn call_progress<'a>(
+        &self,
+        command: &command::Command,
+        progress: Option<&'a dyn Fn(usize)>,
+    ) -> Result<command::Response> {
         // construct command packet
         let command_packet = command.hid_packet();
 
@@ -267,7 +271,7 @@ impl Protocol {
                         let mut position: usize = 0;
                         for chunk in data.chunks(32) {
                             position += 32;
-                            progress.map(|progress| progress(position));
+                            let _ = progress.map(|progress| progress(position));
                             let mut data_packet = vec![
                                 command::ReportId::CommandData as u8,
                                 0,
