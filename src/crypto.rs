@@ -5,7 +5,7 @@ use ctr::cipher::KeyIvInit as _;
 pub fn sha256(data: &[u8]) -> [u8; 32] {
     use sha2::Digest;
     let mut hasher = sha2::Sha256::new();
-    hasher.update(&data);
+    hasher.update(data);
     let mut digest = [0u8; 32];
     digest.copy_from_slice(&hasher.finalize());
     digest

@@ -39,7 +39,8 @@ fn main() {
 
         // Use clap to build completion files.
         // Pro-tip: use `fd -HIe bash` to get OUT_DIR
-        let mut app = cli::app();
+        use clap::CommandFactory;
+        let mut app = cli::Cli::command();
         generate_to(shells::Bash, &mut app, "lpc55", &outdir).unwrap();
         generate_to(shells::Fish, &mut app, "lpc55", &outdir).unwrap();
         generate_to(shells::PowerShell, &mut app, "lpc55", &outdir).unwrap();
@@ -55,7 +56,7 @@ fn main() {
 
 fn git_revision_hash() -> Option<String> {
     let result = process::Command::new("git")
-        .args(&["rev-parse", "--short=10", "HEAD"])
+        .args(["rev-parse", "--short=10", "HEAD"])
         .output();
     result.ok().and_then(|output| {
         let v = String::from_utf8_lossy(&output.stdout).trim().to_string();

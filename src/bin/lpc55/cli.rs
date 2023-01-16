@@ -1,426 +1,243 @@
 //! Command-line interface to this crate's functionality
 
-use clap::{self, crate_authors, crate_version, Arg, Command};
+use clap::{self, Args, Parser, Subcommand, ValueEnum};
+
+#[derive(Args, Debug)]
+pub struct GlobalOptions {
+    #[clap(global = true, help_heading = "SELECTION", long)]
+    /// USB Product ID of bootloader (hex)
+    pub pid: Option<String>,
+
+    #[clap(global = true, help_heading = "SELECTION", long)]
+    /// USB Vendor ID of bootloader (hex)
+    pub vid: Option<String>,
+
+    #[clap(global = true, help_heading = "SELECTION", long)]
+    /// UUID of bootloader (hex)
+    pub uuid: Option<String>,
+
+    #[clap(flatten)]
+    /// Sets the level of verbosity (use multiple times to increase: -v = INFO, -vv = DEBUG, -vvv = TRACE)
+    pub verbose: clap_verbosity_flag::Verbosity<clap_verbosity_flag::WarnLevel>,
+}
+
+#[derive(Parser)]
+#[clap(infer_subcommands = true)]
+#[clap(author, version)]
+/// lpc55 offers various host-side utilities. Project homepage: <https://github.com/lpc55/lpc55-host>
+pub struct Cli {
+    #[clap(flatten)]
+    pub global_options: GlobalOptions,
+    #[clap(subcommand)]
+    pub subcommand: Subcommands,
+}
+
+#[derive(Subcommand)]
+#[clap(infer_subcommands = true)]
+pub enum Subcommands {
+    #[clap(subcommand)]
+    Configure(Configure),
+    Http(Http),
+    /// Query all properties from bootloader
+    Info,
+    /// List all available bootloaders
+    Ls,
+    /// Reboot device
+    Reboot,
+    /// Run a sequence of bootloader commands defined in the config file.
+    Provision {
+        /// Configuration file containing settings
+        config: String,
+    },
+
+    #[clap(subcommand)]
+    Sb(Sb),
+
+    /// Read out memory
+    ReadMemory {
+        /// Address to start reading from
+        address: usize,
+        /// Number of bytes to read
+        length: usize,
+        /// Sets the output file to use. If missing, hex-dumps to stdout.
+        #[arg(short, long)]
+        output_file: Option<String>,
+    },
+
+    /// Write to memory
+    WriteMemory {
+        /// Address to start writing to
+        address: usize,
+        /// Sets the input file to use.
+        #[arg(short, long)]
+        input: String,
+    },
+
+    /// Write to flash (like write-memory, but pads to 512 bytes and erases first)
+    WriteFlash {
+        /// Address to start writing to
+        #[clap(default_value = "0", short, long)]
+        address: usize,
+        /// Sets the input file to use.
+        input: String,
+    },
+
+    /// Send SB2.1 file to target
+    ReceiveSbFile {
+        /// .sb2 file
+        sb_file: String,
+    },
+
+    /// Calculate fingerprint of root certificates (aka ROTKH)
+    FingerprintCertificates {
+        /// Configuration file
+        config: String,
+    },
+
+    /// Sign a firmware image.
+    SignFw {
+        /// Configuration file
+        config: String,
+        /// Input unsigned firmware. Replaces config.firmware.image entry
+        image: Option<String>,
+        /// Output signed firmware. Replaces config.firmware.image entry
+        signed_image: Option<String>,
+    },
+
+    /// Assemble SB2.1 image
+    AssembleSb {
+        /// Configuration file
+        config: String,
+        /// Input signed firmware. Replaces config.firmware.image entry
+        #[clap(long)]
+        signed_image: Option<String>,
+        /// Output file. Replaces config.firmware.secure_boot_image entry
+        #[clap(long)]
+        secure_boot_image: Option<String>,
+        /// Product version xx.yy.zz. Replaces config.firmware.product entry
+        #[clap(long)]
+        product_version: Option<String>,
+        /// Product major version. Replaces config.firmware.product.major entry
+        #[clap(visible_alias = "product-era", long)]
+        product_major: Option<String>,
+        /// Product minor version. Replaces config.firmware.product.minor entry
+        #[clap(visible_alias = "product-days", long)]
+        product_minor: Option<String>,
+        /// Product date. Replaces config.firmware.product.minor entry, after converting to days since the twenties, 2020-01-01
+        #[clap(long)]
+        product_date: Option<String>,
+    },
+
+    /// Read out and parse PFR
+    Pfr {
+        /// Format to output the parsed PFR
+        #[clap(default_value = "json", value_enum)]
+        format: Formats,
+        /// Output the customer pfr pages to a 1536 byte binary file (raw, ping, and pong pages).
+        #[arg(short = 'c', long)]
+        output_customer: Option<String>,
+        /// Output the factory pfr page to a 512 byte binary file.
+        #[arg(short = 'f', long)]
+        output_factory: Option<String>,
+    },
+
+    #[clap(subcommand)]
+    Keystore(Keystore),
+}
+
+/// Keystore interactions
+#[derive(Subcommand)]
+pub enum Keystore {
+    /// (re)initialize PUF, writing an activation code to the keystore
+    EnrollPuf,
+    Read,
+    /// generate "intrinsic" key
+    GenerateKey {
+        /// Name of key code
+        #[clap(value_enum)]
+        key: KeyName,
+        /// Length in bytes of key to be generated
+        /// TODO : restrict to 16 or 32
+        length: u32,
+    },
+    SetKey {
+        /// Name of key code
+        #[clap(value_enum)]
+        key: KeyName,
+        /// Filename of file containing the raw key data bytes
+        data: String,
+    },
+    /// Store any previously generated keys (including PUF activation codes) to non-volatile memory, i.e., PFR keystore
+    WriteKeys,
+    ReadKeys,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+pub enum Formats {
+    Native,
+    AltNative,
+    Json,
+    JsonPretty,
+    Raw,
+    Yaml,
+    Toml,
+}
 
 // duplicated here, because when using this `cli` module in build.rs
 // to generate shell completions, there is no `lpc55` crate yet
-pub const KEYSTORE_KEY_NAMES: [&str; 6] = [
-    "secure-boot-kek",
-    "user-key",
-    "unique-device-secret",
-    "prince-region-0",
-    "prince-region-1",
-    "prince-region-2",
-];
-
-const ABOUT: &str = "
-lpc55 offers various host-side utilities.
-
-Use -h for short descriptions and --help for more details
-
-Project homepage: https://github.com/lpc55/lpc55-host
-";
-pub fn app() -> clap::Command<'static> {
-    // We need to specify our version in a static because we've painted clap
-    // into a corner. We've told it that every string we give it will be
-    // 'static, but we need to build the version string dynamically. We can
-    // fake the 'static lifetime with lazy_static.
-    lazy_static::lazy_static! {
-        static ref LONG_VERSION: String = long_version(None);
-        // static ref LONG_VERSION: String = long_version(Some("47e1f"));
-    }
-
-    let app = Command::new("lpc55")
-        .author(crate_authors!())
-        .version(crate_version!())
-        .long_version(LONG_VERSION.as_str())
-        .about(ABOUT)
-        .subcommand_required(true)
-        .arg_required_else_help(true)
-
-
-        .arg(Arg::new("VID")
-             .long("vid")
-             .help("VID of bootloader (hex)")
-             .help_heading("SELECTION")
-             // even without this, `cmd -v subcommand` passes -v flag to subcommand's matches
-             // the difference is that now the parser allows user to `cmd subcommand -v`
-             .global(true)
-             .takes_value(true)
-        )
-
-        .arg(Arg::new("PID")
-             .long("pid")
-             .help("PID of bootloader (hex)")
-             .help_heading("SELECTION")
-             .global(true)
-             .takes_value(true)
-        )
-
-        .arg(Arg::new("UUID")
-             .long("uuid")
-             .help("UUID of bootloader (hex)")
-             .help_heading("SELECTION")
-             .takes_value(true)
-             .global(true)
-        )
-
-        .arg(Arg::new("v")
-              .short('v')
-              .long("verbose")
-              .multiple_occurrences(true)
-              .global(true)
-              .help("Sets the level of verbosity (use multiple times to increase: -v = INFO, -vv = DEBUG, -vvv = TRACE)"))
-
-        .subcommand(Command::new("http")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .visible_alias("h")
-            .about("Serve http API to bootloader connector")
-            .arg(Arg::new("ADDR")
-                 .help("Address to bind to")
-                 .long("addr")
-                 .default_value("127.0.0.1")
-             )
-            .arg(Arg::new("PORT")
-                 .help("Port to listen on")
-                 .long("port")
-                 .default_value("2020")
-             )
-        )
-
-        .subcommand(Command::new("configure")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("configure factory and customer settings")
-            .subcommand_required(true)
-            .arg_required_else_help(true)
-
-            .subcommand(Command::new("factory-settings")
-                .version(crate_version!())
-                .long_version(LONG_VERSION.as_str())
-                .about("make changes to factory settings page (CMPA)")
-                .arg(Arg::new("OUTPUT")
-                     .short('o')
-                     .long("output")
-                     .value_name("OUTPUT")
-                     .help("Output factory settings (CMPA) to a 512-byte file instead of writing to device.")
-                     .required(false)
-                )
-                .arg(Arg::new("CONFIG")
-                     .help("Configuration file containing settings")
-                     .required(true)
-                )
-            )
-            .subcommand(Command::new("customer-settings")
-                .version(crate_version!())
-                .long_version(LONG_VERSION.as_str())
-                .about("make changes to customer settings page (CFPA)")
-                .arg(Arg::new("OUTPUT")
-                     .short('o')
-                     .long("output")
-                     .value_name("OUTPUT")
-                     .help("Output customer settings (CFPA) to a 512-byte file instead of writing to device.")
-                     .required(false)
-                )
-                .arg(Arg::new("CONFIG")
-                     .help("Configuration file containing settings")
-                     .required(true)
-                )
-                .arg(Arg::new("overwrite")
-                     .help("Destructively overwrite firmware versions, PRINCE IV's, and reserved areas of customer PFR.")
-                     .short('s')
-                     .long("overwrite")
-                     .takes_value(false)
-                )
-                .arg(Arg::new("dont-increment")
-                     .short('a')
-                     .long("dont-increment")
-                     .help("Do not increment customer version number as needed to make PFR write, and use the exact version from config.")
-                     .takes_value(false)
-                )
-            )
-        )
-
-        .subcommand(Command::new("provision")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("Run a sequence of bootloader commands defined in the config file.")
-            .arg(Arg::new("CONFIG")
-                    .help("Configuration file containing settings")
-                    .required(true)
-            )
-        )
-
-        .subcommand(Command::new("reboot")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("reboot device")
-        )
-
-        .subcommand(Command::new("keystore")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("keystore interactions")
-            .subcommand_required(true)
-            .arg_required_else_help(true)
-
-            .subcommand(Command::new("enroll-puf")
-                .version(crate_version!())
-                .about("(re)initialize PUF, writing an activation code to the keystore")
-            )
-
-            .subcommand(Command::new("read")
-                .version(crate_version!())
-            )
-
-            .subcommand(Command::new("generate-key")
-                .version(crate_version!())
-                .long_version(LONG_VERSION.as_str())
-                .about("generate \"intrinsic\" key")
-                .arg(Arg::new("KEY")
-                    .help("name of key code")
-                    .required(true)
-                    .possible_values(&KEYSTORE_KEY_NAMES)
-                )
-                .arg(Arg::new("LENGTH")
-                    .help("length in bytes of key to be generated") // (typical values 16 or 32)")
-                    .required(true)
-                    // more are possible, but let's make things easy for ourselves
-                    .possible_values(&[
-                        "16",
-                        "32",
-                    ])
-                )
-            )
-
-            .subcommand(Command::new("set-key")
-                .version(crate_version!())
-                .long_version(LONG_VERSION.as_str())
-                .about("set key")
-                .arg(Arg::new("KEY")
-                    .help("name of key code")
-                    .required(true)
-                    .possible_values(&KEYSTORE_KEY_NAMES)
-                )
-                .arg(Arg::new("KEYDATA_FILENAME")
-                     .help("filename of file containing the raw key data bytes")
-                     .required(true))
-            )
-
-            .subcommand(Command::new("write-keys")
-                .version(crate_version!())
-                .about("store any previously generated keys (including PUF activation codes) to non-volatile memory, i.e., PFR keystore")
-            )
-
-            .subcommand(Command::new("read-keys")
-                .version(crate_version!())
-                .about("ReadNonVolatile")
-            )
-
-        )
-
-        .subcommand(Command::new("info")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .visible_alias("i")
-            .about("query all properties from bootloader")
-        )
-
-        .subcommand(Command::new("ls")
-            .about("list all available bootloaders")
-        )
-
-        .subcommand(Command::new("pfr")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("read out and parse PFR")
-            .arg(Arg::new("FORMAT")
-                 .help("Format to output the parsed PFR")
-                 .long("format")
-                 .default_value("json")
-                 .possible_values(&[
-                     "native",
-                     "alt-native",
-                     "json",
-                     "json-pretty",
-                     "raw",
-                     "yaml",
-                     "toml",
-                 ])
-            )
-            .arg(Arg::new("OUTPUT FACTORY")
-                    .short('f')
-                    .long("output-factory")
-                    .value_name("OUTPUT")
-                    .help("Output the factory pfr page to a 512 byte binary file.")
-                    .required(false)
-            )
-            .arg(Arg::new("OUTPUT CUSTOMER")
-                    .short('c')
-                    .long("output-customer")
-                    .value_name("OUTPUT")
-                    .help("Output the customer pfr pages to a 1536 byte binary file (raw, ping, and pong pages).")
-                    .required(false)
-            )
-
-        )
-
-        .subcommand(Command::new("read-memory")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .visible_aliases(&["r", "read"])
-            .about("read out memory")
-            .arg(Arg::new("ADDRESS")
-                 .help("Address to start reading from")
-                 .required(true))
-            .arg(Arg::new("LENGTH")
-                 .help("Number of bytes to read")
-                 .required(true))
-            .arg(Arg::new("OUTPUT")
-                 .help("Sets the output file to use. If missing, hex-dumps to stdout.")
-                 .short('o')
-                 .long("output-file")
-                 .takes_value(true))
-        )
-
-        .subcommand(Command::new("write-memory")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("write to memory")
-            .arg(Arg::new("ADDRESS")
-                 .help("Address to start writing to")
-                 .required(true))
-            .arg(Arg::new("INPUT")
-                 .help("Sets the input file to use.")
-                 .required(true)
-                 .takes_value(true))
-        )
-
-        .subcommand(Command::new("write-flash")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("write to flash (like write-memory, but pads to 512 bytes and erases first)")
-            .arg(Arg::new("ADDRESS")
-                 .help("Address to start writing to")
-                 .short('a')
-                 .long("address")
-                 .takes_value(true)
-                 .default_value("0"))
-            .arg(Arg::new("INPUT")
-                 .help("Sets the input file to use.")
-                 .required(true)
-                 .takes_value(true))
-        )
-
-        .subcommand(Command::new("receive-sb-file")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("send SB2.1 file to target")
-            .arg(Arg::new("SB-FILE")
-                 .help(".sb2 file")
-                 .required(true))
-        )
-
-        .subcommand(Command::new("fingerprint-certificates")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("calculate fingerprint of root certificates (aka ROTKH)")
-            .arg(Arg::new("CONFIG")
-                 .help("Configuration file")
-                 .required(true))
-        )
-
-        .subcommand(Command::new("sign-fw")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("sign firmware")
-            .arg(Arg::new("CONFIG")
-                 .help("Configuration file")
-                 .required(true))
-            .arg(Arg::new("image")
-                 .help("Input unsigned firmware. Replaces config.firmware.image entry")
-                 .long("image")
-                 .value_name("image")
-            )
-            .arg(Arg::new("signed-image")
-                 .help("Output signed firmware. Replaces config.firmware.image entry")
-                 .long("signed-image")
-                 .value_name("signed-image")
-            )
-        )
-
-        .subcommand(Command::new("assemble-sb")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("assemble SB2.1 image")
-            .arg(Arg::new("CONFIG")
-                 .help("Configuration file")
-                 .required(true))
-            .arg(Arg::new("signed-image")
-                 .help("Input firmware. Replaces config.firmware.signed_image entry")
-                 .long("signed-image")
-                 .value_name("signed-image")
-            )
-            .arg(Arg::new("secure-boot-image")
-                 .help("Output file. Replaces config.firmware.secure_boot_image entry")
-                 .long("secure-boot-image")
-                 .value_name("secure-boot-image")
-            )
-            .arg(Arg::new("product-version")
-                 .help("Product version xx.yy.zz. Replaces config.firmware.product entry")
-                 .long("product-version")
-                 .value_name("product-version")
-            )
-            .arg(Arg::new("product-major")
-                 .visible_alias("product-era")
-                 .help("Product major version. Replaces config.firmware.product.major entry")
-                 .long("product-major")
-                 .value_name("product-major")
-            )
-            .arg(Arg::new("product-minor")
-                 .visible_alias("product-days")
-                 .help("Product minor version. Replaces config.firmware.product.minor entry")
-                 .long("product-minor")
-                 .value_name("product-minor")
-            )
-            .arg(Arg::new("product-date")
-                 .help("Product date. Replaces config.firmware.product.minor entry, after converting to days since the twenties, 2020-01-01")
-                 .long("product-date")
-                 .value_name("product-date")
-            )
-        )
-
-        .subcommand(Command::new("sb")
-            .version(crate_version!())
-            .long_version(LONG_VERSION.as_str())
-            .about("firmware commands")
-            .subcommand(Command::new("show")
-                .version(crate_version!())
-                .long_version(LONG_VERSION.as_str())
-                .about("show information about file")
-                .arg(Arg::new("FILE")
-                     .help("file to show")
-                     .required(true))
-            )
-        )
-
-    ;
-
-    app
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+pub enum KeyName {
+    SecureBootKek,
+    UserKey,
+    UniqueDeviceSecret,
+    PrinceRegion0,
+    PrinceRegion1,
+    PrinceRegion2,
 }
 
-/// Return the "long" format of lpc55's version string.
-///
-/// If a revision hash is given, then it is used. If one isn't given, then
-/// the LPC55_BUILD_GIT_HASH env var is inspected for it. If that isn't set,
-/// then a revision hash is not included in the version string returned.
-pub fn long_version(revision_hash: Option<&str>) -> String {
-    // Do we have a git hash?
-    // (Yes, if ripgrep was built on a machine with `git` installed.)
-    let hash = match revision_hash.or(option_env!("LPC55_BUILD_GIT_HASH")) {
-        None => String::new(),
-        Some(githash) => format!(" (rev {})", githash),
-    };
-    format!("{}{}", crate_version!(), hash)
+#[derive(Args)]
+/// Serve HTTP API to bootloader connector
+pub struct Http {
+    /// Address to bind to
+    #[clap(default_value = "127.0.0.1", long)]
+    pub addr: String,
+
+    /// Port to listen on
+    #[clap(default_value = "2020", long)]
+    pub port: String,
+}
+
+#[derive(Subcommand)]
+pub enum Configure {
+    /// Configure factory settings page (CMPA)
+    FactorySettings {
+        /// Output factory settings (CMPA) to a 512-byte file instead of writing to device.
+        #[arg(short, long)]
+        output: Option<String>,
+        /// Configuration file containing settings.
+        config: String,
+    },
+    /// Configure customer settings page (CFPA)
+    CustomerSettings {
+        /// Do not increment customer version number as needed to make PFR write, and use the exact version from config.
+        #[arg(short = 'a', long)]
+        dont_increment: bool,
+        /// Destructively overwrite firmware versions, PRINCE IV's, and reserved areas of customer PFR.
+        #[arg(short = 's', long)]
+        overwrite: bool,
+        /// Output customer settings (CMPA) to a 512-byte file instead of writing to device.
+        #[arg(short, long)]
+        output: Option<String>,
+        /// Configuration file containing settings.
+        config: String,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum Sb {
+    /// Firmware commands
+    Show {
+        /// Show information about file
+        file: String,
+    },
 }
