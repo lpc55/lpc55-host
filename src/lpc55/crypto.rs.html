@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/crypto.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>crypto.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../lpc55/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/crypto.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>crypto.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../lpc55/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -137,106 +131,108 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
-</pre><pre class="rust"><code><span class="doccomment">//! NXP&#39;s CRC32 and AES-CTR algorithms</span>
+<span id="134">134</span>
+</pre><pre class="rust"><code><span class="doccomment">//! NXP&#39;s CRC32 and AES-CTR algorithms
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha256</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; [<span class="ident">u8</span>; <span class="number">32</span>] {
-    <span class="kw">use</span> <span class="ident">sha2::Digest</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">sha2::Sha256::new</span>();
-    <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">digest</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
-    <span class="ident">digest</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">hasher</span>.<span class="ident">finalize</span>());
-    <span class="ident">digest</span>
+</span><span class="kw">use </span>ctr::cipher::KeyIvInit <span class="kw">as _</span>;
+
+<span class="kw">pub fn </span>sha256(data: <span class="kw-2">&amp;</span>[u8]) -&gt; [u8; <span class="number">32</span>] {
+    <span class="kw">use </span>sha2::Digest;
+    <span class="kw">let </span><span class="kw-2">mut </span>hasher = sha2::Sha256::new();
+    hasher.update(data);
+    <span class="kw">let </span><span class="kw-2">mut </span>digest = [<span class="number">0u8</span>; <span class="number">32</span>];
+    digest.copy_from_slice(<span class="kw-2">&amp;</span>hasher.finalize());
+    digest
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hmac</span>(<span class="ident">mac_key</span>: [<span class="ident">u8</span>; <span class="number">32</span>], <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; [<span class="ident">u8</span>; <span class="number">32</span>] {
-    <span class="kw">use</span> <span class="ident">hmac</span>::{<span class="ident">Hmac</span>, <span class="ident">Mac</span>};
-    <span class="kw">use</span> <span class="ident">sha2::Sha256</span>;
+<span class="kw">pub fn </span>hmac(mac_key: [u8; <span class="number">32</span>], data: <span class="kw-2">&amp;</span>[u8]) -&gt; [u8; <span class="number">32</span>] {
+    <span class="kw">use </span>hmac::{Hmac, Mac};
+    <span class="kw">use </span>sha2::Sha256;
 
-    <span class="kw">type</span> <span class="ident">HmacSha256</span> <span class="op">=</span> <span class="ident">Hmac</span><span class="op">&lt;</span><span class="ident">Sha256</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>HmacSha256 = Hmac&lt;Sha256&gt;;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mac</span> <span class="op">=</span> <span class="ident">HmacSha256::new_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">mac_key</span>).<span class="ident">unwrap</span>();
-    <span class="ident">mac</span>.<span class="ident">update</span>(<span class="ident">data</span>);
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">mac</span>.<span class="ident">finalize</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>mac = HmacSha256::new_from_slice(<span class="kw-2">&amp;</span>mac_key).unwrap();
+    mac.update(data);
+    <span class="kw">let </span>result = mac.finalize();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">digest</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
-    <span class="ident">digest</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>.<span class="ident">into_bytes</span>());
-    <span class="ident">digest</span>
+    <span class="kw">let </span><span class="kw-2">mut </span>digest = [<span class="number">0u8</span>; <span class="number">32</span>];
+    digest.copy_from_slice(<span class="kw-2">&amp;</span>result.into_bytes());
+    digest
 }
 
-<span class="doccomment">/// NXP&#39;s AES-CTR cipher.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nxp_aes_ctr_cipher</span>(
-    <span class="ident">ciphertext</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    <span class="ident">dek</span>: [<span class="ident">u8</span>; <span class="number">32</span>],
-    <span class="ident">nonce</span>: [<span class="ident">u32</span>; <span class="number">4</span>],
-    <span class="ident">offset_blocks</span>: <span class="ident">u32</span>,
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Aes256Ctr</span> <span class="op">=</span> <span class="ident">ctr::Ctr32BE</span><span class="op">&lt;</span><span class="ident">aes::Aes256</span><span class="op">&gt;</span>;
-    <span class="kw">use</span> <span class="ident">ctr::cipher::NewCipher</span>;
-    <span class="kw">use</span> <span class="ident">ctr::cipher::StreamCipher</span>;
+<span class="doccomment">/// NXP&#39;s AES-CTR cipher.
+///
+///
+</span><span class="kw">pub fn </span>nxp_aes_ctr_cipher(
+    ciphertext: <span class="kw-2">&amp;</span>[u8],
+    dek: [u8; <span class="number">32</span>],
+    nonce: [u32; <span class="number">4</span>],
+    offset_blocks: u32,
+) -&gt; Vec&lt;u8&gt; {
+    <span class="kw">type </span>Aes256Ctr = ctr::Ctr32BE&lt;aes::Aes256&gt;;
+    <span class="kw">use </span>ctr::cipher::StreamCipher;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">plaintext</span> <span class="op">=</span> <span class="ident">Vec::from</span>(<span class="ident">ciphertext</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">plaintext</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">16</span>, <span class="number">0</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>plaintext = Vec::from(ciphertext);
+    <span class="macro">assert_eq!</span>(plaintext.len() % <span class="number">16</span>, <span class="number">0</span>);
 
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">chunk</span>) <span class="kw">in</span> <span class="ident">plaintext</span>.<span class="ident">chunks_mut</span>(<span class="number">16</span>).<span class="ident">enumerate</span>() {
-        <span class="comment">// see SB2Image.cpp:229</span>
-        <span class="kw">let</span> <span class="ident">nonce3_offset</span> <span class="op">=</span> <span class="ident">offset_blocks</span> <span class="op">+</span> (<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nonce2</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span>];
-        <span class="ident">nonce2</span>[..<span class="number">4</span>].<span class="ident">copy_from_slice</span>(<span class="ident">nonce</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
-        <span class="ident">nonce2</span>[<span class="number">4</span>..<span class="number">8</span>].<span class="ident">copy_from_slice</span>(<span class="ident">nonce</span>[<span class="number">1</span>].<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
-        <span class="ident">nonce2</span>[<span class="number">8</span>..<span class="number">12</span>].<span class="ident">copy_from_slice</span>(<span class="ident">nonce</span>[<span class="number">2</span>].<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
-        <span class="ident">nonce2</span>[<span class="number">12</span>..<span class="number">16</span>].<span class="ident">copy_from_slice</span>((<span class="ident">nonce</span>[<span class="number">3</span>] <span class="op">+</span> <span class="ident">nonce3_offset</span>).<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cipher</span> <span class="op">=</span> <span class="ident">Aes256Ctr::new</span>(<span class="ident">dek</span>.<span class="ident">as_ref</span>().<span class="ident">into</span>(), <span class="ident">nonce2</span>.<span class="ident">as_ref</span>().<span class="ident">into</span>());
-        <span class="ident">cipher</span>.<span class="ident">apply_keystream</span>(<span class="ident">chunk</span>);
+    <span class="kw">for </span>(i, chunk) <span class="kw">in </span>plaintext.chunks_mut(<span class="number">16</span>).enumerate() {
+        <span class="comment">// see SB2Image.cpp:229
+        </span><span class="kw">let </span>nonce3_offset = offset_blocks + (i <span class="kw">as </span>u32);
+        <span class="kw">let </span><span class="kw-2">mut </span>nonce2 = [<span class="number">0u8</span>; <span class="number">16</span>];
+        nonce2[..<span class="number">4</span>].copy_from_slice(nonce[<span class="number">0</span>].to_le_bytes().as_ref());
+        nonce2[<span class="number">4</span>..<span class="number">8</span>].copy_from_slice(nonce[<span class="number">1</span>].to_le_bytes().as_ref());
+        nonce2[<span class="number">8</span>..<span class="number">12</span>].copy_from_slice(nonce[<span class="number">2</span>].to_le_bytes().as_ref());
+        nonce2[<span class="number">12</span>..<span class="number">16</span>].copy_from_slice((nonce[<span class="number">3</span>] + nonce3_offset).to_le_bytes().as_ref());
+        <span class="kw">let </span><span class="kw-2">mut </span>cipher = Aes256Ctr::new(dek.as_ref().into(), nonce2.as_ref().into());
+        cipher.apply_keystream(chunk);
     }
 
-    <span class="ident">plaintext</span>
+    plaintext
 }
 
-<span class="doccomment">/// Soooo.... This &quot;uses&quot; the &quot;Ethernet CRC algorithm&quot; values,</span>
-<span class="doccomment">/// but it doesn&#39;t really do CRC32.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc32</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">u32</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">crc</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xFFFF_FFFF</span>;
+<span class="doccomment">/// Soooo.... This &quot;uses&quot; the &quot;Ethernet CRC algorithm&quot; values,
+/// but it doesn&#39;t really do CRC32.
+</span><span class="kw">pub fn </span>crc32(data: <span class="kw-2">&amp;</span>[u8]) -&gt; u32 {
+    <span class="kw">let </span><span class="kw-2">mut </span>crc: u32 = <span class="number">0xFFFF_FFFF</span>;
 
-    <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">iter</span>() {
-        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> ((<span class="ident">crc</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">^</span> <span class="kw-2">*</span><span class="ident">byte</span>;
-        <span class="ident">crc</span> <span class="op">=</span> (<span class="ident">crc</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">^</span> <span class="ident">TABLE</span>[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>];
+    <span class="kw">for </span>byte <span class="kw">in </span>data.iter() {
+        <span class="kw">let </span>i = ((crc &gt;&gt; <span class="number">24</span>) <span class="kw">as </span>u8) ^ <span class="kw-2">*</span>byte;
+        crc = (crc &lt;&lt; <span class="number">8</span>) ^ TABLE[i <span class="kw">as </span>usize];
     }
 
-    <span class="kw">let</span> <span class="ident">jagged</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">16</span>;
-    <span class="kw">if</span> <span class="ident">jagged</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="ident">jagged</span>..<span class="number">16</span> {
-            <span class="comment">// let i = ((crc &gt;&gt; 24) as u8) ^ 0;</span>
-            <span class="comment">// crc = (crc &lt;&lt; 8) ^ TABLE[i as usize];</span>
-            <span class="ident">crc</span> <span class="op">=</span> (<span class="ident">crc</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">^</span> <span class="ident">TABLE</span>[(<span class="ident">crc</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">usize</span>];
+    <span class="kw">let </span>jagged = data.len() % <span class="number">16</span>;
+    <span class="kw">if </span>jagged &gt; <span class="number">0 </span>{
+        <span class="kw">for _ in </span>jagged..<span class="number">16 </span>{
+            <span class="comment">// let i = ((crc &gt;&gt; 24) as u8) ^ 0;
+            // crc = (crc &lt;&lt; 8) ^ TABLE[i as usize];
+            </span>crc = (crc &lt;&lt; <span class="number">8</span>) ^ TABLE[(crc &gt;&gt; <span class="number">24</span>) <span class="kw">as </span>usize];
         }
     }
 
-    <span class="ident">crc</span>
+    crc
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc32_2</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">u32</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">crc</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x0</span>;
+<span class="kw">pub fn </span>crc32_2(data: <span class="kw-2">&amp;</span>[u8]) -&gt; u32 {
+    <span class="kw">let </span><span class="kw-2">mut </span>crc: u32 = <span class="number">0x0</span>;
 
-    <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">iter</span>() {
-        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> ((<span class="ident">crc</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">^</span> <span class="kw-2">*</span><span class="ident">byte</span>;
-        <span class="ident">crc</span> <span class="op">=</span> (<span class="ident">crc</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">^</span> <span class="ident">TABLE</span>[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>];
+    <span class="kw">for </span>byte <span class="kw">in </span>data.iter() {
+        <span class="kw">let </span>i = ((crc &gt;&gt; <span class="number">24</span>) <span class="kw">as </span>u8) ^ <span class="kw-2">*</span>byte;
+        crc = (crc &lt;&lt; <span class="number">8</span>) ^ TABLE[i <span class="kw">as </span>usize];
     }
 
-    <span class="kw">let</span> <span class="ident">jagged</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">16</span>;
-    <span class="kw">if</span> <span class="ident">jagged</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="ident">jagged</span>..<span class="number">16</span> {
-            <span class="comment">// let i = ((crc &gt;&gt; 24) as u8) ^ 0;</span>
-            <span class="comment">// crc = (crc &lt;&lt; 8) ^ TABLE[i as usize];</span>
-            <span class="ident">crc</span> <span class="op">=</span> (<span class="ident">crc</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">^</span> <span class="ident">TABLE</span>[(<span class="ident">crc</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">usize</span>];
+    <span class="kw">let </span>jagged = data.len() % <span class="number">16</span>;
+    <span class="kw">if </span>jagged &gt; <span class="number">0 </span>{
+        <span class="kw">for _ in </span>jagged..<span class="number">16 </span>{
+            <span class="comment">// let i = ((crc &gt;&gt; 24) as u8) ^ 0;
+            // crc = (crc &lt;&lt; 8) ^ TABLE[i as usize];
+            </span>crc = (crc &lt;&lt; <span class="number">8</span>) ^ TABLE[(crc &gt;&gt; <span class="number">24</span>) <span class="kw">as </span>usize];
         }
     }
 
-    <span class="ident">crc</span>
+    crc
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TABLE</span>: [<span class="ident">u32</span>; <span class="number">256</span>] <span class="op">=</span> [
+<span class="kw">pub const </span>TABLE: [u32; <span class="number">256</span>] = [
     <span class="number">0x00000000</span>, <span class="number">0x04c11db7</span>, <span class="number">0x09823b6e</span>, <span class="number">0x0d4326d9</span>, <span class="number">0x130476dc</span>, <span class="number">0x17c56b6b</span>, <span class="number">0x1a864db2</span>, <span class="number">0x1e475005</span>,
     <span class="number">0x2608edb8</span>, <span class="number">0x22c9f00f</span>, <span class="number">0x2f8ad6d6</span>, <span class="number">0x2b4bcb61</span>, <span class="number">0x350c9b64</span>, <span class="number">0x31cd86d3</span>, <span class="number">0x3c8ea00a</span>, <span class="number">0x384fbdbd</span>,
     <span class="number">0x4c11db70</span>, <span class="number">0x48d0c6c7</span>, <span class="number">0x4593e01e</span>, <span class="number">0x4152fda9</span>, <span class="number">0x5f15adac</span>, <span class="number">0x5bd4b01b</span>, <span class="number">0x569796c2</span>, <span class="number">0x52568b75</span>,
@@ -271,5 +267,4 @@
     <span class="number">0xafb010b1</span>, <span class="number">0xab710d06</span>, <span class="number">0xa6322bdf</span>, <span class="number">0xa2f33668</span>, <span class="number">0xbcb4666d</span>, <span class="number">0xb8757bda</span>, <span class="number">0xb5365d03</span>, <span class="number">0xb1f740b4</span>,
 ];
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

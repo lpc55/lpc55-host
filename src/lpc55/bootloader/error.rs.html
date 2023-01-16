@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/bootloader/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/bootloader/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -180,182 +174,181 @@
 <span id="174">174</span>
 <span id="175">175</span>
 <span id="176">176</span>
-</pre><pre class="rust"><code><span class="doccomment">//! &lt;https://github.com/NXPmicro/spsdk/blob/020a983e53769fe16cb9b49395d56f0201eccca6/spsdk/mboot/error_codes.py&gt;</span>
+</pre><pre class="rust"><code><span class="doccomment">//! &lt;https://github.com/NXPmicro/spsdk/blob/020a983e53769fe16cb9b49395d56f0201eccca6/spsdk/mboot/error_codes.py&gt;
 
-<span class="kw">use</span> <span class="ident">core::convert::TryFrom</span>;
+</span><span class="kw">use </span>core::convert::TryFrom;
 
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="comment">// todo: fix</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Error</span> <span class="kw">as</span> <span class="ident">BootloaderError</span>;
+<span class="comment">// todo: fix
+</span><span class="kw">use </span><span class="kw">super</span>::Error <span class="kw">as </span>BootloaderError;
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">enum_iterator::IntoEnumIterator</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ErrorGroup</span> {
-    <span class="ident">Generic</span> <span class="op">=</span> <span class="number">0</span>,
-    <span class="ident">FlashDriver</span> <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">QuadSpiDriver</span> <span class="op">=</span> <span class="number">4</span>,
-    <span class="ident">OtfadDriver</span> <span class="op">=</span> <span class="number">5</span>,
-    <span class="ident">Bootloader</span> <span class="op">=</span> <span class="number">100</span>,
-    <span class="ident">SbLoader</span> <span class="op">=</span> <span class="number">101</span>,
-    <span class="ident">MemoryInterface</span> <span class="op">=</span> <span class="number">102</span>,
-    <span class="ident">PropertyStore</span> <span class="op">=</span> <span class="number">103</span>,
-    <span class="ident">CrcChecker</span> <span class="op">=</span> <span class="number">104</span>,
-    <span class="ident">Packetizer</span> <span class="op">=</span> <span class="number">105</span>,
-    <span class="ident">ReliableUpdate</span> <span class="op">=</span> <span class="number">106</span>,
+<span class="attribute">#[repr(u8)]
+#[derive(Clone, Debug, enum_iterator::Sequence)]
+</span><span class="kw">pub enum </span>ErrorGroup {
+    Generic = <span class="number">0</span>,
+    FlashDriver = <span class="number">1</span>,
+    QuadSpiDriver = <span class="number">4</span>,
+    OtfadDriver = <span class="number">5</span>,
+    Bootloader = <span class="number">100</span>,
+    SbLoader = <span class="number">101</span>,
+    MemoryInterface = <span class="number">102</span>,
+    PropertyStore = <span class="number">103</span>,
+    CrcChecker = <span class="number">104</span>,
+    Packetizer = <span class="number">105</span>,
+    ReliableUpdate = <span class="number">106</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ErrorGroup</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u32</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">group</span>: <span class="ident">u32</span>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">ErrorGroup</span>::<span class="kw-2">*</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">group</span> {
-            <span class="number">0</span> =&gt; <span class="ident">Generic</span>,
-            <span class="number">1</span> =&gt; <span class="ident">FlashDriver</span>,
-            <span class="number">4</span> =&gt; <span class="ident">QuadSpiDriver</span>,
-            <span class="number">5</span> =&gt; <span class="ident">OtfadDriver</span>,
-            <span class="number">100</span> =&gt; <span class="ident">Bootloader</span>,
-            <span class="number">101</span> =&gt; <span class="ident">SbLoader</span>,
-            <span class="number">102</span> =&gt; <span class="ident">MemoryInterface</span>,
-            <span class="number">103</span> =&gt; <span class="ident">PropertyStore</span>,
-            <span class="number">104</span> =&gt; <span class="ident">CrcChecker</span>,
-            <span class="number">105</span> =&gt; <span class="ident">Packetizer</span>,
-            <span class="number">106</span> =&gt; <span class="ident">ReliableUpdate</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">group</span>),
+<span class="kw">impl </span>TryFrom&lt;u32&gt; <span class="kw">for </span>ErrorGroup {
+    <span class="kw">type </span>Error = u32;
+    <span class="kw">fn </span>try_from(group: u32) -&gt; core::result::Result&lt;<span class="self">Self</span>, u32&gt; {
+        <span class="kw">use </span>ErrorGroup::<span class="kw-2">*</span>;
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>group {
+            <span class="number">0 </span>=&gt; Generic,
+            <span class="number">1 </span>=&gt; FlashDriver,
+            <span class="number">4 </span>=&gt; QuadSpiDriver,
+            <span class="number">5 </span>=&gt; OtfadDriver,
+            <span class="number">100 </span>=&gt; Bootloader,
+            <span class="number">101 </span>=&gt; SbLoader,
+            <span class="number">102 </span>=&gt; MemoryInterface,
+            <span class="number">103 </span>=&gt; PropertyStore,
+            <span class="number">104 </span>=&gt; CrcChecker,
+            <span class="number">105 </span>=&gt; Packetizer,
+            <span class="number">106 </span>=&gt; ReliableUpdate,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(group),
         })
     }
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">generate</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Error</span>:<span class="ident">ident</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">error</span>:<span class="ident">ident</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">literal</span>,)<span class="kw-2">*</span>) =&gt; {
+<span class="macro">macro_rules! </span>generate {
+    (<span class="macro-nonterminal">$Error</span>:ident: $(<span class="macro-nonterminal">$error</span>:ident = <span class="macro-nonterminal">$code</span>:literal,)<span class="kw-2">*</span>) =&gt; {
 
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">enum_iterator::IntoEnumIterator</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Error</span> { $(
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">error</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>,
-        )<span class="op">*</span> }
+        <span class="attribute">#[repr(u8)]
+        #[derive(Copy, Clone, Debug, Deserialize, enum_iterator::Sequence, Eq, PartialEq, Serialize)]
+        </span><span class="kw">pub enum </span><span class="macro-nonterminal">$Error </span>{ $(
+            <span class="macro-nonterminal">$error </span>= <span class="macro-nonterminal">$code</span>,
+        )* }
 
-        <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Error</span> {
-            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u8</span>;
-            <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">code</span>: <span class="ident">u8</span>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
-                <span class="kw">use</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Error</span>::<span class="kw-2">*</span>;
-                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">code</span> { $(
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">error</span>,
-                )<span class="op">*</span>
-                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">code</span>),
+        <span class="kw">impl </span>TryFrom&lt;u8&gt; <span class="kw">for </span><span class="macro-nonterminal">$Error </span>{
+            <span class="kw">type </span>Error = u8;
+            <span class="kw">fn </span>try_from(code: u8) -&gt; core::result::Result&lt;<span class="self">Self</span>, u8&gt; {
+                <span class="kw">use </span><span class="macro-nonterminal">$Error</span>::<span class="kw-2">*</span>;
+                <span class="prelude-val">Ok</span>(<span class="kw">match </span>code { $(
+                    <span class="macro-nonterminal">$code </span>=&gt; <span class="macro-nonterminal">$error</span>,
+                )*
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(code),
                 })
             }
         }
     }
 }
 
-<span class="macro">generate!</span> { <span class="ident">GenericError</span>:
-    <span class="ident">Fail</span> <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">ReadOnly</span> <span class="op">=</span> <span class="number">2</span>,
-    <span class="ident">OutOfRange</span> <span class="op">=</span> <span class="number">3</span>,
-    <span class="ident">InvalidArgument</span> <span class="op">=</span> <span class="number">4</span>,
-    <span class="ident">Timeout</span> <span class="op">=</span> <span class="number">5</span>,
-    <span class="ident">NoTransferInProgress</span> <span class="op">=</span> <span class="number">6</span>,
+<span class="macro">generate! </span>{ GenericError:
+    Fail = <span class="number">1</span>,
+    ReadOnly = <span class="number">2</span>,
+    OutOfRange = <span class="number">3</span>,
+    InvalidArgument = <span class="number">4</span>,
+    Timeout = <span class="number">5</span>,
+    NoTransferInProgress = <span class="number">6</span>,
 }
 
-<span class="macro">generate!</span> { <span class="ident">FlashDriverError</span>:
-    <span class="ident">Size</span> <span class="op">=</span> <span class="number">0</span>,
-    <span class="ident">Alignment</span> <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">Address</span> <span class="op">=</span> <span class="number">2</span>,
-    <span class="ident">Access</span> <span class="op">=</span> <span class="number">3</span>,
-    <span class="ident">ProtectionViolation</span> <span class="op">=</span> <span class="number">4</span>,
-    <span class="ident">CommandFailure</span> <span class="op">=</span> <span class="number">5</span>,
-    <span class="ident">UnknownProperty</span> <span class="op">=</span> <span class="number">6</span>,
-    <span class="ident">EraseKeyError</span> <span class="op">=</span> <span class="number">7</span>,
-    <span class="ident">ExecuteOnlyRegion</span> <span class="op">=</span> <span class="number">8</span>,
-    <span class="ident">CommandNotSupported</span> <span class="op">=</span> <span class="number">15</span>,
-    <span class="ident">CustomerScratchVersionBehindActualCustomerVersion</span> <span class="op">=</span> <span class="number">32</span>,
+<span class="macro">generate! </span>{ FlashDriverError:
+    Size = <span class="number">0</span>,
+    Alignment = <span class="number">1</span>,
+    Address = <span class="number">2</span>,
+    Access = <span class="number">3</span>,
+    ProtectionViolation = <span class="number">4</span>,
+    CommandFailure = <span class="number">5</span>,
+    UnknownProperty = <span class="number">6</span>,
+    EraseKeyError = <span class="number">7</span>,
+    ExecuteOnlyRegion = <span class="number">8</span>,
+    CommandNotSupported = <span class="number">15</span>,
+    CustomerScratchVersionBehindActualCustomerVersion = <span class="number">32</span>,
 }
 
-<span class="macro">generate!</span> { <span class="ident">SbLoaderError</span>:
-    <span class="ident">SectionOverrun</span> <span class="op">=</span> <span class="number">0</span>,
-    <span class="ident">Signature</span> <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">SectionLength</span> <span class="op">=</span> <span class="number">2</span>,
-    <span class="ident">UnencryptedOnly</span> <span class="op">=</span> <span class="number">3</span>,
-    <span class="ident">EofReached</span> <span class="op">=</span> <span class="number">4</span>,
-    <span class="ident">Checksum</span> <span class="op">=</span> <span class="number">5</span>,
-    <span class="ident">Crc32Error</span> <span class="op">=</span> <span class="number">6</span>,
-    <span class="ident">UnknownCommand</span> <span class="op">=</span> <span class="number">7</span>,
-    <span class="ident">IdNotFound</span> <span class="op">=</span> <span class="number">8</span>,
-    <span class="ident">DataUnderrun</span> <span class="op">=</span> <span class="number">9</span>,
-    <span class="ident">JumpReturned</span> <span class="op">=</span> <span class="number">10</span>,
-    <span class="ident">CallFailed</span> <span class="op">=</span> <span class="number">11</span>,
-    <span class="ident">KeyNotFound</span> <span class="op">=</span> <span class="number">12</span>,
-    <span class="ident">SecureOnly</span> <span class="op">=</span> <span class="number">13</span>,
-    <span class="ident">ResetReturned</span> <span class="op">=</span> <span class="number">14</span>,
-    <span class="ident">RollbackBlocked</span> <span class="op">=</span> <span class="number">15</span>,
-    <span class="ident">InvalidSectionMacCount</span> <span class="op">=</span> <span class="number">16</span>,
-    <span class="ident">UnexpectedCommand</span> <span class="op">=</span> <span class="number">17</span>,
+<span class="macro">generate! </span>{ SbLoaderError:
+    SectionOverrun = <span class="number">0</span>,
+    Signature = <span class="number">1</span>,
+    SectionLength = <span class="number">2</span>,
+    UnencryptedOnly = <span class="number">3</span>,
+    EofReached = <span class="number">4</span>,
+    Checksum = <span class="number">5</span>,
+    Crc32Error = <span class="number">6</span>,
+    UnknownCommand = <span class="number">7</span>,
+    IdNotFound = <span class="number">8</span>,
+    DataUnderrun = <span class="number">9</span>,
+    JumpReturned = <span class="number">10</span>,
+    CallFailed = <span class="number">11</span>,
+    KeyNotFound = <span class="number">12</span>,
+    SecureOnly = <span class="number">13</span>,
+    ResetReturned = <span class="number">14</span>,
+    RollbackBlocked = <span class="number">15</span>,
+    InvalidSectionMacCount = <span class="number">16</span>,
+    UnexpectedCommand = <span class="number">17</span>,
 }
 
-<span class="macro">generate!</span> { <span class="ident">PropertyStoreError</span>:
-    <span class="ident">UnknownProperty</span> <span class="op">=</span> <span class="number">0</span>,
-    <span class="ident">ReadOnlyProperty</span> <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">InvalidValue</span> <span class="op">=</span> <span class="number">2</span>,
+<span class="macro">generate! </span>{ PropertyStoreError:
+    UnknownProperty = <span class="number">0</span>,
+    ReadOnlyProperty = <span class="number">1</span>,
+    InvalidValue = <span class="number">2</span>,
 }
 
-<span class="macro">generate!</span> { <span class="ident">CrcCheckerError</span>:
-    <span class="ident">Passed</span> <span class="op">=</span> <span class="number">0</span>,
-    <span class="ident">Failed</span> <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">Inactive</span> <span class="op">=</span> <span class="number">2</span>,
-    <span class="ident">Invalid</span> <span class="op">=</span> <span class="number">3</span>,
-    <span class="ident">OutOfRange</span> <span class="op">=</span> <span class="number">4</span>,
+<span class="macro">generate! </span>{ CrcCheckerError:
+    Passed = <span class="number">0</span>,
+    Failed = <span class="number">1</span>,
+    Inactive = <span class="number">2</span>,
+    Invalid = <span class="number">3</span>,
+    OutOfRange = <span class="number">4</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BootloaderError</span><span class="op">&gt;</span> <span class="kw">for</span> (<span class="ident">ErrorGroup</span>, <span class="ident">u8</span>) {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">error</span>: <span class="ident">BootloaderError</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">BootloaderError</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="ident">error</span> {
-            <span class="ident">Generic</span>(<span class="ident">error</span>) =&gt; (<span class="ident">ErrorGroup::Generic</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
-            <span class="ident">FlashDriver</span>(<span class="ident">error</span>) =&gt; (<span class="ident">ErrorGroup::FlashDriver</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
-            <span class="ident">PropertyStore</span>(<span class="ident">error</span>) =&gt; (<span class="ident">ErrorGroup::PropertyStore</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
-            <span class="ident">CrcChecker</span>(<span class="ident">error</span>) =&gt; (<span class="ident">ErrorGroup::CrcChecker</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
-            <span class="ident">SbLoader</span>(<span class="ident">error</span>) =&gt; (<span class="ident">ErrorGroup::SbLoader</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">u8</span>),
-            <span class="ident">Unknown</span>(<span class="ident">_status</span>) =&gt; <span class="macro">panic!</span>(),
+<span class="kw">impl </span>From&lt;BootloaderError&gt; <span class="kw">for </span>(ErrorGroup, u8) {
+    <span class="kw">fn </span>from(error: BootloaderError) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>BootloaderError::<span class="kw-2">*</span>;
+        <span class="kw">match </span>error {
+            Generic(error) =&gt; (ErrorGroup::Generic, error <span class="kw">as </span>u8),
+            FlashDriver(error) =&gt; (ErrorGroup::FlashDriver, error <span class="kw">as </span>u8),
+            PropertyStore(error) =&gt; (ErrorGroup::PropertyStore, error <span class="kw">as </span>u8),
+            CrcChecker(error) =&gt; (ErrorGroup::CrcChecker, error <span class="kw">as </span>u8),
+            SbLoader(error) =&gt; (ErrorGroup::SbLoader, error <span class="kw">as </span>u8),
+            Unknown(_status) =&gt; <span class="macro">panic!</span>(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BootloaderError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">error</span>: <span class="ident">BootloaderError</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">let</span> (<span class="ident">group</span>, <span class="ident">code</span>) <span class="op">=</span> <span class="ident">error</span>.<span class="ident">into</span>();
-        (<span class="ident">group</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">*</span> <span class="number">100</span>) <span class="op">+</span> <span class="ident">code</span> <span class="kw">as</span> <span class="ident">u32</span>
+<span class="kw">impl </span>From&lt;BootloaderError&gt; <span class="kw">for </span>u32 {
+    <span class="kw">fn </span>from(error: BootloaderError) -&gt; u32 {
+        <span class="kw">let </span>(group, code) = error.into();
+        (group <span class="kw">as </span>u32 * <span class="number">100</span>) + code <span class="kw">as </span>u32
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BootloaderError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">status</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">BootloaderError</span>::<span class="kw-2">*</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">group</span>) <span class="op">=</span> <span class="ident">ErrorGroup::try_from</span>(<span class="ident">status</span> <span class="op">/</span> <span class="number">100</span>) {
-            <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> (<span class="ident">status</span> <span class="op">%</span> <span class="number">100</span>) <span class="kw">as</span> <span class="ident">u8</span>;
-            <span class="kw">match</span> (<span class="ident">group</span>, <span class="ident">code</span>) {
-                (<span class="ident">ErrorGroup::Generic</span>, <span class="ident">code</span>) =&gt; {
-                    <span class="ident">GenericError::try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">Generic</span>)
+<span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>BootloaderError {
+    <span class="kw">fn </span>from(status: u32) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>BootloaderError::<span class="kw-2">*</span>;
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(group) = ErrorGroup::try_from(status / <span class="number">100</span>) {
+            <span class="kw">let </span>code = (status % <span class="number">100</span>) <span class="kw">as </span>u8;
+            <span class="kw">match </span>(group, code) {
+                (ErrorGroup::Generic, code) =&gt; {
+                    GenericError::try_from(code).map_or(Unknown(status), Generic)
                 }
-                (<span class="ident">ErrorGroup::FlashDriver</span>, <span class="ident">code</span>) =&gt; {
-                    <span class="ident">FlashDriverError::try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">FlashDriver</span>)
+                (ErrorGroup::FlashDriver, code) =&gt; {
+                    FlashDriverError::try_from(code).map_or(Unknown(status), FlashDriver)
                 }
-                (<span class="ident">ErrorGroup::PropertyStore</span>, <span class="ident">code</span>) =&gt; {
-                    <span class="ident">PropertyStoreError::try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">PropertyStore</span>)
+                (ErrorGroup::PropertyStore, code) =&gt; {
+                    PropertyStoreError::try_from(code).map_or(Unknown(status), PropertyStore)
                 }
-                (<span class="ident">ErrorGroup::CrcChecker</span>, <span class="ident">code</span>) =&gt; {
-                    <span class="ident">CrcCheckerError::try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">CrcChecker</span>)
+                (ErrorGroup::CrcChecker, code) =&gt; {
+                    CrcCheckerError::try_from(code).map_or(Unknown(status), CrcChecker)
                 }
-                (<span class="ident">ErrorGroup::SbLoader</span>, <span class="ident">code</span>) =&gt; {
-                    <span class="ident">SbLoaderError::try_from</span>(<span class="ident">code</span>).<span class="ident">map_or</span>(<span class="ident">Unknown</span>(<span class="ident">status</span>), <span class="ident">SbLoader</span>)
+                (ErrorGroup::SbLoader, code) =&gt; {
+                    SbLoaderError::try_from(code).map_or(Unknown(status), SbLoader)
                 }
-                <span class="kw">_</span> =&gt; <span class="ident">Unknown</span>(<span class="ident">status</span>),
+                <span class="kw">_ </span>=&gt; Unknown(status),
             }
-        } <span class="kw">else</span> {
-            <span class="ident">Unknown</span>(<span class="ident">status</span>)
+        } <span class="kw">else </span>{
+            Unknown(status)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

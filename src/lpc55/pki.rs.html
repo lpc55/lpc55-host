@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/pki.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pki.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../lpc55/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/pki.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pki.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../lpc55/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -609,615 +603,610 @@
 <span id="603">603</span>
 <span id="604">604</span>
 <span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Abstraction allowing use of either PKCS1 PEM file or PKCS11 keys</span>
-<span class="doccomment">//! for signing data.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Abstraction allowing use of either PKCS1 PEM file or PKCS11 keys
+//! for signing data.
 
-<span class="kw">use</span> <span class="ident">std::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">fs</span>};
+</span><span class="kw">use </span>std::convert::{TryFrom, TryInto};
+<span class="kw">use </span>std::{fmt, fs};
 
-<span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">Context</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">x509_parser</span>::{<span class="ident">certificate::X509Certificate</span>, <span class="ident">traits::FromDer</span>};
+<span class="kw">use </span>anyhow::{Context <span class="kw">as _</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>rsa::pkcs1::{DecodeRsaPrivateKey <span class="kw">as _</span>, DecodeRsaPublicKey <span class="kw">as _</span>};
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>x509_parser::{certificate::X509Certificate, prelude::FromDer <span class="kw">as _</span>};
 
-<span class="kw">use</span> <span class="ident">rsa::pkcs1::FromRsaPrivateKey</span>;
-<span class="kw">use</span> <span class="ident">rsa::pkcs1::FromRsaPublicKey</span>;
+<span class="kw">use </span><span class="kw">crate</span>::util::is_default;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::is_default</span>;
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SigningKeySource</span> {
-    <span class="ident">Pkcs1PemFile</span>(<span class="ident">std::path::PathBuf</span>),
-    <span class="ident">Pkcs11Uri</span>(<span class="ident">std::string::String</span>),
+<span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>SigningKeySource {
+    Pkcs1PemFile(std::path::PathBuf),
+    Pkcs11Uri(std::string::String),
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_once</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">delimiter</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>)<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">find</span>(<span class="ident">delimiter</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">s</span>[..<span class="ident">i</span>], <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>..]))
+<span class="kw">pub fn </span>split_once(s: <span class="kw-2">&amp;</span>str, delimiter: char) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str)&gt; {
+    <span class="kw">let </span>i = s.find(delimiter)<span class="question-mark">?</span>;
+    <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span>s[..i], <span class="kw-2">&amp;</span>s[i + <span class="number">1</span>..]))
 }
 
-<span class="doccomment">/// Specification of PKI for secure (signed) boot.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deny_unknown_fields</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pki</span> {
-    <span class="doccomment">/// URI specifying the private RSA2K key used for signing firmware.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Currently, two options are supported</span>
-    <span class="doccomment">/// - `file:` path to PKCS #1 encoded PEM file containing private key</span>
-    <span class="doccomment">/// - `pkcs11:` PKCS #11 URI (RFC 7512), with the extension that `pin-source` can be `env:PIN`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that in PKCS #11 URIs, whitespace is stripped, and must be percent-encoded (`%20`) if</span>
-    <span class="doccomment">/// it is significant, such as in token or object labels.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Examples:</span>
-    <span class="doccomment">/// - `file:/path/to/ca-0-private-key.pem`</span>
-    <span class="doccomment">/// - `pkcs11:token=my-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&amp;pin-source=file:pin.txt`</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">signing_key</span>: <span class="ident">String</span>,
+<span class="doccomment">/// Specification of PKI for secure (signed) boot.
+</span><span class="attribute">#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = <span class="string">&quot;kebab-case&quot;</span>)]
+#[serde(deny_unknown_fields)]
+</span><span class="kw">pub struct </span>Pki {
+    <span class="doccomment">/// URI specifying the private RSA2K key used for signing firmware.
+    ///
+    /// Currently, two options are supported
+    /// - `file:` path to PKCS #1 encoded PEM file containing private key
+    /// - `pkcs11:` PKCS #11 URI (RFC 7512), with the extension that `pin-source` can be `env:PIN`.
+    ///
+    /// Note that in PKCS #11 URIs, whitespace is stripped, and must be percent-encoded (`%20`) if
+    /// it is significant, such as in token or object labels.
+    ///
+    /// Examples:
+    /// - `file:/path/to/ca-0-private-key.pem`
+    /// - `pkcs11:token=my-ca;object=signing-key;type=private?module-path=/usr/lib/libsofthsm2.so&amp;pin-source=file:pin.txt`
+    </span><span class="attribute">#[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    #[serde(default)]
+    </span><span class="kw">pub </span>signing_key: String,
 
-    <span class="doccomment">/// Paths to the four root certificates.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The appropriate certificate to include in signed firmware and containers is selected</span>
-    <span class="doccomment">/// using the signing key&#39;s public key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Encoded as X.509 DER files.</span>
-    <span class="kw">pub</span> <span class="ident">certificates</span>: [<span class="ident">CertificateUriChain</span>; <span class="number">4</span>],
+    <span class="doccomment">/// Paths to the four root certificates.
+    ///
+    /// The appropriate certificate to include in signed firmware and containers is selected
+    /// using the signing key&#39;s public key.
+    ///
+    /// Encoded as X.509 DER files.
+    </span><span class="kw">pub </span>certificates: [CertificateUriChain; <span class="number">4</span>],
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">untagged</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CertificateUriChain</span> {
-    <span class="ident">Root</span>(<span class="ident">String</span>),
-    <span class="ident">Chain</span> {
-        <span class="ident">root</span>: <span class="ident">String</span>,
-        <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-        <span class="ident">chain</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = <span class="string">&quot;kebab-case&quot;</span>)]
+#[serde(untagged)]
+</span><span class="kw">pub enum </span>CertificateUriChain {
+    Root(String),
+    Chain {
+        root: String,
+        <span class="attribute">#[serde(default)]
+        </span>chain: Vec&lt;String&gt;,
     },
 }
 
-<span class="kw">impl</span> <span class="ident">CertificateUriChain</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Root</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
-            <span class="ident"><span class="self">Self</span>::Chain</span> { <span class="ident">root</span>, <span class="ident">chain</span>: <span class="kw">_</span> } =&gt; <span class="ident">root</span>,
+<span class="kw">impl </span>CertificateUriChain {
+    <span class="kw">pub fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Root(r) =&gt; r,
+            <span class="self">Self</span>::Chain { root, chain: <span class="kw">_ </span>} =&gt; root,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">String</span>] {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Root</span>(<span class="kw">_</span>) =&gt; <span class="kw-2">&amp;</span>[],
-            <span class="ident"><span class="self">Self</span>::Chain</span> { <span class="ident">root</span>: <span class="kw">_</span>, <span class="ident">chain</span> } =&gt; <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">chain</span>,
+    <span class="kw">pub fn </span>chain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[String] {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Root(<span class="kw">_</span>) =&gt; <span class="kw-2">&amp;</span>[],
+            <span class="self">Self</span>::Chain { root: <span class="kw">_</span>, chain } =&gt; chain,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
-<span class="doccomment">/// Type enabling `lpc55 rotkh` to share config file with the secure/signed</span>
-<span class="doccomment">/// firmware generation commands. Serializes `Pki` with a `[pki]` header.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WrappedPki</span> {
-    <span class="kw">pub</span> <span class="ident">pki</span>: <span class="ident">Pki</span>,
+<span class="attribute">#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = <span class="string">&quot;kebab-case&quot;</span>)]
+</span><span class="doccomment">/// Type enabling `lpc55 rotkh` to share config file with the secure/signed
+/// firmware generation commands. Serializes `Pki` with a `[pki]` header.
+</span><span class="kw">pub struct </span>WrappedPki {
+    <span class="kw">pub </span>pki: Pki,
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pki</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">anyhow::Error</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">config_filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="ident">config_filename</span>)
-            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to read config from {}&quot;</span>, <span class="ident">config_filename</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">wrapped_pki</span>: <span class="ident">WrappedPki</span> <span class="op">=</span> <span class="ident">toml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">pki</span> <span class="op">=</span> <span class="ident">wrapped_pki</span>.<span class="ident">pki</span>;
-        <span class="macro">trace!</span>(<span class="string">&quot;{:#?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">pki</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">pki</span>)
+<span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>str&gt; <span class="kw">for </span>Pki {
+    <span class="kw">type </span>Error = anyhow::Error;
+    <span class="kw">fn </span>try_from(config_filename: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>config = fs::read_to_string(config_filename)
+            .with_context(|| <span class="macro">format!</span>(<span class="string">&quot;Failed to read config from {}&quot;</span>, config_filename))<span class="question-mark">?</span>;
+        <span class="kw">let </span>wrapped_pki: WrappedPki = toml::from_str(<span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>;
+        <span class="kw">let </span>pki = wrapped_pki.pki;
+        <span class="macro">trace!</span>(<span class="string">&quot;{:#?}&quot;</span>, <span class="kw-2">&amp;</span>pki);
+        <span class="prelude-val">Ok</span>(pki)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SigningKeySource</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">anyhow::Error</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">scheme</span>, <span class="ident">content</span>) <span class="op">=</span> <span class="ident">split_once</span>(<span class="ident">uri</span>, <span class="string">&#39;:&#39;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key_source</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">scheme</span> {
-            <span class="string">&quot;file&quot;</span> =&gt; <span class="ident">SigningKeySource::Pkcs1PemFile</span>(<span class="ident">std::path::PathBuf::from</span>(<span class="ident">content</span>)),
-            <span class="string">&quot;pkcs11&quot;</span> =&gt; <span class="ident">SigningKeySource::Pkcs11Uri</span>(<span class="ident">uri</span>.<span class="ident">to_string</span>()),
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
-                    <span class="string">&quot;only file and pkcs11 secret key URIs supported&quot;</span>
-                ))
+<span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>str&gt; <span class="kw">for </span>SigningKeySource {
+    <span class="kw">type </span>Error = anyhow::Error;
+    <span class="kw">fn </span>try_from(uri: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>(scheme, content) = split_once(uri, <span class="string">&#39;:&#39;</span>).unwrap();
+        <span class="kw">let </span>key_source = <span class="kw">match </span>scheme {
+            <span class="string">&quot;file&quot; </span>=&gt; SigningKeySource::Pkcs1PemFile(std::path::PathBuf::from(content)),
+            <span class="string">&quot;pkcs11&quot; </span>=&gt; SigningKeySource::Pkcs11Uri(uri.to_string()),
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
+                    <span class="string">&quot;only file and pkcs11 secret key URIs supported&quot;
+                </span>))
             }
         };
-        <span class="prelude-val">Ok</span>(<span class="ident">key_source</span>)
+        <span class="prelude-val">Ok</span>(key_source)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SigningKey</span> {
-    <span class="ident">Pkcs1</span>(<span class="ident">rsa::RsaPrivateKey</span>),
-    <span class="ident">Pkcs11Uri</span>(<span class="ident">pkcs11_uri::Pkcs11Uri</span>),
+<span class="attribute">#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub enum </span>SigningKey {
+    Pkcs1(rsa::RsaPrivateKey),
+    Pkcs11Uri(pkcs11_uri::Pkcs11Uri),
 }
 
-<span class="doccomment">/// An RSA2k public key</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PublicKey</span>(<span class="kw">pub</span> <span class="ident">rsa::RsaPublicKey</span>);
+<span class="doccomment">/// An RSA2k public key
+</span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>PublicKey(<span class="kw">pub </span>rsa::RsaPublicKey);
 
-<span class="kw">impl</span> <span class="ident">PublicKey</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fingerprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Sha256Hash</span> {
-        <span class="kw">use</span> <span class="ident">rsa::PublicKeyParts</span> <span class="kw">as</span> <span class="kw">_</span>;
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">n</span>();
-        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">e</span>();
+<span class="kw">impl </span>PublicKey {
+    <span class="kw">pub fn </span>fingerprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sha256Hash {
+        <span class="kw">use </span>rsa::PublicKeyParts <span class="kw">as _</span>;
+        <span class="kw">let </span>n = <span class="self">self</span>.<span class="number">0</span>.n();
+        <span class="kw">let </span>e = <span class="self">self</span>.<span class="number">0</span>.e();
 
-        <span class="kw">use</span> <span class="ident">sha2::Digest</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">sha2::Sha256::new</span>();
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="ident">n</span>.<span class="ident">to_bytes_be</span>());
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="ident">e</span>.<span class="ident">to_bytes_be</span>());
-        <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">32</span>]<span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="ident">hasher</span>.<span class="ident">finalize</span>()).<span class="ident">unwrap</span>();
-        <span class="ident">Sha256Hash</span>(<span class="ident">hash</span>)
+        <span class="kw">use </span>sha2::Digest;
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = sha2::Sha256::new();
+        hasher.update(n.to_bytes_be());
+        hasher.update(e.to_bytes_be());
+        <span class="kw">let </span>hash = &lt;[u8; <span class="number">32</span>]&gt;::try_from(hasher.finalize()).unwrap();
+        Sha256Hash(hash)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Signature</span>(<span class="kw">pub</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>);
+<span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>Signature(<span class="kw">pub </span>Vec&lt;u8&gt;);
 
-<span class="kw">impl</span> <span class="ident">SigningKey</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from_uri</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">SigningKeySource::try_from</span>(<span class="ident">uri</span>)<span class="question-mark">?</span>;
-        <span class="ident"><span class="self">Self</span>::try_load</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>)
+<span class="kw">impl </span>SigningKey {
+    <span class="kw">pub fn </span>try_from_uri(uri: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>source = SigningKeySource::try_from(uri)<span class="question-mark">?</span>;
+        <span class="self">Self</span>::try_load(<span class="kw-2">&amp;</span>source)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_load</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">SigningKeySource</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">SigningKey</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">SigningKeySource</span>::<span class="kw-2">*</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">source</span> {
-            <span class="ident">Pkcs1PemFile</span>(<span class="ident">path</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">pem</span> <span class="op">=</span> <span class="ident">std::fs::read_to_string</span>(<span class="ident">path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+    <span class="kw">pub fn </span>try_load(source: <span class="kw-2">&amp;</span>SigningKeySource) -&gt; anyhow::Result&lt;SigningKey&gt; {
+        <span class="kw">use </span>SigningKeySource::<span class="kw-2">*</span>;
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>source {
+            Pkcs1PemFile(path) =&gt; {
+                <span class="kw">let </span>pem = std::fs::read_to_string(path).with_context(|| {
                     <span class="macro">format!</span>(
                         <span class="string">&quot;Failed to read private key from PEM file {}&quot;</span>,
-                        <span class="ident">path</span>.<span class="ident">display</span>()
+                        path.display()
                     )
                 })<span class="question-mark">?</span>;
-                <span class="comment">// do this instead:</span>
-                <span class="comment">// https://docs.rs/rsa/0.3.0/rsa/struct.RsaPrivateKey.html?search=#example</span>
-                <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="ident">pem::parse</span>(<span class="kw-2">&amp;</span><span class="ident">pem</span>)<span class="question-mark">?</span>.<span class="ident">contents</span>;
-                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">rsa::RsaPrivateKey::from_pkcs1_der</span>(<span class="kw-2">&amp;</span><span class="ident">der</span>)<span class="question-mark">?</span>;
-                <span class="ident">SigningKey::Pkcs1</span>(<span class="ident">key</span>)
+                <span class="comment">// do this instead:
+                // https://docs.rs/rsa/0.3.0/rsa/struct.RsaPrivateKey.html?search=#example
+                </span><span class="kw">let </span>der = pem::parse(pem)<span class="question-mark">?</span>.contents;
+                <span class="kw">let </span>key = rsa::RsaPrivateKey::from_pkcs1_der(<span class="kw-2">&amp;</span>der)<span class="question-mark">?</span>;
+                SigningKey::Pkcs1(key)
             }
-            <span class="ident">Pkcs11Uri</span>(<span class="ident">uri</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <span class="ident">pkcs11_uri::Pkcs11Uri::try_from</span>(<span class="ident">uri</span>)<span class="question-mark">?</span>;
-                <span class="ident">SigningKey::Pkcs11Uri</span>(<span class="ident">uri</span>)
+            Pkcs11Uri(uri) =&gt; {
+                <span class="kw">let </span>uri = pkcs11_uri::Pkcs11Uri::try_from(uri)<span class="question-mark">?</span>;
+                SigningKey::Pkcs11Uri(uri)
             }
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Signature</span> {
-        <span class="kw">use</span> <span class="ident">SigningKey</span>::<span class="kw-2">*</span>;
-        <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Pkcs1</span>(<span class="ident">key</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">padding_scheme</span> <span class="op">=</span>
-                    <span class="ident">rsa::PaddingScheme::new_pkcs1v15_sign</span>(<span class="prelude-val">Some</span>(<span class="ident">rsa::Hash::SHA2_256</span>));
+    <span class="kw">pub fn </span>sign(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8]) -&gt; Signature {
+        <span class="kw">use </span>SigningKey::<span class="kw-2">*</span>;
+        <span class="kw">let </span>signature = <span class="kw">match </span><span class="self">self </span>{
+            Pkcs1(key) =&gt; {
+                <span class="kw">let </span>padding_scheme =
+                    rsa::PaddingScheme::new_pkcs1v15_sign(<span class="prelude-val">Some</span>(rsa::Hash::SHA2_256));
 
-                <span class="kw">use</span> <span class="ident">sha2::Digest</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">sha2::Sha256::new</span>();
-                <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="ident">data</span>);
-                <span class="kw">let</span> <span class="ident">hashed_data</span> <span class="op">=</span> <span class="ident">hasher</span>.<span class="ident">finalize</span>();
-                <span class="ident">key</span>.<span class="ident">sign</span>(<span class="ident">padding_scheme</span>, <span class="kw-2">&amp;</span><span class="ident">hashed_data</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;signatures work&quot;</span>)
+                <span class="kw">use </span>sha2::Digest;
+                <span class="kw">let </span><span class="kw-2">mut </span>hasher = sha2::Sha256::new();
+                hasher.update(data);
+                <span class="kw">let </span>hashed_data = hasher.finalize();
+                key.sign(padding_scheme, <span class="kw-2">&amp;</span>hashed_data)
+                    .expect(<span class="string">&quot;signatures work&quot;</span>)
             }
-            <span class="ident">Pkcs11Uri</span>(<span class="ident">uri</span>) =&gt; {
-                <span class="kw">let</span> (<span class="ident">context</span>, <span class="ident">session</span>, <span class="ident">object</span>) <span class="op">=</span> <span class="ident">uri</span>.<span class="ident">identify_object</span>().<span class="ident">unwrap</span>();
+            Pkcs11Uri(uri) =&gt; {
+                <span class="kw">let </span>(context, session, object) = uri.identify_object().unwrap();
 
-                <span class="comment">//  CKM_SHA256_RSA_PKCS</span>
-                <span class="kw">let</span> <span class="ident">mechanism</span> <span class="op">=</span> <span class="ident">pkcs11::types::CK_MECHANISM</span> {
-                    <span class="ident">mechanism</span>: <span class="ident">pkcs11::types::CKM_SHA256_RSA_PKCS</span>,
-                    <span class="ident">pParameter</span>: <span class="ident">std::ptr::null_mut</span>(),
-                    <span class="ident">ulParameterLen</span>: <span class="number">0</span>,
+                <span class="comment">//  CKM_SHA256_RSA_PKCS
+                </span><span class="kw">let </span>mechanism = pkcs11::types::CK_MECHANISM {
+                    mechanism: pkcs11::types::CKM_SHA256_RSA_PKCS,
+                    pParameter: std::ptr::null_mut(),
+                    ulParameterLen: <span class="number">0</span>,
                 };
 
-                <span class="comment">// now do a signature, assuming this is an RSA key</span>
-                <span class="ident">context</span>.<span class="ident">sign_init</span>(<span class="ident">session</span>, <span class="kw-2">&amp;</span><span class="ident">mechanism</span>, <span class="ident">object</span>).<span class="ident">unwrap</span>();
-                <span class="ident">context</span>.<span class="ident">sign</span>(<span class="ident">session</span>, <span class="ident">data</span>).<span class="ident">unwrap</span>()
+                <span class="comment">// now do a signature, assuming this is an RSA key
+                </span>context.sign_init(session, <span class="kw-2">&amp;</span>mechanism, object).unwrap();
+                context.sign(session, data).unwrap()
             }
         };
-        <span class="ident">Signature</span>(<span class="ident">signature</span>)
+        Signature(signature)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">public_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PublicKey</span> {
-        <span class="kw">use</span> <span class="ident">SigningKey</span>::<span class="kw-2">*</span>;
-        <span class="ident">PublicKey</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Pkcs1</span>(<span class="ident">key</span>) =&gt; <span class="ident">key</span>.<span class="ident">to_public_key</span>(),
-            <span class="ident">Pkcs11Uri</span>(<span class="ident">uri</span>) =&gt; {
-                <span class="kw">let</span> (<span class="ident">context</span>, <span class="ident">session</span>, <span class="ident">object</span>) <span class="op">=</span> <span class="ident">uri</span>.<span class="ident">identify_object</span>().<span class="ident">unwrap</span>();
+    <span class="kw">pub fn </span>public_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PublicKey {
+        <span class="kw">use </span>SigningKey::<span class="kw-2">*</span>;
+        PublicKey(<span class="kw">match </span><span class="self">self </span>{
+            Pkcs1(key) =&gt; key.to_public_key(),
+            Pkcs11Uri(uri) =&gt; {
+                <span class="kw">let </span>(context, session, object) = uri.identify_object().unwrap();
 
-                <span class="kw">use</span> <span class="ident">pkcs11::types</span>::{<span class="ident">CKA_MODULUS</span>, <span class="ident">CKA_PUBLIC_EXPONENT</span>, <span class="ident">CK_ATTRIBUTE</span>};
+                <span class="kw">use </span>pkcs11::types::{CKA_MODULUS, CKA_PUBLIC_EXPONENT, CK_ATTRIBUTE};
 
-                <span class="kw">let</span> <span class="comment">/*mut*/</span> <span class="ident">n_buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">256</span>]; <span class="comment">// rust-pkcs11 API is sloppy about mut here; 256B = 2048b is enough for RSA2k keys</span>
-                <span class="kw">let</span> <span class="comment">/*mut*/</span> <span class="ident">e_buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">3</span>]; <span class="comment">// always 0x10001 = u16::MAX + 2 anyway</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n_attribute</span> <span class="op">=</span> <span class="ident">CK_ATTRIBUTE::new</span>(<span class="ident">CKA_MODULUS</span>);
-                <span class="ident">n_attribute</span>.<span class="ident">set_biginteger</span>(<span class="kw-2">&amp;</span><span class="ident">n_buffer</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e_attribute</span> <span class="op">=</span> <span class="ident">CK_ATTRIBUTE::new</span>(<span class="ident">CKA_PUBLIC_EXPONENT</span>);
-                <span class="ident">e_attribute</span>.<span class="ident">set_biginteger</span>(<span class="kw-2">&amp;</span><span class="ident">e_buffer</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">template</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">n_attribute</span>, <span class="ident">e_attribute</span>];
+                <span class="kw">let </span><span class="comment">/*mut*/ </span>n_buffer = [<span class="number">0u8</span>; <span class="number">256</span>]; <span class="comment">// rust-pkcs11 API is sloppy about mut here; 256B = 2048b is enough for RSA2k keys
+                </span><span class="kw">let </span><span class="comment">/*mut*/ </span>e_buffer = [<span class="number">0u8</span>; <span class="number">3</span>]; <span class="comment">// always 0x10001 = u16::MAX + 2 anyway
+                </span><span class="kw">let </span><span class="kw-2">mut </span>n_attribute = CK_ATTRIBUTE::new(CKA_MODULUS);
+                n_attribute.set_biginteger(<span class="kw-2">&amp;</span>n_buffer);
+                <span class="kw">let </span><span class="kw-2">mut </span>e_attribute = CK_ATTRIBUTE::new(CKA_PUBLIC_EXPONENT);
+                e_attribute.set_biginteger(<span class="kw-2">&amp;</span>e_buffer);
+                <span class="kw">let </span><span class="kw-2">mut </span>template = <span class="macro">vec!</span>[n_attribute, e_attribute];
 
-                <span class="kw">let</span> (<span class="ident">rv</span>, <span class="ident">attributes</span>) <span class="op">=</span> <span class="ident">context</span>
-                    .<span class="ident">get_attribute_value</span>(<span class="ident">session</span>, <span class="ident">object</span>, <span class="kw-2">&amp;mut</span> <span class="ident">template</span>)
-                    .<span class="ident">unwrap</span>();
-                <span class="macro">assert_eq!</span>(<span class="ident">rv</span>, <span class="number">0</span>);
-                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">attributes</span>[<span class="number">0</span>].<span class="ident">get_biginteger</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">attributes</span>[<span class="number">1</span>].<span class="ident">get_biginteger</span>().<span class="ident">unwrap</span>();
-                <span class="macro">assert!</span>(<span class="ident">n</span>.<span class="ident">bits</span>() <span class="op">&gt;</span> <span class="number">2012</span> <span class="op">&amp;&amp;</span> <span class="ident">n</span>.<span class="ident">bits</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">2048</span>);
-                <span class="comment">// dbg!(n.to_str_radix(10));</span>
-                <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">to_str_radix</span>(<span class="number">10</span>), <span class="string">&quot;65537&quot;</span>);
+                <span class="kw">let </span>(rv, attributes) = context
+                    .get_attribute_value(session, object, <span class="kw-2">&amp;mut </span>template)
+                    .unwrap();
+                <span class="macro">assert_eq!</span>(rv, <span class="number">0</span>);
+                <span class="kw">let </span>n = attributes[<span class="number">0</span>].get_biginteger().unwrap();
+                <span class="kw">let </span>e = attributes[<span class="number">1</span>].get_biginteger().unwrap();
+                <span class="macro">assert!</span>(n.bits() &gt; <span class="number">2012 </span>&amp;&amp; n.bits() &lt;= <span class="number">2048</span>);
+                <span class="comment">// dbg!(n.to_str_radix(10));
+                </span><span class="macro">assert_eq!</span>(e.to_str_radix(<span class="number">10</span>), <span class="string">&quot;65537&quot;</span>);
 
-                <span class="comment">// https://github.com/mheese/rust-pkcs11/issues/44</span>
-                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">rsa::BigUint::from_bytes_be</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_bytes_le</span>());
-                <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">rsa::BigUint::from_bytes_be</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">to_bytes_le</span>());
-                <span class="ident">rsa::RsaPublicKey::new</span>(<span class="ident">n</span>, <span class="ident">e</span>).<span class="ident">unwrap</span>()
+                <span class="comment">// https://github.com/mheese/rust-pkcs11/issues/44
+                </span><span class="kw">let </span>n = rsa::BigUint::from_bytes_be(<span class="kw-2">&amp;</span>n.to_bytes_le());
+                <span class="kw">let </span>e = rsa::BigUint::from_bytes_be(<span class="kw-2">&amp;</span>e.to_bytes_le());
+                rsa::RsaPublicKey::new(n, e).unwrap()
             }
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fingerprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Sha256Hash</span> {
-        <span class="self">self</span>.<span class="ident">public_key</span>().<span class="ident">fingerprint</span>()
+    <span class="kw">pub fn </span>fingerprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sha256Hash {
+        <span class="self">self</span>.public_key().fingerprint()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">core::convert::TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Signature</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">signature::Error</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; core::convert::TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; <span class="kw">for </span>Signature {
+    <span class="kw">type </span>Error = signature::Error;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Signature</span>(<span class="ident">Vec::from</span>(<span class="ident">bytes</span>)))
+    <span class="kw">fn </span>try_from(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Signature(Vec::from(bytes)))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">signature::Signature</span> <span class="kw">for</span> <span class="ident">Signature</span> {
-    <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
-    }
+<span class="kw">impl </span>signature::Signature <span class="kw">for </span>Signature {
+    <span class="kw">fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">signature::Error</span><span class="op">&gt;</span> {
-        <span class="ident">bytes</span>.<span class="ident">try_into</span>()
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Signature</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>()
+    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, signature::Error&gt; {
+        bytes.try_into()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">signature::Signer</span><span class="op">&lt;</span><span class="ident">Signature</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SigningKey</span> {
-    <span class="kw">fn</span> <span class="ident">try_sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Signature</span>, <span class="ident">signature::Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">sign</span>(<span class="ident">data</span>))
+<span class="kw">impl </span>AsRef&lt;[u8]&gt; <span class="kw">for </span>Signature {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.<span class="number">0</span>.as_ref()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CertificateSlot</span>(<span class="ident">usize</span>);
+<span class="kw">impl </span>signature::Signer&lt;Signature&gt; <span class="kw">for </span>SigningKey {
+    <span class="kw">fn </span>try_sign(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Signature, signature::Error&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.sign(data))
+    }
+}
 
-<span class="comment">// This should not be necessary; not having it would prevent</span>
-<span class="comment">// negligence errors like &quot;Default::default.into()&quot;.</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CertificateSlot</span> {
-    <span class="doccomment">/// panics if i &gt; 3</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">3</span> {
-            <span class="self">Self</span>(<span class="ident">i</span>)
-        } <span class="kw">else</span> {
-            <span class="macro">panic!</span>(<span class="string">&quot;Index {} not one of 0, 1, 2, 3&quot;</span>, <span class="ident">i</span>);
+<span class="attribute">#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+</span><span class="kw">pub struct </span>CertificateSlot(usize);
+
+<span class="comment">// This should not be necessary; not having it would prevent
+// negligence errors like &quot;Default::default.into()&quot;.
+</span><span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>CertificateSlot {
+    <span class="doccomment">/// panics if i &gt; 3
+    </span><span class="kw">fn </span>from(i: usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>i &lt;= <span class="number">3 </span>{
+            <span class="self">Self</span>(i)
+        } <span class="kw">else </span>{
+            <span class="macro">panic!</span>(<span class="string">&quot;Index {} not one of 0, 1, 2, 3&quot;</span>, i);
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CertificateSlot</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">usize</span> {
-    <span class="doccomment">/// panics if i &gt; 3</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">CertificateSlot</span>) -&gt; <span class="ident">usize</span> {
-        <span class="ident">i</span>.<span class="number">0</span>
-    }
+<span class="kw">impl </span>From&lt;CertificateSlot&gt; <span class="kw">for </span>usize {
+    <span class="doccomment">/// panics if i &gt; 3
+    </span><span class="kw">fn </span>from(i: CertificateSlot) -&gt; usize {
+        i.<span class="number">0
+    </span>}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CertificateSource</span> {
-    <span class="ident">X509DerFile</span>(<span class="ident">std::path::PathBuf</span>),
-    <span class="ident">Pkcs11Uri</span>(<span class="ident">std::string::String</span>),
-    <span class="comment">// RawDer(Vec&lt;u8&gt;),</span>
-}
+<span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>CertificateSource {
+    X509DerFile(std::path::PathBuf),
+    Pkcs11Uri(std::string::String),
+    <span class="comment">// RawDer(Vec&lt;u8&gt;),
+</span>}
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CertificateSource</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">anyhow::Error</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">scheme</span>, <span class="ident">content</span>) <span class="op">=</span> <span class="ident">split_once</span>(<span class="ident">uri</span>, <span class="string">&#39;:&#39;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key_source</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">scheme</span> {
-            <span class="string">&quot;file&quot;</span> =&gt; <span class="ident">CertificateSource::X509DerFile</span>(<span class="ident">std::path::PathBuf::from</span>(<span class="ident">content</span>)),
-            <span class="string">&quot;pkcs11&quot;</span> =&gt; <span class="ident">CertificateSource::Pkcs11Uri</span>(<span class="ident">uri</span>.<span class="ident">to_string</span>()),
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
-                    <span class="string">&quot;only file and pkcs11 certificate URIs supported&quot;</span>
-                ))
+<span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>str&gt; <span class="kw">for </span>CertificateSource {
+    <span class="kw">type </span>Error = anyhow::Error;
+    <span class="kw">fn </span>try_from(uri: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>(scheme, content) = split_once(uri, <span class="string">&#39;:&#39;</span>).unwrap();
+        <span class="kw">let </span>key_source = <span class="kw">match </span>scheme {
+            <span class="string">&quot;file&quot; </span>=&gt; CertificateSource::X509DerFile(std::path::PathBuf::from(content)),
+            <span class="string">&quot;pkcs11&quot; </span>=&gt; CertificateSource::Pkcs11Uri(uri.to_string()),
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
+                    <span class="string">&quot;only file and pkcs11 certificate URIs supported&quot;
+                </span>))
             }
         };
-        <span class="prelude-val">Ok</span>(<span class="ident">key_source</span>)
+        <span class="prelude-val">Ok</span>(key_source)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Certificate</span> {
-    <span class="ident">der</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Certificate {
+    der: Vec&lt;u8&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Certificate</span> {
-    <span class="comment">// todo: consider offering pkcs11-uri here too</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">CertificateSource</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">CertificateSource</span>::<span class="kw-2">*</span>;
-        <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">source</span> {
-            <span class="ident">X509DerFile</span>(<span class="ident">filename</span>) =&gt; <span class="ident">fs::read</span>(<span class="ident">filename</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+<span class="kw">impl </span>Certificate {
+    <span class="comment">// todo: consider offering pkcs11-uri here too
+    </span><span class="kw">pub fn </span>try_from(source: <span class="kw-2">&amp;</span>CertificateSource) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">use </span>CertificateSource::<span class="kw-2">*</span>;
+        <span class="kw">let </span>der = <span class="kw">match </span>source {
+            X509DerFile(filename) =&gt; fs::read(filename).with_context(|| {
                 <span class="macro">format!</span>(
                     <span class="string">&quot;Failed to read certificate from DER file {}&quot;</span>,
-                    <span class="ident">filename</span>.<span class="ident">display</span>()
+                    filename.display()
                 )
             })<span class="question-mark">?</span>,
-            <span class="ident">Pkcs11Uri</span>(<span class="ident">uri</span>) =&gt; {
-                <span class="kw">use</span> <span class="ident">pkcs11::types</span>::{<span class="ident">CKA_VALUE</span>, <span class="ident">CK_ATTRIBUTE</span>};
+            Pkcs11Uri(uri) =&gt; {
+                <span class="kw">use </span>pkcs11::types::{CKA_VALUE, CK_ATTRIBUTE};
 
-                <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <span class="ident">pkcs11_uri::Pkcs11Uri::try_from</span>(<span class="ident">uri</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> (<span class="ident">context</span>, <span class="ident">session</span>, <span class="ident">object</span>) <span class="op">=</span> <span class="ident">uri</span>.<span class="ident">identify_object</span>()<span class="question-mark">?</span>;
+                <span class="kw">let </span>uri = pkcs11_uri::Pkcs11Uri::try_from(uri)<span class="question-mark">?</span>;
+                <span class="kw">let </span>(context, session, object) = uri.identify_object()<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4096</span>];
-                <span class="kw">let</span> <span class="comment">/*mut*/</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">CK_ATTRIBUTE::new</span>(<span class="ident">CKA_VALUE</span>).<span class="ident">with_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">template</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">attribute</span>];
-                <span class="kw">let</span> (<span class="ident">rv</span>, <span class="ident">_attributes</span>) <span class="op">=</span> <span class="ident">context</span>
-                    .<span class="ident">get_attribute_value</span>(<span class="ident">session</span>, <span class="ident">object</span>, <span class="kw-2">&amp;mut</span> <span class="ident">template</span>)
-                    .<span class="ident">unwrap</span>();
-                <span class="comment">// compiler hint?</span>
-                <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">_attributes</span>[<span class="number">0</span>];
-                <span class="macro">assert_eq!</span>(<span class="ident">rv</span>, <span class="number">0</span>);
+                <span class="kw">let </span>buffer = [<span class="number">0u8</span>; <span class="number">4096</span>];
+                <span class="kw">let </span><span class="comment">/*mut*/ </span>attribute = CK_ATTRIBUTE::new(CKA_VALUE).with_bytes(<span class="kw-2">&amp;</span>buffer);
+                <span class="kw">let </span><span class="kw-2">mut </span>template = <span class="macro">vec!</span>[attribute];
+                <span class="kw">let </span>(rv, _attributes) = context
+                    .get_attribute_value(session, object, <span class="kw-2">&amp;mut </span>template)
+                    .unwrap();
+                <span class="comment">// compiler hint?
+                </span><span class="kw">let </span>attribute = _attributes[<span class="number">0</span>];
+                <span class="macro">assert_eq!</span>(rv, <span class="number">0</span>);
 
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">attribute</span>.<span class="ident">get_bytes</span>()<span class="question-mark">?</span>;
-                <span class="macro">trace!</span>(<span class="string">&quot;certificate DER:\n{}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>, <span class="number">32</span>));
-                <span class="ident">value</span>
+                <span class="kw">let </span>value = attribute.get_bytes()<span class="question-mark">?</span>;
+                <span class="macro">trace!</span>(<span class="string">&quot;certificate DER:\n{}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span>value, <span class="number">32</span>));
+                value
             }
         };
-        <span class="ident">Certificate::try_from_der</span>(<span class="kw-2">&amp;</span><span class="ident">der</span>)
+        Certificate::try_from_der(<span class="kw-2">&amp;</span>der)
     }
 
-    <span class="doccomment">/// Checks certificate is valid, and public key is RSA.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from_der</span>(<span class="ident">der</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="comment">// implicitly checks public key is RSA</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::cert_fingerprint</span>(<span class="ident">X509Certificate::from_der</span>(<span class="ident">der</span>)<span class="question-mark">?</span>.<span class="number">1</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">der</span>: <span class="ident">Vec::from</span>(<span class="ident">der</span>),
+    <span class="doccomment">/// Checks certificate is valid, and public key is RSA.
+    </span><span class="kw">pub fn </span>try_from_der(der: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="comment">// implicitly checks public key is RSA
+        </span><span class="kw">let _ </span>= <span class="self">Self</span>::cert_fingerprint(X509Certificate::from_der(der)<span class="question-mark">?</span>.<span class="number">1</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            der: Vec::from(der),
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">cert_fingerprint</span>(<span class="ident">certificate</span>: <span class="ident">X509Certificate</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Sha256Hash</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">spki</span> <span class="op">=</span> <span class="ident">certificate</span>.<span class="ident">tbs_certificate</span>.<span class="ident">subject_pki</span>;
-        <span class="macro">trace!</span>(<span class="string">&quot;alg: {:?}&quot;</span>, <span class="ident">spki</span>.<span class="ident">algorithm</span>.<span class="ident">algorithm</span>);
-        <span class="comment">// let OID_RSA_ENCRYPTION = oid!(1.2.840.113549.1.1.1);</span>
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">oid_registry::OID_PKCS1_RSAENCRYPTION</span>,
-            <span class="ident">spki</span>.<span class="ident">algorithm</span>.<span class="ident">algorithm</span>
+    <span class="kw">fn </span>cert_fingerprint(certificate: X509Certificate&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Sha256Hash&gt; {
+        <span class="kw">let </span>spki = certificate.tbs_certificate.subject_pki;
+        <span class="macro">trace!</span>(<span class="string">&quot;alg: {:?}&quot;</span>, spki.algorithm.algorithm);
+        <span class="comment">// let OID_RSA_ENCRYPTION = oid!(1.2.840.113549.1.1.1);
+        </span><span class="macro">assert_eq!</span>(
+            oid_registry::OID_PKCS1_RSAENCRYPTION,
+            spki.algorithm.algorithm
         );
 
-        <span class="kw">let</span> <span class="ident">public_key</span> <span class="op">=</span> <span class="ident">PublicKey</span>(<span class="ident">rsa::RsaPublicKey::from_pkcs1_der</span>(
-            <span class="ident">spki</span>.<span class="ident">subject_public_key</span>.<span class="ident">data</span>,
+        <span class="kw">let </span>public_key = PublicKey(rsa::RsaPublicKey::from_pkcs1_der(
+            <span class="kw-2">&amp;</span>spki.subject_public_key.data,
         )<span class="question-mark">?</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">public_key</span>.<span class="ident">fingerprint</span>())
+        <span class="prelude-val">Ok</span>(public_key.fingerprint())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">certificate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">X509Certificate</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="comment">// no panic, DER is verified in constructor</span>
-        <span class="ident">X509Certificate::from_der</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">der</span>).<span class="ident">unwrap</span>().<span class="number">1</span>
+    <span class="kw">pub fn </span>certificate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; X509Certificate&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="comment">// no panic, DER is verified in constructor
+        </span>X509Certificate::from_der(<span class="kw-2">&amp;</span><span class="self">self</span>.der).unwrap().<span class="number">1
+    </span>}
+
+    <span class="kw">pub fn </span>der(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.der
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">der</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">der</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">public_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PublicKey</span> {
-        <span class="kw">let</span> <span class="ident">spki</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">certificate</span>().<span class="ident">tbs_certificate</span>.<span class="ident">subject_pki</span>;
+    <span class="kw">pub fn </span>public_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PublicKey {
+        <span class="kw">let </span>spki = <span class="self">self</span>.certificate().tbs_certificate.subject_pki;
         <span class="macro">assert_eq!</span>(
-            <span class="ident">oid_registry::OID_PKCS1_RSAENCRYPTION</span>,
-            <span class="ident">spki</span>.<span class="ident">algorithm</span>.<span class="ident">algorithm</span>
+            oid_registry::OID_PKCS1_RSAENCRYPTION,
+            spki.algorithm.algorithm
         );
-        <span class="ident">PublicKey</span>(<span class="ident">rsa::RsaPublicKey::from_pkcs1_der</span>(<span class="ident">spki</span>.<span class="ident">subject_public_key</span>.<span class="ident">data</span>).<span class="ident">unwrap</span>())
+        PublicKey(rsa::RsaPublicKey::from_pkcs1_der(<span class="kw-2">&amp;</span>spki.subject_public_key.data).unwrap())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fingerprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Sha256Hash</span> {
-        <span class="comment">// no panic, DER is verified in constructor</span>
-        <span class="ident"><span class="self">Self</span>::cert_fingerprint</span>(<span class="self">self</span>.<span class="ident">certificate</span>()).<span class="ident">unwrap</span>()
+    <span class="kw">pub fn </span>fingerprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sha256Hash {
+        <span class="comment">// no panic, DER is verified in constructor
+        </span><span class="self">Self</span>::cert_fingerprint(<span class="self">self</span>.certificate()).unwrap()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CertificateChain</span> {
-    <span class="ident">root</span>: <span class="ident">Certificate</span>,
-    <span class="ident">chain</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Certificate</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>CertificateChain {
+    root: Certificate,
+    chain: Vec&lt;Certificate&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">CertificateChain</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_root</span>(<span class="ident">root</span>: <span class="ident">Certificate</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">root</span>,
-            <span class="ident">chain</span>: <span class="macro">vec!</span>[],
+<span class="kw">impl </span>CertificateChain {
+    <span class="kw">pub fn </span>from_root(root: Certificate) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            root,
+            chain: <span class="macro">vec!</span>[],
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">uris</span>: <span class="kw-2">&amp;</span><span class="ident">CertificateUriChain</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">root</span> <span class="op">=</span> <span class="ident">Certificate::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">uris</span>.<span class="ident">root</span>().<span class="ident">try_into</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">chain</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">uris</span>
-            .<span class="ident">chain</span>()
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">uri</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="ident">uri</span>;
-                <span class="ident">Certificate::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>)
+    <span class="kw">pub fn </span>try_from(uris: <span class="kw-2">&amp;</span>CertificateUriChain) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>root = Certificate::try_from(<span class="kw-2">&amp;</span>uris.root().try_into()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>chain: <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt; = uris
+            .chain()
+            .iter()
+            .map(|uri| {
+                <span class="kw">let </span>s: <span class="kw-2">&amp;</span>str = uri;
+                Certificate::try_from(<span class="kw-2">&amp;</span>s.try_into()<span class="question-mark">?</span>)
             })
-            .<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">CertificateChain</span> {
-            <span class="ident">root</span>,
-            <span class="ident">chain</span>: <span class="ident">chain</span><span class="question-mark">?</span>,
+            .collect();
+        <span class="prelude-val">Ok</span>(CertificateChain {
+            root,
+            chain: chain<span class="question-mark">?</span>,
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Certificate</span> {
-        <span class="self">self</span>.<span class="ident">chain</span>.<span class="ident">last</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">root</span>)
+    <span class="kw">pub fn </span>signer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Certificate {
+        <span class="self">self</span>.chain.last().unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.root)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Certificate</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">root</span>
+    <span class="kw">pub fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Certificate {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.root
     }
 
-    <span class="doccomment">/// Returns an iterator over the chain, starting with the root certificate</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Certificate</span><span class="op">&gt;</span> {
-        <span class="ident">std::iter::once</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">root</span>).<span class="ident">chain</span>(<span class="self">self</span>.<span class="ident">chain</span>.<span class="ident">iter</span>())
+    <span class="doccomment">/// Returns an iterator over the chain, starting with the root certificate
+    </span><span class="kw">pub fn </span>all(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>Certificate&gt; {
+        std::iter::once(<span class="kw-2">&amp;</span><span class="self">self</span>.root).chain(<span class="self">self</span>.chain.iter())
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::len_without_is_empty</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="number">1</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">chain</span>.<span class="ident">len</span>()
+    <span class="attribute">#[allow(clippy::len_without_is_empty)]
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="number">1 </span>+ <span class="self">self</span>.chain.len()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Certificates</span> {
-    <span class="ident">chains</span>: [<span class="ident">CertificateChain</span>; <span class="number">4</span>],
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Certificates {
+    chains: [CertificateChain; <span class="number">4</span>],
 }
 
-<span class="kw">impl</span> <span class="ident">Certificates</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from_pki</span>(<span class="ident">pki</span>: <span class="kw-2">&amp;</span><span class="ident">Pki</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">chains</span> <span class="op">=</span> [
-            <span class="ident">CertificateChain::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">pki</span>.<span class="ident">certificates</span>[<span class="number">0</span>])<span class="question-mark">?</span>,
-            <span class="ident">CertificateChain::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">pki</span>.<span class="ident">certificates</span>[<span class="number">1</span>])<span class="question-mark">?</span>,
-            <span class="ident">CertificateChain::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">pki</span>.<span class="ident">certificates</span>[<span class="number">2</span>])<span class="question-mark">?</span>,
-            <span class="ident">CertificateChain::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">pki</span>.<span class="ident">certificates</span>[<span class="number">3</span>])<span class="question-mark">?</span>,
+<span class="kw">impl </span>Certificates {
+    <span class="kw">pub fn </span>try_from_pki(pki: <span class="kw-2">&amp;</span>Pki) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>chains = [
+            CertificateChain::try_from(<span class="kw-2">&amp;</span>pki.certificates[<span class="number">0</span>])<span class="question-mark">?</span>,
+            CertificateChain::try_from(<span class="kw-2">&amp;</span>pki.certificates[<span class="number">1</span>])<span class="question-mark">?</span>,
+            CertificateChain::try_from(<span class="kw-2">&amp;</span>pki.certificates[<span class="number">2</span>])<span class="question-mark">?</span>,
+            CertificateChain::try_from(<span class="kw-2">&amp;</span>pki.certificates[<span class="number">3</span>])<span class="question-mark">?</span>,
         ];
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Certificates</span> { <span class="ident">chains</span> })
+        <span class="prelude-val">Ok</span>(Certificates { chains })
     }
 
-    <span class="comment">// todo: consider using pkcs11-uri here too</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">sources</span>: <span class="kw-2">&amp;</span>[<span class="ident">CertificateSource</span>; <span class="number">4</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">chains</span>: [
-                <span class="ident">CertificateChain::from_root</span>(<span class="ident">Certificate::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">sources</span>[<span class="number">0</span>])<span class="question-mark">?</span>),
-                <span class="ident">CertificateChain::from_root</span>(<span class="ident">Certificate::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">sources</span>[<span class="number">1</span>])<span class="question-mark">?</span>),
-                <span class="ident">CertificateChain::from_root</span>(<span class="ident">Certificate::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">sources</span>[<span class="number">2</span>])<span class="question-mark">?</span>),
-                <span class="ident">CertificateChain::from_root</span>(<span class="ident">Certificate::try_from</span>(<span class="kw-2">&amp;</span><span class="ident">sources</span>[<span class="number">3</span>])<span class="question-mark">?</span>),
+    <span class="comment">// todo: consider using pkcs11-uri here too
+    </span><span class="kw">pub fn </span>try_from(sources: <span class="kw-2">&amp;</span>[CertificateSource; <span class="number">4</span>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            chains: [
+                CertificateChain::from_root(Certificate::try_from(<span class="kw-2">&amp;</span>sources[<span class="number">0</span>])<span class="question-mark">?</span>),
+                CertificateChain::from_root(Certificate::try_from(<span class="kw-2">&amp;</span>sources[<span class="number">1</span>])<span class="question-mark">?</span>),
+                CertificateChain::from_root(Certificate::try_from(<span class="kw-2">&amp;</span>sources[<span class="number">2</span>])<span class="question-mark">?</span>),
+                CertificateChain::from_root(Certificate::try_from(<span class="kw-2">&amp;</span>sources[<span class="number">3</span>])<span class="question-mark">?</span>),
             ],
         })
     }
 
-    <span class="doccomment">/// Checks certificates are valid, and public keys are all RSA.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from_ders</span>(<span class="ident">certificate_ders</span>: [<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>; <span class="number">4</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">chains</span>: [
-                <span class="ident">CertificateChain::from_root</span>(<span class="ident">Certificate::try_from_der</span>(<span class="kw-2">&amp;</span><span class="ident">certificate_ders</span>[<span class="number">0</span>])<span class="question-mark">?</span>),
-                <span class="ident">CertificateChain::from_root</span>(<span class="ident">Certificate::try_from_der</span>(<span class="kw-2">&amp;</span><span class="ident">certificate_ders</span>[<span class="number">1</span>])<span class="question-mark">?</span>),
-                <span class="ident">CertificateChain::from_root</span>(<span class="ident">Certificate::try_from_der</span>(<span class="kw-2">&amp;</span><span class="ident">certificate_ders</span>[<span class="number">2</span>])<span class="question-mark">?</span>),
-                <span class="ident">CertificateChain::from_root</span>(<span class="ident">Certificate::try_from_der</span>(<span class="kw-2">&amp;</span><span class="ident">certificate_ders</span>[<span class="number">3</span>])<span class="question-mark">?</span>),
+    <span class="doccomment">/// Checks certificates are valid, and public keys are all RSA.
+    </span><span class="kw">pub fn </span>try_from_ders(certificate_ders: [Vec&lt;u8&gt;; <span class="number">4</span>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            chains: [
+                CertificateChain::from_root(Certificate::try_from_der(<span class="kw-2">&amp;</span>certificate_ders[<span class="number">0</span>])<span class="question-mark">?</span>),
+                CertificateChain::from_root(Certificate::try_from_der(<span class="kw-2">&amp;</span>certificate_ders[<span class="number">1</span>])<span class="question-mark">?</span>),
+                CertificateChain::from_root(Certificate::try_from_der(<span class="kw-2">&amp;</span>certificate_ders[<span class="number">2</span>])<span class="question-mark">?</span>),
+                CertificateChain::from_root(Certificate::try_from_der(<span class="kw-2">&amp;</span>certificate_ders[<span class="number">3</span>])<span class="question-mark">?</span>),
             ],
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">public_key</span>: <span class="ident">PublicKey</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CertificateSlot</span><span class="op">&gt;</span> {
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">4</span> {
-            <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <span class="ident">CertificateSlot</span>(<span class="ident">i</span>);
-            <span class="kw">if</span> <span class="ident">public_key</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">certificate</span>(<span class="ident">slot</span>).<span class="ident">public_key</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">slot</span>);
+    <span class="kw">pub fn </span>index_of(<span class="kw-2">&amp;</span><span class="self">self</span>, public_key: PublicKey) -&gt; <span class="prelude-ty">Result</span>&lt;CertificateSlot&gt; {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">4 </span>{
+            <span class="kw">let </span>slot = CertificateSlot(i);
+            <span class="kw">if </span>public_key == <span class="self">self</span>.certificate(slot).public_key() {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(slot);
             }
         }
         <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
-            <span class="string">&quot;no matching certificate found for public key!&quot;</span>
-        ))
+            <span class="string">&quot;no matching certificate found for public key!&quot;
+        </span>))
     }
 
-    <span class="doccomment">/// Get the end of chain certificate from the chain</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">certificate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">CertificateSlot</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Certificate</span> {
-        <span class="self">self</span>.<span class="ident">chains</span>[<span class="ident">usize::from</span>(<span class="ident">i</span>)].<span class="ident">signer</span>()
+    <span class="doccomment">/// Get the end of chain certificate from the chain
+    </span><span class="kw">pub fn </span>certificate(<span class="kw-2">&amp;</span><span class="self">self</span>, i: CertificateSlot) -&gt; <span class="kw-2">&amp;</span>Certificate {
+        <span class="self">self</span>.chains[usize::from(i)].signer()
     }
 
-    <span class="doccomment">/// Get the DER reprensentation for the end of chain certificate from the chain</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">certificate_der</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">CertificateSlot</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-        <span class="self">self</span>.<span class="ident">certificate</span>(<span class="ident">i</span>).<span class="ident">der</span>()
+    <span class="doccomment">/// Get the DER reprensentation for the end of chain certificate from the chain
+    </span><span class="kw">pub fn </span>certificate_der(<span class="kw-2">&amp;</span><span class="self">self</span>, i: CertificateSlot) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.certificate(i).der()
     }
 
-    <span class="doccomment">/// Returns an iterator of the DER serialization of the certificate chain starting at the root</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chain_der</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">CertificateSlot</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">chains</span>[<span class="ident">usize::from</span>(<span class="ident">i</span>)].<span class="ident">all</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">der</span>())
+    <span class="doccomment">/// Returns an iterator of the DER serialization of the certificate chain starting at the root
+    </span><span class="kw">pub fn </span>chain_der(<span class="kw-2">&amp;</span><span class="self">self</span>, i: CertificateSlot) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>[u8]&gt; {
+        <span class="self">self</span>.chains[usize::from(i)].all().map(|c| c.der())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">CertificateSlot</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CertificateChain</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">chains</span>[<span class="ident">usize::from</span>(<span class="ident">i</span>)]
+    <span class="kw">pub fn </span>chain(<span class="kw-2">&amp;</span><span class="self">self</span>, i: CertificateSlot) -&gt; <span class="kw-2">&amp;</span>CertificateChain {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.chains[usize::from(i)]
     }
 
-    <span class="doccomment">/// Get the fingerprint of the 4 root certificates</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fingerprints</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<span class="ident">Sha256Hash</span>; <span class="number">4</span>] {
-        <span class="comment">// array_map when? :)</span>
-        [
-            <span class="self">self</span>.<span class="ident">chains</span>[<span class="number">0</span>].<span class="ident">root</span>().<span class="ident">fingerprint</span>(),
-            <span class="self">self</span>.<span class="ident">chains</span>[<span class="number">1</span>].<span class="ident">root</span>().<span class="ident">fingerprint</span>(),
-            <span class="self">self</span>.<span class="ident">chains</span>[<span class="number">2</span>].<span class="ident">root</span>().<span class="ident">fingerprint</span>(),
-            <span class="self">self</span>.<span class="ident">chains</span>[<span class="number">3</span>].<span class="ident">root</span>().<span class="ident">fingerprint</span>(),
+    <span class="doccomment">/// Get the fingerprint of the 4 root certificates
+    </span><span class="kw">pub fn </span>fingerprints(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [Sha256Hash; <span class="number">4</span>] {
+        <span class="comment">// array_map when? :)
+        </span>[
+            <span class="self">self</span>.chains[<span class="number">0</span>].root().fingerprint(),
+            <span class="self">self</span>.chains[<span class="number">1</span>].root().fingerprint(),
+            <span class="self">self</span>.chains[<span class="number">2</span>].root().fingerprint(),
+            <span class="self">self</span>.chains[<span class="number">3</span>].root().fingerprint(),
         ]
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fingerprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Sha256Hash</span> {
-        <span class="kw">use</span> <span class="ident">sha2::Digest</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">sha2::Sha256::new</span>();
-        <span class="kw">for</span> <span class="ident">fingerprint</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">fingerprints</span>().<span class="ident">iter</span>() {
-            <span class="ident">hash</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">fingerprint</span>);
+    <span class="kw">pub fn </span>fingerprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sha256Hash {
+        <span class="kw">use </span>sha2::Digest;
+        <span class="kw">let </span><span class="kw-2">mut </span>hash = sha2::Sha256::new();
+        <span class="kw">for </span>fingerprint <span class="kw">in </span><span class="self">self</span>.fingerprints().iter() {
+            hash.update(fingerprint);
         }
-        <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">32</span>]<span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="ident">hash</span>.<span class="ident">finalize</span>()).<span class="ident">unwrap</span>();
-        <span class="ident">Sha256Hash</span>(<span class="ident">hash</span>)
+        <span class="kw">let </span>hash = &lt;[u8; <span class="number">32</span>]&gt;::try_from(hash.finalize()).unwrap();
+        Sha256Hash(hash)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fingerprint_from_bytes</span>(<span class="ident">fingerprints</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Sha256Hash</span> {
-        <span class="kw">use</span> <span class="ident">sha2::Digest</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">sha2::Sha256::new</span>();
-        <span class="ident">hash</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">fingerprints</span>);
-        <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">32</span>]<span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="ident">hash</span>.<span class="ident">finalize</span>()).<span class="ident">unwrap</span>();
-        <span class="ident">Sha256Hash</span>(<span class="ident">hash</span>)
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sha256Hash</span>(<span class="kw">pub</span> [<span class="ident">u8</span>; <span class="number">32</span>]);
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Sha256Hash</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">format_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, <span class="ident">f</span>)
+    <span class="kw">pub fn </span>fingerprint_from_bytes(fingerprints: <span class="kw-2">&amp;</span>[u8]) -&gt; Sha256Hash {
+        <span class="kw">use </span>sha2::Digest;
+        <span class="kw">let </span><span class="kw-2">mut </span>hash = sha2::Sha256::new();
+        hash.update(fingerprints);
+        <span class="kw">let </span>hash = &lt;[u8; <span class="number">32</span>]&gt;::try_from(hash.finalize()).unwrap();
+        Sha256Hash(hash)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Sha256Hash</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
+<span class="attribute">#[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+</span><span class="kw">pub struct </span>Sha256Hash(<span class="kw">pub </span>[u8; <span class="number">32</span>]);
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Sha256Hash {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        format_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, f)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">32</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Sha256Hash</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">array</span>: [<span class="ident">u8</span>; <span class="number">32</span>]) -&gt; <span class="self">Self</span> {
-        <span class="ident">Sha256Hash</span>(<span class="ident">array</span>)
+<span class="kw">impl </span>AsRef&lt;[u8]&gt; <span class="kw">for </span>Sha256Hash {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">impl </span>From&lt;[u8; <span class="number">32</span>]&gt; <span class="kw">for </span>Sha256Hash {
+    <span class="kw">fn </span>from(array: [u8; <span class="number">32</span>]) -&gt; <span class="self">Self </span>{
+        Sha256Hash(array)
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">format_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-    <span class="comment">// let l = bytes.len();</span>
-    <span class="kw">let</span> <span class="ident">empty</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">==</span> <span class="number">0</span>);
-    <span class="kw">if</span> <span class="ident">empty</span> {
-        <span class="comment">// return f.write_fmt(format_args!(&quot;&lt;all zero&gt;&quot;));</span>
-        <span class="kw">return</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;∅&quot;</span>));
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>format_bytes(bytes: <span class="kw-2">&amp;</span>[u8], f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="comment">// let l = bytes.len();
+    </span><span class="kw">let </span>empty = bytes.iter().all(|<span class="kw-2">&amp;</span>byte| byte == <span class="number">0</span>);
+    <span class="kw">if </span>empty {
+        <span class="comment">// return f.write_fmt(format_args!(&quot;&lt;all zero&gt;&quot;));
+        </span><span class="kw">return </span>f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;∅&quot;</span>));
     }
 
-    <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="ident">bytes</span>.<span class="ident">iter</span>() {
-        <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:02X} &quot;</span>, <span class="ident">byte</span>))<span class="question-mark">?</span>;
+    <span class="kw">for </span>byte <span class="kw">in </span>bytes.iter() {
+        f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;{:02X} &quot;</span>, byte))<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
-    <span class="comment">// let info = if empty { &quot;empty&quot; } else { &quot;non-empty&quot; };</span>
+    <span class="comment">// let info = if empty { &quot;empty&quot; } else { &quot;non-empty&quot; };
 
-    <span class="comment">// f.write_fmt(format_args!(</span>
-    <span class="comment">//     &quot;&#39;{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x} ({})&#39;&quot;,</span>
-    <span class="comment">//     bytes[0], bytes[1], bytes[3],</span>
-    <span class="comment">//     bytes[l-3], bytes[l-2], bytes[l-1],</span>
-    <span class="comment">//     info,</span>
-    <span class="comment">// ))</span>
-}
+    // f.write_fmt(format_args!(
+    //     &quot;&#39;{:02x} {:02x} {:02x} (...) {:02x} {:02x} {:02x} ({})&#39;&quot;,
+    //     bytes[0], bytes[1], bytes[3],
+    //     bytes[l-3], bytes[l-2], bytes[l-1],
+    //     info,
+    // ))
+</span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

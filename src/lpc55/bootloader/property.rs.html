@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/bootloader/property.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>property.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/bootloader/property.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>property.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -303,305 +297,304 @@
 <span id="297">297</span>
 <span id="298">298</span>
 <span id="299">299</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bootloader</span>::{
-    <span class="ident">command</span>::{<span class="ident">CommandTag</span>, <span class="ident">Version</span>},
-    <span class="ident">Error</span>, <span class="ident">Protocol</span>, <span class="prelude-ty">Result</span>,
+<span class="kw">use </span><span class="kw">crate</span>::bootloader::{
+    command::{CommandTag, Version},
+    Error, Protocol, <span class="prelude-ty">Result</span>,
 };
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GetProperties</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">protocol</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Protocol</span>,
+<span class="kw">pub struct </span>GetProperties&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub </span>protocol: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Protocol,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Properties</span> {
-    <span class="kw">pub</span> <span class="ident">current_version</span>: <span class="ident">Version</span>,
-    <span class="kw">pub</span> <span class="ident">target_version</span>: <span class="ident">Version</span>,
-    <span class="kw">pub</span> <span class="ident">available_commands</span>: <span class="ident">AvailableCommands</span>,
-    <span class="kw">pub</span> <span class="ident">available_peripherals</span>: <span class="ident">AvailablePeripherals</span>,
-    <span class="kw">pub</span> <span class="ident">pfr_keystore_update_option</span>: <span class="ident">PfrKeystoreUpdateOptions</span>,
-    <span class="kw">pub</span> <span class="ident">ram_start_address</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">ram_size</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">flash_start_address</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">flash_size</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">flash_page_size</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">flash_sector_size</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">verify_writes</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">flash_locked</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">max_packet_size</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">device_uuid</span>: <span class="ident">u128</span>,
-    <span class="kw">pub</span> <span class="ident">system_uuid</span>: <span class="ident">u64</span>,
-    <span class="kw">pub</span> <span class="ident">crc_check_status</span>: <span class="ident"><span class="kw">crate</span>::bootloader::Error</span>,
-    <span class="kw">pub</span> <span class="ident">reserved_regions</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">irq_notification_pin</span>: <span class="ident">IrqNotificationPin</span>,
+<span class="attribute">#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+</span><span class="kw">pub struct </span>Properties {
+    <span class="kw">pub </span>current_version: Version,
+    <span class="kw">pub </span>target_version: Version,
+    <span class="kw">pub </span>available_commands: AvailableCommands,
+    <span class="kw">pub </span>available_peripherals: AvailablePeripherals,
+    <span class="kw">pub </span>pfr_keystore_update_option: PfrKeystoreUpdateOptions,
+    <span class="kw">pub </span>ram_start_address: usize,
+    <span class="kw">pub </span>ram_size: usize,
+    <span class="kw">pub </span>flash_start_address: usize,
+    <span class="kw">pub </span>flash_size: usize,
+    <span class="kw">pub </span>flash_page_size: usize,
+    <span class="kw">pub </span>flash_sector_size: usize,
+    <span class="kw">pub </span>verify_writes: bool,
+    <span class="kw">pub </span>flash_locked: bool,
+    <span class="kw">pub </span>max_packet_size: usize,
+    <span class="kw">pub </span>device_uuid: u128,
+    <span class="kw">pub </span>system_uuid: u64,
+    <span class="kw">pub </span>crc_check_status: <span class="kw">crate</span>::bootloader::Error,
+    <span class="kw">pub </span>reserved_regions: Vec&lt;(usize, usize)&gt;,
+    <span class="kw">pub </span>irq_notification_pin: IrqNotificationPin,
 }
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(
-    <span class="ident">Clone</span>,
-    <span class="ident">Copy</span>,
-    <span class="ident">Debug</span>,
-    <span class="ident">Eq</span>,
-    <span class="ident">Hash</span>,
-    <span class="ident">enum_iterator::IntoEnumIterator</span>,
-    <span class="ident">Ord</span>,
-    <span class="ident">PartialEq</span>,
-    <span class="ident">PartialOrd</span>,
-    <span class="ident">Serialize</span>,
-    <span class="ident">Deserialize</span>,
-)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Property</span> {
-    <span class="ident">CurrentVersion</span> <span class="op">=</span> <span class="number">0x1</span>,
-    <span class="ident">AvailablePeripherals</span> <span class="op">=</span> <span class="number">0x2</span>,
-    <span class="ident">FlashStartAddress</span> <span class="op">=</span> <span class="number">0x03</span>,
-    <span class="ident">FlashSize</span> <span class="op">=</span> <span class="number">0x04</span>,
-    <span class="ident">FlashSectorSize</span> <span class="op">=</span> <span class="number">0x05</span>,
-    <span class="comment">// FlashBlockCount = 0x06,</span>
-    <span class="ident">AvailableCommands</span> <span class="op">=</span> <span class="number">0x07</span>,
-    <span class="ident">CrcCheckStatus</span> <span class="op">=</span> <span class="number">0x08</span>,
-    <span class="comment">// LastError = 0x09,</span>
-    <span class="ident">VerifyWrites</span> <span class="op">=</span> <span class="number">0x0A</span>,
-    <span class="ident">MaxPacketSize</span> <span class="op">=</span> <span class="number">0x0B</span>,
-    <span class="comment">// 48</span>
-    <span class="ident">ReservedRegions</span> <span class="op">=</span> <span class="number">0x0C</span>,
-    <span class="comment">// ValidateRegions = 0x0D,</span>
-    <span class="ident">RamStartAddress</span> <span class="op">=</span> <span class="number">0x0E</span>,
-    <span class="ident">RamSize</span> <span class="op">=</span> <span class="number">0x0F</span>,
-    <span class="comment">// 16</span>
-    <span class="ident">SystemDeviceIdent</span> <span class="op">=</span> <span class="number">0x10</span>,
-    <span class="ident">FlashSecurityState</span> <span class="op">=</span> <span class="number">0x11</span>,
-    <span class="comment">// 24</span>
-    <span class="ident">UniqueDeviceIdent</span> <span class="op">=</span> <span class="number">0x12</span>,
-    <span class="comment">// FlashFacSupport = 0x13,</span>
-    <span class="comment">// FlashAccessSegmentSize = 0x14,</span>
-    <span class="comment">// FlashAccessSegmentCount = 0x15,</span>
-    <span class="comment">// FlashReadMargin = 0x16,</span>
-    <span class="comment">// QspiInitStatus = 0x17,</span>
-    <span class="ident">TargetVersion</span> <span class="op">=</span> <span class="number">0x18</span>,
+<span class="attribute">#[repr(u8)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    enum_iterator::Sequence,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    Serialize,
+    Deserialize,
+)]
+</span><span class="kw">pub enum </span>Property {
+    CurrentVersion = <span class="number">0x1</span>,
+    AvailablePeripherals = <span class="number">0x2</span>,
+    FlashStartAddress = <span class="number">0x03</span>,
+    FlashSize = <span class="number">0x04</span>,
+    FlashSectorSize = <span class="number">0x05</span>,
+    <span class="comment">// FlashBlockCount = 0x06,
+    </span>AvailableCommands = <span class="number">0x07</span>,
+    CrcCheckStatus = <span class="number">0x08</span>,
+    <span class="comment">// LastError = 0x09,
+    </span>VerifyWrites = <span class="number">0x0A</span>,
+    MaxPacketSize = <span class="number">0x0B</span>,
+    <span class="comment">// 48
+    </span>ReservedRegions = <span class="number">0x0C</span>,
+    <span class="comment">// ValidateRegions = 0x0D,
+    </span>RamStartAddress = <span class="number">0x0E</span>,
+    RamSize = <span class="number">0x0F</span>,
+    <span class="comment">// 16
+    </span>SystemDeviceIdent = <span class="number">0x10</span>,
+    FlashSecurityState = <span class="number">0x11</span>,
+    <span class="comment">// 24
+    </span>UniqueDeviceIdent = <span class="number">0x12</span>,
+    <span class="comment">// FlashFacSupport = 0x13,
+    // FlashAccessSegmentSize = 0x14,
+    // FlashAccessSegmentCount = 0x15,
+    // FlashReadMargin = 0x16,
+    // QspiInitStatus = 0x17,
+    </span>TargetVersion = <span class="number">0x18</span>,
 
-    <span class="comment">// returns error 4: invalid argument</span>
-    <span class="comment">// ExternalMemoryAttributes = 0x19,</span>
+    <span class="comment">// returns error 4: invalid argument
+    // ExternalMemoryAttributes = 0x19,
 
-    <span class="comment">// ReliableUpdateStatus = 0x1A,</span>
-    <span class="ident">FlashPageSize</span> <span class="op">=</span> <span class="number">0x1B</span>,
-    <span class="ident">IrqNotificationPin</span> <span class="op">=</span> <span class="number">0x1C</span>,
-    <span class="ident">PfrKeystoreUpdateOptions</span> <span class="op">=</span> <span class="number">0x1D</span>,
+    // ReliableUpdateStatus = 0x1A,
+    </span>FlashPageSize = <span class="number">0x1B</span>,
+    IrqNotificationPin = <span class="number">0x1C</span>,
+    PfrKeystoreUpdateOptions = <span class="number">0x1D</span>,
 }
 
-<span class="macro">bitflags::bitflags!</span> {
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AvailableCommands</span>: <span class="ident">u32</span> {
-        <span class="kw">const</span> <span class="ident">ERASE_FLASH_ALL</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::EraseFlashAll</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">ERASE_FLASH</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::EraseFlash</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">READ_MEMORY</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::ReadMemory</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">WRITE_MEMORY</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::WriteMemory</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">FILL_MEMORY</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::FillMemory</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">FLASH_SECURITY_DISABLE</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::FlashSecurityDisable</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">GET_PROPERTY</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::GetProperty</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">RECEIVE_SB_FILE</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::ReceiveSbFile</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">EXECUTE</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::Execute</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">CALL</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::Call</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">RESET</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::Reset</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">SET_PROPERTY</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::SetProperty</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">const</span> <span class="ident">FLASH_READ_RESOURCE</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CommandTag::FlashReadResource</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="comment">// TODO? it seems a lot of commands never actually show up here</span>
-        <span class="comment">//</span>
-        <span class="comment">// doesn&#39;t seem to turn up in the (old?) interface that lists available commands</span>
-        <span class="comment">// const KEY_PROVISIONING = 1 &lt;&lt; 0x15;</span>
+<span class="macro">bitflags::bitflags! </span>{
+    <span class="attribute">#[derive(Deserialize, Serialize)]
+    </span><span class="kw">pub struct </span>AvailableCommands: u32 {
+        <span class="kw">const </span>ERASE_FLASH_ALL = <span class="number">1 </span>&lt;&lt; CommandTag::EraseFlashAll <span class="kw">as </span>u8;
+        <span class="kw">const </span>ERASE_FLASH = <span class="number">1 </span>&lt;&lt; CommandTag::EraseFlash <span class="kw">as </span>u8;
+        <span class="kw">const </span>READ_MEMORY = <span class="number">1 </span>&lt;&lt; CommandTag::ReadMemory <span class="kw">as </span>u8;
+        <span class="kw">const </span>WRITE_MEMORY = <span class="number">1 </span>&lt;&lt; CommandTag::WriteMemory <span class="kw">as </span>u8;
+        <span class="kw">const </span>FILL_MEMORY = <span class="number">1 </span>&lt;&lt; CommandTag::FillMemory <span class="kw">as </span>u8;
+        <span class="kw">const </span>FLASH_SECURITY_DISABLE = <span class="number">1 </span>&lt;&lt; CommandTag::FlashSecurityDisable <span class="kw">as </span>u8;
+        <span class="kw">const </span>GET_PROPERTY = <span class="number">1 </span>&lt;&lt; CommandTag::GetProperty <span class="kw">as </span>u8;
+        <span class="kw">const </span>RECEIVE_SB_FILE = <span class="number">1 </span>&lt;&lt; CommandTag::ReceiveSbFile <span class="kw">as </span>u8;
+        <span class="kw">const </span>EXECUTE = <span class="number">1 </span>&lt;&lt; CommandTag::Execute <span class="kw">as </span>u8;
+        <span class="kw">const </span>CALL = <span class="number">1 </span>&lt;&lt; CommandTag::Call <span class="kw">as </span>u8;
+        <span class="kw">const </span>RESET = <span class="number">1 </span>&lt;&lt; CommandTag::Reset <span class="kw">as </span>u8;
+        <span class="kw">const </span>SET_PROPERTY = <span class="number">1 </span>&lt;&lt; CommandTag::SetProperty <span class="kw">as </span>u8;
+        <span class="kw">const </span>FLASH_READ_RESOURCE = <span class="number">1 </span>&lt;&lt; CommandTag::FlashReadResource <span class="kw">as </span>u8;
+        <span class="comment">// TODO? it seems a lot of commands never actually show up here
+        //
+        // doesn&#39;t seem to turn up in the (old?) interface that lists available commands
+        // const KEY_PROVISIONING = 1 &lt;&lt; 0x15;
+    </span>}
+}
+
+<span class="macro">bitflags::bitflags! </span>{
+    <span class="attribute">#[derive(Deserialize, Serialize)]
+    </span><span class="kw">pub struct </span>AvailablePeripherals: u32 {
+        <span class="kw">const </span>UART = <span class="number">0x01</span>;
+        <span class="kw">const </span>I2C = <span class="number">0x02</span>;
+        <span class="kw">const </span>SPI = <span class="number">0x04</span>;
+        <span class="kw">const </span>CAN = <span class="number">0x08</span>;
+        <span class="kw">const </span>USB_HID = <span class="number">0x10</span>;
+        <span class="kw">const </span>USB_CDC = <span class="number">0x20</span>;
+        <span class="kw">const </span>USB_DFU = <span class="number">0x40</span>;
     }
 }
 
-<span class="macro">bitflags::bitflags!</span> {
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AvailablePeripherals</span>: <span class="ident">u32</span> {
-        <span class="kw">const</span> <span class="ident">UART</span> <span class="op">=</span> <span class="number">0x01</span>;
-        <span class="kw">const</span> <span class="ident">I2C</span> <span class="op">=</span> <span class="number">0x02</span>;
-        <span class="kw">const</span> <span class="ident">SPI</span> <span class="op">=</span> <span class="number">0x04</span>;
-        <span class="kw">const</span> <span class="ident">CAN</span> <span class="op">=</span> <span class="number">0x08</span>;
-        <span class="kw">const</span> <span class="ident">USB_HID</span> <span class="op">=</span> <span class="number">0x10</span>;
-        <span class="kw">const</span> <span class="ident">USB_CDC</span> <span class="op">=</span> <span class="number">0x20</span>;
-        <span class="kw">const</span> <span class="ident">USB_DFU</span> <span class="op">=</span> <span class="number">0x40</span>;
-    }
+<span class="attribute">#[repr(u32)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+</span><span class="kw">pub enum </span>PfrKeystoreUpdateOptions {
+    Keystore = <span class="number">0x00</span>,
+    WriteMemory = <span class="number">0x01</span>,
 }
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u32</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PfrKeystoreUpdateOptions</span> {
-    <span class="ident">Keystore</span> <span class="op">=</span> <span class="number">0x00</span>,
-    <span class="ident">WriteMemory</span> <span class="op">=</span> <span class="number">0x01</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PfrKeystoreUpdateOptions</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">PfrKeystoreUpdateOptions</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="number">0</span> =&gt; <span class="ident">Keystore</span>,
-            <span class="number">1</span> =&gt; <span class="ident">WriteMemory</span>,
-            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
+<span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>PfrKeystoreUpdateOptions {
+    <span class="kw">fn </span>from(value: u32) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>PfrKeystoreUpdateOptions::<span class="kw-2">*</span>;
+        <span class="kw">match </span>value {
+            <span class="number">0 </span>=&gt; Keystore,
+            <span class="number">1 </span>=&gt; WriteMemory,
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IrqNotificationPin</span> {
-    <span class="kw">pub</span> <span class="ident">pin</span>: <span class="ident">u8</span>,
-    <span class="kw">pub</span> <span class="ident">port</span>: <span class="ident">u8</span>,
-    <span class="kw">pub</span> <span class="ident">enabled</span>: <span class="ident">bool</span>,
+<span class="attribute">#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+</span><span class="kw">pub struct </span>IrqNotificationPin {
+    <span class="kw">pub </span>pin: u8,
+    <span class="kw">pub </span>port: u8,
+    <span class="kw">pub </span>enabled: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IrqNotificationPin</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">pin</span>: <span class="ident">value</span> <span class="kw">as</span> <span class="ident">u8</span>,
-            <span class="ident">port</span>: (<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <span class="ident">u8</span>,
-            <span class="ident">enabled</span>: (<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">31</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
+<span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>IrqNotificationPin {
+    <span class="kw">fn </span>from(value: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            pin: value <span class="kw">as </span>u8,
+            port: (value &gt;&gt; <span class="number">8</span>) <span class="kw">as </span>u8,
+            enabled: (value &gt;&gt; <span class="number">31</span>) != <span class="number">0</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">GetProperties</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Properties</span> {
-        <span class="ident">Properties</span> {
-            <span class="ident">current_version</span>: <span class="self">self</span>.<span class="ident">current_version</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">target_version</span>: <span class="self">self</span>.<span class="ident">target_version</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">available_commands</span>: <span class="self">self</span>.<span class="ident">available_commands</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">available_peripherals</span>: <span class="self">self</span>.<span class="ident">available_peripherals</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">pfr_keystore_update_option</span>: <span class="self">self</span>.<span class="ident">pfr_keystore_update_option</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">ram_start_address</span>: <span class="self">self</span>.<span class="ident">ram_start_address</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">ram_size</span>: <span class="self">self</span>.<span class="ident">ram_size</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">flash_start_address</span>: <span class="self">self</span>.<span class="ident">flash_start_address</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">flash_size</span>: <span class="self">self</span>.<span class="ident">flash_size</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">flash_page_size</span>: <span class="self">self</span>.<span class="ident">flash_page_size</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">flash_sector_size</span>: <span class="self">self</span>.<span class="ident">flash_sector_size</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">verify_writes</span>: <span class="self">self</span>.<span class="ident">verify_writes</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">flash_locked</span>: <span class="self">self</span>.<span class="ident">flash_locked</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">max_packet_size</span>: <span class="self">self</span>.<span class="ident">max_packet_size</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">device_uuid</span>: <span class="self">self</span>.<span class="ident">device_uuid</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">system_uuid</span>: <span class="self">self</span>.<span class="ident">system_uuid</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">crc_check_status</span>: <span class="self">self</span>.<span class="ident">crc_check_status</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">reserved_regions</span>: <span class="self">self</span>.<span class="ident">reserved_regions</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">irq_notification_pin</span>: <span class="self">self</span>.<span class="ident">irq_notification_pin</span>().<span class="ident">unwrap</span>(),
+<span class="kw">impl </span>GetProperties&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">pub fn </span>all(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Properties {
+        Properties {
+            current_version: <span class="self">self</span>.current_version().unwrap(),
+            target_version: <span class="self">self</span>.target_version().unwrap(),
+            available_commands: <span class="self">self</span>.available_commands().unwrap(),
+            available_peripherals: <span class="self">self</span>.available_peripherals().unwrap(),
+            pfr_keystore_update_option: <span class="self">self</span>.pfr_keystore_update_option().unwrap(),
+            ram_start_address: <span class="self">self</span>.ram_start_address().unwrap(),
+            ram_size: <span class="self">self</span>.ram_size().unwrap(),
+            flash_start_address: <span class="self">self</span>.flash_start_address().unwrap(),
+            flash_size: <span class="self">self</span>.flash_size().unwrap(),
+            flash_page_size: <span class="self">self</span>.flash_page_size().unwrap(),
+            flash_sector_size: <span class="self">self</span>.flash_sector_size().unwrap(),
+            verify_writes: <span class="self">self</span>.verify_writes().unwrap(),
+            flash_locked: <span class="self">self</span>.flash_locked().unwrap(),
+            max_packet_size: <span class="self">self</span>.max_packet_size().unwrap(),
+            device_uuid: <span class="self">self</span>.device_uuid().unwrap(),
+            system_uuid: <span class="self">self</span>.system_uuid().unwrap(),
+            crc_check_status: <span class="self">self</span>.crc_check_status().unwrap(),
+            reserved_regions: <span class="self">self</span>.reserved_regions().unwrap(),
+            irq_notification_pin: <span class="self">self</span>.irq_notification_pin().unwrap(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Version</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Version::from</span>(
-            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::CurrentVersion</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+    <span class="kw">pub fn </span>current_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Version&gt; {
+        <span class="prelude-val">Ok</span>(Version::from(
+            <span class="self">self</span>.protocol.property(Property::CurrentVersion)<span class="question-mark">?</span>[<span class="number">0</span>],
         ))
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target_version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Version</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Version::from</span>(
-            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::TargetVersion</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+    <span class="kw">pub fn </span>target_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Version&gt; {
+        <span class="prelude-val">Ok</span>(Version::from(
+            <span class="self">self</span>.protocol.property(Property::TargetVersion)<span class="question-mark">?</span>[<span class="number">0</span>],
         ))
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ram_start_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::RamStartAddress</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw">_</span>)
+    <span class="kw">pub fn </span>ram_start_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.protocol.property(Property::RamStartAddress)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as _</span>)
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ram_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::RamSize</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw">_</span>)
+    <span class="kw">pub fn </span>ram_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.protocol.property(Property::RamSize)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as _</span>)
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flash_start_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::FlashStartAddress</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw">_</span>)
+    <span class="kw">pub fn </span>flash_start_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.protocol.property(Property::FlashStartAddress)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as _</span>)
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flash_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::FlashSize</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw">_</span>)
+    <span class="kw">pub fn </span>flash_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.protocol.property(Property::FlashSize)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as _</span>)
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flash_page_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::FlashPageSize</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw">_</span>)
+    <span class="kw">pub fn </span>flash_page_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.protocol.property(Property::FlashPageSize)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as _</span>)
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flash_sector_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::FlashSectorSize</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw">_</span>)
+    <span class="kw">pub fn </span>flash_sector_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.protocol.property(Property::FlashSectorSize)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as _</span>)
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_packet_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::MaxPacketSize</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw">_</span>)
+    <span class="kw">pub fn </span>max_packet_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.protocol.property(Property::MaxPacketSize)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="kw">as _</span>)
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">available_peripherals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AvailablePeripherals</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">AvailablePeripherals::from_bits_truncate</span>(
-            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::AvailablePeripherals</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+    <span class="kw">pub fn </span>available_peripherals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AvailablePeripherals&gt; {
+        <span class="prelude-val">Ok</span>(AvailablePeripherals::from_bits_truncate(
+            <span class="self">self</span>.protocol.property(Property::AvailablePeripherals)<span class="question-mark">?</span>[<span class="number">0</span>],
         ))
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">available_commands</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AvailableCommands</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">AvailableCommands::from_bits_truncate</span>(
-            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::AvailableCommands</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+    <span class="kw">pub fn </span>available_commands(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AvailableCommands&gt; {
+        <span class="prelude-val">Ok</span>(AvailableCommands::from_bits_truncate(
+            <span class="self">self</span>.protocol.property(Property::AvailableCommands)<span class="question-mark">?</span>[<span class="number">0</span>],
         ))
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pfr_keystore_update_option</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PfrKeystoreUpdateOptions</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::PfrKeystoreUpdateOptions</span>)<span class="question-mark">?</span>;
-        <span class="macro">assert_eq!</span>(<span class="ident">values</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">PfrKeystoreUpdateOptions::from</span>(<span class="ident">values</span>[<span class="number">0</span>]))
+    <span class="kw">pub fn </span>pfr_keystore_update_option(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;PfrKeystoreUpdateOptions&gt; {
+        <span class="kw">let </span>values = <span class="self">self</span>.protocol.property(Property::PfrKeystoreUpdateOptions)<span class="question-mark">?</span>;
+        <span class="macro">assert_eq!</span>(values.len(), <span class="number">1</span>);
+        <span class="prelude-val">Ok</span>(PfrKeystoreUpdateOptions::from(values[<span class="number">0</span>]))
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_writes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::VerifyWrites</span>)<span class="question-mark">?</span>[<span class="number">0</span>] <span class="op">==</span> <span class="number">1</span>)
+    <span class="kw">pub fn </span>verify_writes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.protocol.property(Property::VerifyWrites)<span class="question-mark">?</span>[<span class="number">0</span>] == <span class="number">1</span>)
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flash_locked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">pub fn </span>flash_locked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
         <span class="prelude-val">Ok</span>(
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::FlashSecurityState</span>)<span class="question-mark">?</span>[<span class="number">0</span>] {
-                <span class="number">0x0</span> <span class="op">|</span> <span class="number">0x5AA55AA5</span> =&gt; <span class="bool-val">false</span>,
-                <span class="number">0x1</span> <span class="op">|</span> <span class="number">0xC33CC33C</span> =&gt; <span class="bool-val">true</span>,
-                <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
+            <span class="kw">match </span><span class="self">self</span>.protocol.property(Property::FlashSecurityState)<span class="question-mark">?</span>[<span class="number">0</span>] {
+                <span class="number">0x0 </span>| <span class="number">0x5AA55AA5 </span>=&gt; <span class="bool-val">false</span>,
+                <span class="number">0x1 </span>| <span class="number">0xC33CC33C </span>=&gt; <span class="bool-val">true</span>,
+                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
             },
         )
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">device_uuid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::UniqueDeviceIdent</span>)<span class="question-mark">?</span>;
-        <span class="macro">assert_eq!</span>(<span class="ident">values</span>.<span class="ident">len</span>(), <span class="number">4</span>);
-        <span class="kw">let</span> <span class="ident">wrong_endian</span> <span class="op">=</span>
-            ((<span class="ident">values</span>[<span class="number">3</span>] <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">96</span>) <span class="op">+</span>
-            ((<span class="ident">values</span>[<span class="number">2</span>] <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">64</span>) <span class="op">+</span>
-            ((<span class="ident">values</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">+</span>
-            (<span class="ident">values</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">u128</span>)
-            <span class="comment">// ((u32::from_le_bytes(values[0].to_be_bytes()) as u128) &lt;&lt; 96) +</span>
-            <span class="comment">// ((u32::from_le_bytes(values[1].to_be_bytes()) as u128) &lt;&lt; 64) +</span>
-            <span class="comment">// ((u32::from_le_bytes(values[2].to_be_bytes()) as u128) &lt;&lt; 32) +</span>
-            <span class="comment">// ((u32::from_le_bytes(values[3].to_be_bytes()) as u128))</span>
-        ;
-        <span class="prelude-val">Ok</span>(<span class="ident">u128::from_be_bytes</span>(<span class="ident">wrong_endian</span>.<span class="ident">to_le_bytes</span>()))
+    <span class="kw">pub fn </span>device_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u128&gt; {
+        <span class="kw">let </span>values = <span class="self">self</span>.protocol.property(Property::UniqueDeviceIdent)<span class="question-mark">?</span>;
+        <span class="macro">assert_eq!</span>(values.len(), <span class="number">4</span>);
+        <span class="kw">let </span>wrong_endian =
+            ((values[<span class="number">3</span>] <span class="kw">as </span>u128) &lt;&lt; <span class="number">96</span>) +
+            ((values[<span class="number">2</span>] <span class="kw">as </span>u128) &lt;&lt; <span class="number">64</span>) +
+            ((values[<span class="number">1</span>] <span class="kw">as </span>u128) &lt;&lt; <span class="number">32</span>) +
+            (values[<span class="number">0</span>] <span class="kw">as </span>u128)
+            <span class="comment">// ((u32::from_le_bytes(values[0].to_be_bytes()) as u128) &lt;&lt; 96) +
+            // ((u32::from_le_bytes(values[1].to_be_bytes()) as u128) &lt;&lt; 64) +
+            // ((u32::from_le_bytes(values[2].to_be_bytes()) as u128) &lt;&lt; 32) +
+            // ((u32::from_le_bytes(values[3].to_be_bytes()) as u128))
+        </span>;
+        <span class="prelude-val">Ok</span>(u128::from_be_bytes(wrong_endian.to_le_bytes()))
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">system_uuid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::SystemDeviceIdent</span>)<span class="question-mark">?</span>;
-        <span class="macro">assert_eq!</span>(<span class="ident">values</span>.<span class="ident">len</span>(), <span class="number">2</span>);
-        <span class="prelude-val">Ok</span>(((<span class="ident">values</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">+</span> (<span class="ident">values</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">u64</span>))
+    <span class="kw">pub fn </span>system_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
+        <span class="kw">let </span>values = <span class="self">self</span>.protocol.property(Property::SystemDeviceIdent)<span class="question-mark">?</span>;
+        <span class="macro">assert_eq!</span>(values.len(), <span class="number">2</span>);
+        <span class="prelude-val">Ok</span>(((values[<span class="number">1</span>] <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>) + (values[<span class="number">0</span>] <span class="kw">as </span>u64))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc_check_status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Error::from</span>(
-            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::CrcCheckStatus</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+    <span class="kw">pub fn </span>crc_check_status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Error&gt; {
+        <span class="prelude-val">Ok</span>(Error::from(
+            <span class="self">self</span>.protocol.property(Property::CrcCheckStatus)<span class="question-mark">?</span>[<span class="number">0</span>],
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reserved_regions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::ReservedRegions</span>)<span class="question-mark">?</span>;
-        <span class="macro">assert_eq!</span>(<span class="ident">values</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">2</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pairs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">pair</span> <span class="kw">in</span> <span class="ident">values</span>.<span class="ident">chunks_exact</span>(<span class="number">2</span>) {
-            <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">pair</span>[<span class="number">0</span>];
-            <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">pair</span>[<span class="number">1</span>];
-            <span class="macro">assert!</span>(<span class="ident">right</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">left</span>);
-            <span class="kw">if</span> <span class="ident">right</span> <span class="op">&gt;</span> <span class="ident">left</span> {
-                <span class="ident">pairs</span>.<span class="ident">push</span>((<span class="ident">left</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">right</span> <span class="kw">as</span> <span class="ident">usize</span>));
+    <span class="kw">pub fn </span>reserved_regions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(usize, usize)&gt;&gt; {
+        <span class="kw">let </span>values = <span class="self">self</span>.protocol.property(Property::ReservedRegions)<span class="question-mark">?</span>;
+        <span class="macro">assert_eq!</span>(values.len() % <span class="number">2</span>, <span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pairs = Vec::new();
+        <span class="kw">for </span>pair <span class="kw">in </span>values.chunks_exact(<span class="number">2</span>) {
+            <span class="kw">let </span>left = pair[<span class="number">0</span>];
+            <span class="kw">let </span>right = pair[<span class="number">1</span>];
+            <span class="macro">assert!</span>(right &gt;= left);
+            <span class="kw">if </span>right &gt; left {
+                pairs.push((left <span class="kw">as </span>usize, right <span class="kw">as </span>usize));
             }
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">pairs</span>)
+        <span class="prelude-val">Ok</span>(pairs)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">irq_notification_pin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IrqNotificationPin</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">IrqNotificationPin::from</span>(
-            <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">Property::IrqNotificationPin</span>)<span class="question-mark">?</span>[<span class="number">0</span>],
+    <span class="kw">pub fn </span>irq_notification_pin(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;IrqNotificationPin&gt; {
+        <span class="prelude-val">Ok</span>(IrqNotificationPin::from(
+            <span class="self">self</span>.protocol.property(Property::IrqNotificationPin)<span class="question-mark">?</span>[<span class="number">0</span>],
         ))
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;with-device&quot;</span>, <span class="ident">test</span>))]</span>
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="attribute">#[cfg(all(feature = <span class="string">&quot;with-device&quot;</span>, test))]
+    </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;with-device&quot;</span>, <span class="ident">test</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">available_commands</span>() {
-        <span class="macro">assert_eq!</span>(<span class="ident">AvailableCommands::ERASE_FLASH_ALL</span>.<span class="ident">bits</span>, (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>));
+    <span class="attribute">#[cfg(all(feature = <span class="string">&quot;with-device&quot;</span>, test))]
+    </span><span class="kw">fn </span>available_commands() {
+        <span class="macro">assert_eq!</span>(AvailableCommands::ERASE_FLASH_ALL.bits, (<span class="number">1 </span>&lt;&lt; <span class="number">2</span>));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

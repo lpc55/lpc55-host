@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/bootloader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bootloader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../lpc55/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/bootloader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bootloader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../lpc55/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -345,347 +339,346 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
-</pre><pre class="rust"><code><span class="doccomment">//! The bootloader interface</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Construct a `Bootloader` from a VID/PID pair (optionally a UUID to disambiguate),</span>
-<span class="doccomment">//! then call its methods.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The bootloader interface
+//!
+//! Construct a `Bootloader` from a VID/PID pair (optionally a UUID to disambiguate),
+//! then call its methods.
 
-<span class="kw">use</span> <span class="ident">core::fmt</span>;
+</span><span class="kw">use </span>core::fmt;
 
-<span class="kw">use</span> <span class="ident">anyhow::anyhow</span>;
-<span class="kw">use</span> <span class="ident">enum_iterator::IntoEnumIterator</span>;
-<span class="kw">use</span> <span class="ident">hidapi::HidApi</span>;
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">uuid::Uuid</span>;
+<span class="kw">use </span>anyhow::anyhow;
+<span class="kw">use </span>enum_iterator::all;
+<span class="kw">use </span>hidapi::HidApi;
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>uuid::Uuid;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">command</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">command</span>::{<span class="ident">Command</span>, <span class="ident">KeystoreOperation</span>, <span class="ident">Response</span>};
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">property</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">property</span>::{<span class="ident">GetProperties</span>, <span class="ident">Properties</span>, <span class="ident">Property</span>};
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">protocol</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">provision</span>;
-<span class="kw">use</span> <span class="ident">protocol::Protocol</span>;
+<span class="kw">pub mod </span>command;
+<span class="kw">pub use </span>command::{Command, KeystoreOperation, Response};
+<span class="kw">pub mod </span>error;
+<span class="kw">pub mod </span>property;
+<span class="kw">pub use </span>property::{GetProperties, Properties, Property};
+<span class="kw">pub mod </span>protocol;
+<span class="kw">pub mod </span>provision;
+<span class="kw">use </span>protocol::Protocol;
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UuidSelectable</span>: <span class="ident">Sized</span> {
-    <span class="doccomment">/// Returns the UUID associated with the thing, if it has a UUID.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note: This may modify the thing as it might need to communicate with it.</span>
-    <span class="kw">fn</span> <span class="ident">try_uuid</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">Uuid</span><span class="op">&gt;</span>;
+<span class="kw">pub trait </span>UuidSelectable: Sized {
+    <span class="doccomment">/// Returns the UUID associated with the thing, if it has a UUID.
+    ///
+    /// Note: This may modify the thing as it might need to communicate with it.
+    </span><span class="kw">fn </span>try_uuid(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;Uuid&gt;;
 
-    <span class="doccomment">/// Returns all of the available things.</span>
-    <span class="kw">fn</span> <span class="ident">list</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Returns all of the available things.
+    </span><span class="kw">fn </span>list() -&gt; Vec&lt;<span class="self">Self</span>&gt;;
 
-    <span class="doccomment">/// Returns the thing with the given UUID.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Default implementation; replace for better error messages.</span>
-    <span class="kw">fn</span> <span class="ident">having</span>(<span class="ident">uuid</span>: <span class="ident">Uuid</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::list</span>()
-            .<span class="ident">into_iter</span>()
-            <span class="comment">// The Err variant is preventing a simple `Ok(uuid) == entry.try_uuid()`,</span>
-            <span class="comment">// as there is no Eq on anyhow::Error.</span>
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">entry</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">entry_uuid</span>) <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">try_uuid</span>() {
-                    <span class="kw">if</span> <span class="ident">entry_uuid</span> <span class="op">==</span> <span class="ident">uuid</span> {
-                        <span class="prelude-val">Some</span>(<span class="ident">entry</span>)
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">None</span>
-                    }
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                }
+    <span class="doccomment">/// Returns the thing with the given UUID.
+    ///
+    /// Default implementation; replace for better error messages.
+    </span><span class="kw">fn </span>having(uuid: Uuid) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>candidates: Vec&lt;<span class="self">Self</span>&gt; = <span class="self">Self</span>::list()
+            .into_iter()
+            <span class="comment">// The Err variant is preventing a simple `Ok(uuid) == entry.try_uuid()`,
+            // as there is no Eq on anyhow::Error.
+            </span>.filter_map(|<span class="kw-2">mut </span>entry| {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry_uuid) = entry.try_uuid() {
+                    <span class="kw">if </span>entry_uuid == uuid {
+                        <span class="prelude-val">Some</span>(entry)
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>}
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
             })
-            .<span class="ident">collect</span>();
-        <span class="kw">match</span> <span class="ident">candidates</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;No candidate has UUID {:X}&quot;</span>, <span class="ident">uuid</span>.<span class="ident">to_simple</span>())),
-            <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">candidates</span>.<span class="ident">remove</span>(<span class="number">0</span>)),
-            <span class="ident">n</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(
+            .collect();
+        <span class="kw">match </span>candidates.len() {
+            <span class="number">0 </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;No candidate has UUID {:X}&quot;</span>, uuid.simple())),
+            <span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(candidates.remove(<span class="number">0</span>)),
+            n =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(
                 <span class="string">&quot;Multiple ({}) candidates have UUID {:X}&quot;</span>,
-                <span class="ident">n</span>,
-                <span class="ident">uuid</span>.<span class="ident">to_simple</span>()
+                n,
+                uuid.simple()
             )),
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bootloader</span> {
-    <span class="kw">pub</span> <span class="ident">protocol</span>: <span class="ident">Protocol</span>,
-    <span class="comment">// move around; also &quot;new&quot; should scan the device_list iterator</span>
-    <span class="comment">// to pull out all the info</span>
-    <span class="kw">pub</span> <span class="ident">vid</span>: <span class="ident">u16</span>,
-    <span class="kw">pub</span> <span class="ident">pid</span>: <span class="ident">u16</span>,
-    <span class="kw">pub</span> <span class="ident">uuid</span>: <span class="ident">u128</span>,
+<span class="kw">pub struct </span>Bootloader {
+    <span class="kw">pub </span>protocol: Protocol,
+    <span class="comment">// move around; also &quot;new&quot; should scan the device_list iterator
+    // to pull out all the info
+    </span><span class="kw">pub </span>vid: u16,
+    <span class="kw">pub </span>pid: u16,
+    <span class="kw">pub </span>uuid: u128,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Bootloader</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Bootloader&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;vid&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">hexstr!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">vid</span>.<span class="ident">to_be_bytes</span>()))
-            .<span class="ident">field</span>(<span class="string">&quot;pid&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">hexstr!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pid</span>.<span class="ident">to_be_bytes</span>()))
-            .<span class="ident">field</span>(<span class="string">&quot;uuid&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">hexstr!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">uuid</span>.<span class="ident">to_be_bytes</span>()))
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Bootloader {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Bootloader&quot;</span>)
+            .field(<span class="string">&quot;vid&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">hexstr!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.vid.to_be_bytes()))
+            .field(<span class="string">&quot;pid&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">hexstr!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.pid.to_be_bytes()))
+            .field(<span class="string">&quot;uuid&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">hexstr!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.uuid.to_be_bytes()))
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Bootloader</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">fmt::Debug::fmt</span>(<span class="self">self</span>, <span class="ident">f</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Bootloader {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="self">self</span>, f)
     }
 }
 
-<span class="doccomment">/// Bootloader commands return a &quot;status&quot;. The non-zero statii can be split</span>
-<span class="doccomment">/// as `100*group + code`. We map these groups into enum variants, containing</span>
-<span class="doccomment">/// the code interpreted as an error the area.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// TODO: To implement StdError via thiserror::Error, we need to</span>
-<span class="doccomment">/// add error messages to all the error variants.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-    <span class="ident">Generic</span>(<span class="ident">error::GenericError</span>),
-    <span class="ident">FlashDriver</span>(<span class="ident">error::FlashDriverError</span>),
-    <span class="ident">PropertyStore</span>(<span class="ident">error::PropertyStoreError</span>),
-    <span class="ident">CrcChecker</span>(<span class="ident">error::CrcCheckerError</span>),
-    <span class="ident">SbLoader</span>(<span class="ident">error::SbLoaderError</span>),
-    <span class="ident">Unknown</span>(<span class="ident">u32</span>),
+<span class="doccomment">/// Bootloader commands return a &quot;status&quot;. The non-zero statii can be split
+/// as `100*group + code`. We map these groups into enum variants, containing
+/// the code interpreted as an error the area.
+///
+/// TODO: To implement StdError via thiserror::Error, we need to
+/// add error messages to all the error variants.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+</span><span class="kw">pub enum </span>Error {
+    Generic(error::GenericError),
+    FlashDriver(error::FlashDriverError),
+    PropertyStore(error::PropertyStoreError),
+    CrcChecker(error::CrcCheckerError),
+    SbLoader(error::SbLoaderError),
+    Unknown(u32),
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, Error&gt;;
 
-<span class="kw">impl</span> <span class="ident">UuidSelectable</span> <span class="kw">for</span> <span class="ident">Bootloader</span> {
-    <span class="kw">fn</span> <span class="ident">try_uuid</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">Uuid</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">uuid</span>())
+<span class="kw">impl </span>UuidSelectable <span class="kw">for </span>Bootloader {
+    <span class="kw">fn </span>try_uuid(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;Uuid&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.uuid())
     }
 
-    <span class="kw">fn</span> <span class="ident">having</span>(<span class="ident">uuid</span>: <span class="ident">Uuid</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::list</span>()
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">bootloader</span><span class="op">|</span> <span class="ident">bootloader</span>.<span class="ident">uuid</span>() <span class="op">==</span> <span class="ident">uuid</span>)
-            .<span class="ident">collect</span>();
-        <span class="kw">match</span> <span class="ident">candidates</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(
-                <span class="string">&quot;No usable bootloader has UUID {:X}&quot;</span>,
-                <span class="ident">uuid</span>.<span class="ident">to_simple</span>()
-            )),
-            <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">candidates</span>.<span class="ident">remove</span>(<span class="number">0</span>)),
-            <span class="ident">n</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(
+    <span class="kw">fn </span>having(uuid: Uuid) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>candidates: Vec&lt;<span class="self">Self</span>&gt; = <span class="self">Self</span>::list()
+            .into_iter()
+            .filter(|bootloader| bootloader.uuid() == uuid)
+            .collect();
+        <span class="kw">match </span>candidates.len() {
+            <span class="number">0 </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;No usable bootloader has UUID {:X}&quot;</span>, uuid.simple())),
+            <span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(candidates.remove(<span class="number">0</span>)),
+            n =&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(
                 <span class="string">&quot;Multiple ({}) bootloaders have UUID {:X}&quot;</span>,
-                <span class="ident">n</span>,
-                <span class="ident">uuid</span>.<span class="ident">to_simple</span>()
+                n,
+                uuid.simple()
             )),
         }
     }
 
-    <span class="doccomment">/// Returns a vector of all HID devices that appear to be ROM bootloaders</span>
-    <span class="kw">fn</span> <span class="ident">list</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">api</span> <span class="op">=</span> <span class="ident">HidApi::new</span>().<span class="ident">unwrap</span>();
-        <span class="ident">api</span>.<span class="ident">device_list</span>()
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">device_info</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">vid</span> <span class="op">=</span> <span class="ident">device_info</span>.<span class="ident">vendor_id</span>();
-                <span class="kw">let</span> <span class="ident">pid</span> <span class="op">=</span> <span class="ident">device_info</span>.<span class="ident">product_id</span>();
+    <span class="doccomment">/// Returns a vector of all HID devices that appear to be ROM bootloaders
+    </span><span class="kw">fn </span>list() -&gt; Vec&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>api = HidApi::new().unwrap();
+        api.device_list()
+            .filter_map(|device_info| {
+                <span class="kw">let </span>vid = device_info.vendor_id();
+                <span class="kw">let </span>pid = device_info.product_id();
 
-                <span class="comment">// TODO: Check if these checks are globally valid.</span>
-                <span class="comment">// Perhaps drop them completely?</span>
-                <span class="comment">// The intent is to avoid sending the UUID query to completely unrelated devices.</span>
-                <span class="kw">if</span> <span class="ident">device_info</span>.<span class="ident">manufacturer_string</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;NXP SEMICONDUCTOR INC.&quot;</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+                <span class="comment">// TODO: Check if these checks are globally valid.
+                // Perhaps drop them completely?
+                // The intent is to avoid sending the UUID query to completely unrelated devices.
+                </span><span class="kw">if </span>device_info.manufacturer_string() != <span class="prelude-val">Some</span>(<span class="string">&quot;NXP SEMICONDUCTOR INC.&quot;</span>) {
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
-                <span class="kw">if</span> <span class="ident">device_info</span>.<span class="ident">product_string</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;USB COMPOSITE DEVICE&quot;</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+                <span class="kw">if </span>device_info.product_string() != <span class="prelude-val">Some</span>(<span class="string">&quot;USB COMPOSITE DEVICE&quot;</span>) {
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
-                <span class="ident">device_info</span>
-                    .<span class="ident">open_device</span>(<span class="kw-2">&amp;</span><span class="ident">api</span>)
-                    .<span class="ident">ok</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">device</span><span class="op">|</span> (<span class="ident">device</span>, <span class="ident">vid</span>, <span class="ident">pid</span>))
+                device_info
+                    .open_device(<span class="kw-2">&amp;</span>api)
+                    .ok()
+                    .map(|device| (device, vid, pid))
             })
-            .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">device</span>, <span class="ident">vid</span>, <span class="ident">pid</span>)<span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">protocol</span> <span class="op">=</span> <span class="ident">Protocol::new</span>(<span class="ident">device</span>);
-                <span class="ident">GetProperties</span> {
-                    <span class="ident">protocol</span>: <span class="kw-2">&amp;</span><span class="ident">protocol</span>,
+            .filter_map(|(device, vid, pid)| {
+                <span class="kw">let </span>protocol = Protocol::new(device);
+                GetProperties {
+                    protocol: <span class="kw-2">&amp;</span>protocol,
                 }
-                .<span class="ident">device_uuid</span>()
-                .<span class="ident">ok</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">uuid</span><span class="op">|</span> <span class="self">Self</span> {
-                    <span class="ident">protocol</span>,
-                    <span class="ident">vid</span>,
-                    <span class="ident">pid</span>,
-                    <span class="ident">uuid</span>,
+                .device_uuid()
+                .ok()
+                .map(|uuid| <span class="self">Self </span>{
+                    protocol,
+                    vid,
+                    pid,
+                    uuid,
                 })
             })
-            .<span class="ident">collect</span>()
+            .collect()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Bootloader</span> {
-    <span class="kw">fn</span> <span class="ident">uuid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Uuid</span> {
-        <span class="ident">Uuid::from_u128</span>(<span class="self">self</span>.<span class="ident">uuid</span>)
+<span class="kw">impl </span>Bootloader {
+    <span class="kw">fn </span>uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Uuid {
+        Uuid::from_u128(<span class="self">self</span>.uuid)
     }
 
-    <span class="doccomment">/// Select a unique ROM bootloader with the given VID and PID.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_new</span>(<span class="ident">vid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>, <span class="ident">pid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::try_find</span>(<span class="ident">vid</span>, <span class="ident">pid</span>, <span class="prelude-val">None</span>)
+    <span class="doccomment">/// Select a unique ROM bootloader with the given VID and PID.
+    </span><span class="kw">pub fn </span>try_new(vid: <span class="prelude-ty">Option</span>&lt;u16&gt;, pid: <span class="prelude-ty">Option</span>&lt;u16&gt;) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="self">Self</span>::try_find(vid, pid, <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// Attempt to find a unique ROM bootloader with the given VID, PID and UUID.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_find</span>(
-        <span class="ident">vid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-        <span class="ident">pid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-        <span class="ident">uuid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Uuid</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bootloaders</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::find</span>(<span class="ident">vid</span>, <span class="ident">pid</span>, <span class="ident">uuid</span>);
-        <span class="kw">if</span> <span class="ident">bootloaders</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
+    <span class="doccomment">/// Attempt to find a unique ROM bootloader with the given VID, PID and UUID.
+    </span><span class="kw">pub fn </span>try_find(
+        vid: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+        pid: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+        uuid: <span class="prelude-ty">Option</span>&lt;Uuid&gt;,
+    ) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>bootloaders = <span class="self">Self</span>::find(vid, pid, uuid);
+        <span class="kw">if </span>bootloaders.len() &gt; <span class="number">1 </span>{
             <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;Muliple matching bootloaders found&quot;</span>))
-        } <span class="kw">else</span> {
-            <span class="ident">bootloaders</span>
-                .<span class="ident">pop</span>()
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">anyhow!</span>(<span class="string">&quot;No matching bootloader found&quot;</span>))
+        } <span class="kw">else </span>{
+            bootloaders
+                .pop()
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;No matching bootloader found&quot;</span>))
         }
     }
 
-    <span class="doccomment">/// Finds all ROM bootloader with the given VID, PID and UUID.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">vid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>, <span class="ident">pid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>, <span class="ident">uuid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Uuid</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::list</span>()
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">bootloader</span><span class="op">|</span> <span class="ident">vid</span>.<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">vid</span><span class="op">|</span> <span class="ident">vid</span> <span class="op">==</span> <span class="ident">bootloader</span>.<span class="ident">vid</span>))
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">bootloader</span><span class="op">|</span> <span class="ident">pid</span>.<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">pid</span><span class="op">|</span> <span class="ident">pid</span> <span class="op">==</span> <span class="ident">bootloader</span>.<span class="ident">pid</span>))
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">bootloader</span><span class="op">|</span> <span class="ident">uuid</span>.<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">uuid</span><span class="op">|</span> <span class="ident">uuid</span>.<span class="ident">as_u128</span>() <span class="op">==</span> <span class="ident">bootloader</span>.<span class="ident">uuid</span>))
-            .<span class="ident">collect</span>()
+    <span class="doccomment">/// Finds all ROM bootloader with the given VID, PID and UUID.
+    </span><span class="kw">pub fn </span>find(vid: <span class="prelude-ty">Option</span>&lt;u16&gt;, pid: <span class="prelude-ty">Option</span>&lt;u16&gt;, uuid: <span class="prelude-ty">Option</span>&lt;Uuid&gt;) -&gt; Vec&lt;<span class="self">Self</span>&gt; {
+        <span class="self">Self</span>::list()
+            .into_iter()
+            .filter(|bootloader| vid.map_or(<span class="bool-val">true</span>, |vid| vid == bootloader.vid))
+            .filter(|bootloader| pid.map_or(<span class="bool-val">true</span>, |pid| pid == bootloader.pid))
+            .filter(|bootloader| uuid.map_or(<span class="bool-val">true</span>, |uuid| uuid.as_u128() == bootloader.uuid))
+            .collect()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="ident">Property::into_enum_iter</span>() {
-            <span class="comment">// println!(&quot;\n{:?}&quot;, property);</span>
-            <span class="self">self</span>.<span class="ident">property</span>(<span class="ident">property</span>).<span class="ident">ok</span>();
+    <span class="kw">pub fn </span>info(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">for </span>property <span class="kw">in </span>all::&lt;Property&gt;() {
+            <span class="comment">// println!(&quot;\n{:?}&quot;, property);
+            </span><span class="self">self</span>.property(property).ok();
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reboot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub fn </span>reboot(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="macro">info!</span>(<span class="string">&quot;calling Command::Reset&quot;</span>);
-        <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command::Reset</span>).<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
+        <span class="self">self</span>.protocol.call(<span class="kw-2">&amp;</span>Command::Reset).expect(<span class="string">&quot;success&quot;</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enroll_puf</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// first time i ran this:</span>
-        <span class="comment">// 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000030 FF5F0030 00000020 FF5F0020 00000000 00000000</span>
-        <span class="comment">// second time i ran this:</span>
-        <span class="comment">// 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
-        <span class="self">self</span>.<span class="ident">protocol</span>
-            .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command::Keystore</span>(<span class="ident">KeystoreOperation::Enroll</span>))
-            .<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
+    <span class="kw">pub fn </span>enroll_puf(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// first time i ran this:
+        // 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000030 FF5F0030 00000020 FF5F0020 00000000 00000000
+        // second time i ran this:
+        // 03000C00 A0000002 00000000 15000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+        </span><span class="self">self</span>.protocol
+            .call(<span class="kw-2">&amp;</span>Command::Keystore(KeystoreOperation::Enroll))
+            .expect(<span class="string">&quot;success&quot;</span>);
         <span class="macro">info!</span>(<span class="string">&quot;PUF enrolled&quot;</span>);
     }
 
-    <span class="doccomment">/// The reason for this wrapper is that the device aborts early if more than 512 bytes are</span>
-    <span class="doccomment">/// requested. Unclear why it does this...</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is a traffic trace (requesting all of PFR in one go), removing the &quot;surplus junk&quot;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// --&gt; 01002000 03000002 00DE0900 000E0000 00000000 00000000 00000000 00000000 00000000</span>
-    <span class="doccomment">/// &lt;-- 03000C00 A3010002 00000000 000E0000</span>
-    <span class="doccomment">/// &lt;-- 04003800 00000000 02000000 02000000 02000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
-    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
-    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
-    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
-    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 02000000 00000000 00000000 00000000 00000000 00000000</span>
-    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
-    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
-    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</span>
-    <span class="doccomment">/// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 ECE6A668 2922E9CC F462A95F DF81E180 E1528642 7C520098</span>
-    <span class="doccomment">/// &lt;-- 04000000</span>
-    <span class="doccomment">/// &lt;-- 03000C00 A0000002 65000000 03000000</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The error is 101 = 100 + 1 = (supposedly) a flash driver &quot;alignment&quot; error (?!)</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The interesting thing is that at the point where the device aborts, there are 8 bytes</span>
-    <span class="doccomment">/// remaining, which it otherwise produces in a final</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// &lt;-- 04000800 2C80BA51 B067AF3C</span>
-    <span class="doccomment">/// &lt;-- 03000C00 A0000002 00000000 03000000</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// TODO: should we just enter our desired length anyway, and handle such situations?</span>
-    <span class="doccomment">/// As in retry at the new index, with the reduced length? Instead of using a fixed 512B chunking?</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// TODO: Need to expect errors such as: `Response status = 139 (0x8b) kStatus_FLASH_NmpaUpdateNotAllowed`</span>
-    <span class="doccomment">/// This happens with `read-memory $((0x0009_FC70)) 16`, which would be the UUID</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// TODO: Need to expect errors such as: `Response status = 10200 (0x27d8) kStatusMemoryRangeInvalid`</span>
-    <span class="doccomment">/// This happens with `read-memory $((0x5000_0FFC)) 1`, which would be the DIEID (for chip rev)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_memory</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">length</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">length</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">address</span>;
-        <span class="kw">while</span> <span class="ident">remaining</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">core::cmp::min</span>(<span class="ident">remaining</span>, <span class="number">512</span>);
-            <span class="ident">data</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">read_memory_at_most_512</span>(<span class="ident">address</span>, <span class="ident">length</span>));
-            <span class="ident">remaining</span> <span class="op">-</span><span class="op">=</span> <span class="ident">length</span>;
-            <span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="ident">length</span>;
+    <span class="doccomment">/// The reason for this wrapper is that the device aborts early if more than 512 bytes are
+    /// requested. Unclear why it does this...
+    ///
+    /// This is a traffic trace (requesting all of PFR in one go), removing the &quot;surplus junk&quot;
+    ///
+    /// --&gt; 01002000 03000002 00DE0900 000E0000 00000000 00000000 00000000 00000000 00000000
+    /// &lt;-- 03000C00 A3010002 00000000 000E0000
+    /// &lt;-- 04003800 00000000 02000000 02000000 02000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 02000000 00000000 00000000 00000000 00000000 00000000
+    /// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    /// &lt;-- 04003800 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 ECE6A668 2922E9CC F462A95F DF81E180 E1528642 7C520098
+    /// &lt;-- 04000000
+    /// &lt;-- 03000C00 A0000002 65000000 03000000
+    ///
+    /// The error is 101 = 100 + 1 = (supposedly) a flash driver &quot;alignment&quot; error (?!)
+    ///
+    /// The interesting thing is that at the point where the device aborts, there are 8 bytes
+    /// remaining, which it otherwise produces in a final
+    ///
+    /// &lt;-- 04000800 2C80BA51 B067AF3C
+    /// &lt;-- 03000C00 A0000002 00000000 03000000
+    ///
+    /// TODO: should we just enter our desired length anyway, and handle such situations?
+    /// As in retry at the new index, with the reduced length? Instead of using a fixed 512B chunking?
+    ///
+    /// TODO: Need to expect errors such as: `Response status = 139 (0x8b) kStatus_FLASH_NmpaUpdateNotAllowed`
+    /// This happens with `read-memory $((0x0009_FC70)) 16`, which would be the UUID
+    ///
+    /// TODO: Need to expect errors such as: `Response status = 10200 (0x27d8) kStatusMemoryRangeInvalid`
+    /// This happens with `read-memory $((0x5000_0FFC)) 1`, which would be the DIEID (for chip rev)
+    </span><span class="kw">pub fn </span>read_memory(<span class="kw-2">&amp;</span><span class="self">self</span>, address: usize, length: usize) -&gt; Vec&lt;u8&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>remaining = length;
+        <span class="kw">let </span><span class="kw-2">mut </span>address = address;
+        <span class="kw">while </span>remaining &gt; <span class="number">0 </span>{
+            <span class="kw">let </span>length = core::cmp::min(remaining, <span class="number">512</span>);
+            data.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.read_memory_at_most_512(address, length));
+            remaining -= length;
+            address += length;
         }
-        <span class="ident">data</span>
+        data
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_memory_at_most_512</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">length</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">protocol</span>
-            .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command::ReadMemory</span> { <span class="ident">address</span>, <span class="ident">length</span> })
-            .<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Response::ReadMemory</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">response</span> {
-            <span class="ident">data</span>
-        } <span class="kw">else</span> {
+    <span class="kw">pub fn </span>read_memory_at_most_512(<span class="kw-2">&amp;</span><span class="self">self</span>, address: usize, length: usize) -&gt; Vec&lt;u8&gt; {
+        <span class="kw">let </span>response = <span class="self">self
+            </span>.protocol
+            .call(<span class="kw-2">&amp;</span>Command::ReadMemory { address, length })
+            .expect(<span class="string">&quot;success&quot;</span>);
+        <span class="kw">if let </span>Response::ReadMemory(data) = response {
+            data
+        } <span class="kw">else </span>{
             <span class="macro">todo!</span>();
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">receive_sb_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) {
-        <span class="kw">let</span> <span class="ident">_response</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">protocol</span>
-            .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command::ReceiveSbFile</span> {
-                <span class="ident">data</span>: <span class="ident">data</span>.<span class="ident">to_vec</span>(),
-            })
-            .<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
+    <span class="kw">pub fn </span>receive_sb_file&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8], progress: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">dyn </span>Fn(usize)&gt;) {
+        <span class="kw">let </span>_response = <span class="self">self
+            </span>.protocol
+            .call_progress(
+                <span class="kw-2">&amp;</span>Command::ReceiveSbFile {
+                    data: data.to_vec(),
+                },
+                progress,
+            )
+            .expect(<span class="string">&quot;success&quot;</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">erase_flash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">length</span>: <span class="ident">usize</span>) {
-        <span class="kw">let</span> <span class="ident">_response</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">protocol</span>
-            .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command::EraseFlash</span> { <span class="ident">address</span>, <span class="ident">length</span> })
-            .<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
+    <span class="kw">pub fn </span>erase_flash(<span class="kw-2">&amp;</span><span class="self">self</span>, address: usize, length: usize) {
+        <span class="kw">let </span>_response = <span class="self">self
+            </span>.protocol
+            .call(<span class="kw-2">&amp;</span>Command::EraseFlash { address, length })
+            .expect(<span class="string">&quot;success&quot;</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_memory</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">_response</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">protocol</span>
-            .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">Command::WriteMemory</span> { <span class="ident">address</span>, <span class="ident">data</span> })
-            .<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
+    <span class="kw">pub fn </span>write_memory(<span class="kw-2">&amp;</span><span class="self">self</span>, address: usize, data: Vec&lt;u8&gt;) {
+        <span class="kw">let </span>_response = <span class="self">self
+            </span>.protocol
+            .call(<span class="kw-2">&amp;</span>Command::WriteMemory { address, data })
+            .expect(<span class="string">&quot;success&quot;</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">property</span>: <span class="ident">property::Property</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">property</span>(<span class="ident">property</span>)
+    <span class="kw">fn </span>property(<span class="kw-2">&amp;</span><span class="self">self</span>, property: property::Property) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u32&gt;&gt; {
+        <span class="self">self</span>.protocol.property(property)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">properties</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">property::GetProperties</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="ident">GetProperties</span> {
-            <span class="ident">protocol</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">protocol</span>,
+    <span class="kw">pub fn </span>properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; property::GetProperties&lt;<span class="lifetime">&#39;_</span>&gt; {
+        GetProperties {
+            protocol: <span class="kw-2">&amp;</span><span class="self">self</span>.protocol,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_properties</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Properties</span> {
-        <span class="self">self</span>.<span class="ident">properties</span>().<span class="ident">all</span>()
+    <span class="kw">pub fn </span>all_properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Properties {
+        <span class="self">self</span>.properties().all()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_command</span>(
+    <span class="kw">pub fn </span>run_command(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">cmd</span>: <span class="ident">Command</span>,
-    ) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">command::Response</span>, <span class="ident">protocol::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">protocol</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">cmd</span>)
+        cmd: Command,
+    ) -&gt; std::result::Result&lt;command::Response, protocol::Error&gt; {
+        <span class="self">self</span>.protocol.call(<span class="kw-2">&amp;</span>cmd)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;with-device&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">fn</span> <span class="ident">all_properties</span>() {
-    <span class="comment">// let (vid, pid) = (0x1fc9, 0x0021);</span>
-    <span class="kw">let</span> (<span class="ident">vid</span>, <span class="ident">pid</span>) <span class="op">=</span> (<span class="number">0x1209</span>, <span class="number">0xb000</span>);
-    <span class="kw">let</span> <span class="ident">bootloader</span> <span class="op">=</span> <span class="ident">Bootloader::try_new</span>(<span class="prelude-val">Some</span>(<span class="ident">vid</span>), <span class="prelude-val">Some</span>(<span class="ident">pid</span>)).<span class="ident">unwrap</span>();
-    <span class="macro">insta::assert_debug_snapshot!</span>(<span class="ident">bootloader</span>.<span class="ident">all_properties</span>());
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;with-device&quot;</span>, test))]
+</span><span class="kw">fn </span>all_properties() {
+    <span class="comment">// let (vid, pid) = (0x1fc9, 0x0021);
+    </span><span class="kw">let </span>(vid, pid) = (<span class="number">0x1209</span>, <span class="number">0xb000</span>);
+    <span class="kw">let </span>bootloader = Bootloader::try_new(<span class="prelude-val">Some</span>(vid), <span class="prelude-val">Some</span>(pid)).unwrap();
+    <span class="macro">insta::assert_debug_snapshot!</span>(bootloader.all_properties());
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

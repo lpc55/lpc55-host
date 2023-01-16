@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/bootloader/command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/bootloader/command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -604,532 +598,520 @@
 <span id="598">598</span>
 <span id="599">599</span>
 <span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::convert::TryFrom</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::convert::TryFrom;
 
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::property::Property</span>;
+<span class="kw">use </span><span class="kw">super</span>::property::Property;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;cmd&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Command</span> {
-    <span class="ident">EraseFlashAll</span>,
-    <span class="ident">EraseFlash</span> {
-        <span class="ident">address</span>: <span class="ident">usize</span>,
-        <span class="ident">length</span>: <span class="ident">usize</span>,
+<span class="attribute">#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[serde(tag = <span class="string">&quot;cmd&quot;</span>)]
+</span><span class="kw">pub enum </span>Command {
+    EraseFlashAll,
+    EraseFlash {
+        address: usize,
+        length: usize,
     },
-    <span class="ident">ReadMemory</span> {
-        <span class="ident">address</span>: <span class="ident">usize</span>,
-        <span class="ident">length</span>: <span class="ident">usize</span>,
+    ReadMemory {
+        address: usize,
+        length: usize,
     },
-    <span class="ident">WriteMemory</span> {
-        <span class="ident">address</span>: <span class="ident">usize</span>,
-        <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+    WriteMemory {
+        address: usize,
+        data: Vec&lt;u8&gt;,
     },
-    <span class="doccomment">/// Converts the words to little-endian, then delegates to `WriteMemory`</span>
-    <span class="ident">WriteMemoryWords</span> {
-        <span class="ident">address</span>: <span class="ident">usize</span>,
-        <span class="ident">words</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Converts the words to little-endian, then delegates to `WriteMemory`
+    </span>WriteMemoryWords {
+        address: usize,
+        words: Vec&lt;u32&gt;,
     },
-    <span class="ident">FillMemory</span>,
-    <span class="doccomment">/// cf. &lt;https://www.nxp.com/docs/en/application-note/AN12527.pdf&gt;</span>
-    <span class="ident">ConfigureMemory</span> {
-        <span class="ident">address</span>: <span class="ident">usize</span>,
+    FillMemory,
+    <span class="doccomment">/// cf. &lt;https://www.nxp.com/docs/en/application-note/AN12527.pdf&gt;
+    </span>ConfigureMemory {
+        address: usize,
     },
-    <span class="ident">FlashSecurityDisable</span>,
-    <span class="comment">// there is actually a second parameter, Memory ID</span>
-    <span class="comment">// 0 = internal flash</span>
-    <span class="comment">// 1 = QSPI0 memory (unused for LPC55)</span>
-    <span class="ident">GetProperty</span>(<span class="ident">Property</span>),
-    <span class="ident">ReceiveSbFile</span> {
-        <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+    FlashSecurityDisable,
+    <span class="comment">// there is actually a second parameter, Memory ID
+    // 0 = internal flash
+    // 1 = QSPI0 memory (unused for LPC55)
+    </span>GetProperty(Property),
+    ReceiveSbFile {
+        data: Vec&lt;u8&gt;,
     },
-    <span class="ident">Call</span>,
-    <span class="ident">Reset</span>,
-    <span class="ident">FlashReadResource</span>,
-    <span class="ident">Keystore</span>(<span class="ident">KeystoreOperation</span>),
+    Call,
+    Reset,
+    FlashReadResource,
+    Keystore(KeystoreOperation),
 }
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(
-    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">enum_iterator::IntoEnumIterator</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>,
-)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CommandTag</span> {
-    <span class="ident">EraseFlashAll</span> <span class="op">=</span> <span class="number">0x01</span>,
-    <span class="ident">EraseFlash</span> <span class="op">=</span> <span class="number">0x02</span>,
-    <span class="ident">ReadMemory</span> <span class="op">=</span> <span class="number">0x03</span>,
-    <span class="ident">WriteMemory</span> <span class="op">=</span> <span class="number">0x04</span>,
-    <span class="ident">FillMemory</span> <span class="op">=</span> <span class="number">0x05</span>,
-    <span class="ident">FlashSecurityDisable</span> <span class="op">=</span> <span class="number">0x06</span>,
-    <span class="ident">GetProperty</span> <span class="op">=</span> <span class="number">0x07</span>,
-    <span class="ident">ReceiveSbFile</span> <span class="op">=</span> <span class="number">0x08</span>,
-    <span class="ident">Execute</span> <span class="op">=</span> <span class="number">0x09</span>,
-    <span class="ident">Call</span> <span class="op">=</span> <span class="number">0x0A</span>,
-    <span class="ident">Reset</span> <span class="op">=</span> <span class="number">0x0B</span>,
-    <span class="ident">SetProperty</span> <span class="op">=</span> <span class="number">0x0C</span>,
-    <span class="ident">EraseFlashAllUnlock</span> <span class="op">=</span> <span class="number">0x0D</span>,
-    <span class="ident">FlashProgramOnce</span> <span class="op">=</span> <span class="number">0x0E</span>,
-    <span class="ident">FlashReadOnce</span> <span class="op">=</span> <span class="number">0x0F</span>,
-    <span class="ident">FlashReadResource</span> <span class="op">=</span> <span class="number">0x10</span>,
-    <span class="ident">ConfigureMemory</span> <span class="op">=</span> <span class="number">0x11</span>,
-    <span class="ident">ReliableUpdate</span> <span class="op">=</span> <span class="number">0x12</span>,
-    <span class="ident">GenerateKeyBlob</span> <span class="op">=</span> <span class="number">0x13</span>,
-    <span class="ident">Keystore</span> <span class="op">=</span> <span class="number">0x15</span>,
-    <span class="ident">ConfigureI2c</span> <span class="op">=</span> <span class="number">0xC1</span>,
-    <span class="ident">ConfigureSpi</span> <span class="op">=</span> <span class="number">0xC2</span>,
-    <span class="ident">ConfigureCan</span> <span class="op">=</span> <span class="number">0xC3</span>,
+<span class="attribute">#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::Sequence, Ord, PartialEq, PartialOrd)]
+</span><span class="kw">pub enum </span>CommandTag {
+    EraseFlashAll = <span class="number">0x01</span>,
+    EraseFlash = <span class="number">0x02</span>,
+    ReadMemory = <span class="number">0x03</span>,
+    WriteMemory = <span class="number">0x04</span>,
+    FillMemory = <span class="number">0x05</span>,
+    FlashSecurityDisable = <span class="number">0x06</span>,
+    GetProperty = <span class="number">0x07</span>,
+    ReceiveSbFile = <span class="number">0x08</span>,
+    Execute = <span class="number">0x09</span>,
+    Call = <span class="number">0x0A</span>,
+    Reset = <span class="number">0x0B</span>,
+    SetProperty = <span class="number">0x0C</span>,
+    EraseFlashAllUnlock = <span class="number">0x0D</span>,
+    FlashProgramOnce = <span class="number">0x0E</span>,
+    FlashReadOnce = <span class="number">0x0F</span>,
+    FlashReadResource = <span class="number">0x10</span>,
+    ConfigureMemory = <span class="number">0x11</span>,
+    ReliableUpdate = <span class="number">0x12</span>,
+    GenerateKeyBlob = <span class="number">0x13</span>,
+    Keystore = <span class="number">0x15</span>,
+    ConfigureI2c = <span class="number">0xC1</span>,
+    ConfigureSpi = <span class="number">0xC2</span>,
+    ConfigureCan = <span class="number">0xC3</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>)]</span>
-<span class="doccomment">/// Signifies which of the three cases of the protocol is used.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that there is no situation where both command and response have a data phase.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DataPhase</span> {
+<span class="attribute">#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+</span><span class="doccomment">/// Signifies which of the three cases of the protocol is used.
+///
+/// Note that there is no situation where both command and response have a data phase.
+</span><span class="kw">pub enum </span>DataPhase {
     <span class="prelude-val">None</span>,
-    <span class="ident">CommandData</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
-    <span class="ident">ResponseData</span>,
+    CommandData(Vec&lt;u8&gt;),
+    ResponseData,
 }
 
-<span class="kw">impl</span> <span class="ident">DataPhase</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_command_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">DataPhase::CommandData</span>(<span class="kw">_</span>))
+<span class="kw">impl </span>DataPhase {
+    <span class="kw">pub fn </span>has_command_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DataPhase::CommandData(<span class="kw">_</span>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Command</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data_phase</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DataPhase</span> {
-        <span class="kw">use</span> <span class="ident">CommandTag</span> <span class="kw">as</span> <span class="ident">Tag</span>;
-        <span class="kw">match</span> (<span class="self">self</span>, <span class="self">self</span>.<span class="ident">tag</span>()) {
-            (<span class="kw">_</span>, <span class="ident">Tag::ReadMemory</span>) =&gt; <span class="ident">DataPhase::ResponseData</span>,
-            (<span class="kw">_</span>, <span class="ident">Tag::EraseFlash</span>) =&gt; <span class="ident">DataPhase::None</span>,
-            (<span class="kw">_</span>, <span class="ident">Tag::EraseFlashAll</span>) =&gt; <span class="ident">DataPhase::None</span>,
-            (<span class="kw">_</span>, <span class="ident">Tag::GetProperty</span>) =&gt; <span class="ident">DataPhase::None</span>,
-            (<span class="kw">_</span>, <span class="ident">Tag::Reset</span>) =&gt; <span class="ident">DataPhase::None</span>,
-            (<span class="kw">_</span>, <span class="ident">Tag::ConfigureMemory</span>) =&gt; <span class="ident">DataPhase::None</span>,
+<span class="kw">impl </span>Command {
+    <span class="kw">pub fn </span>data_phase(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DataPhase {
+        <span class="kw">use </span>CommandTag <span class="kw">as </span>Tag;
+        <span class="kw">match </span>(<span class="self">self</span>, <span class="self">self</span>.tag()) {
+            (<span class="kw">_</span>, Tag::ReadMemory) =&gt; DataPhase::ResponseData,
+            (<span class="kw">_</span>, Tag::EraseFlash) =&gt; DataPhase::None,
+            (<span class="kw">_</span>, Tag::EraseFlashAll) =&gt; DataPhase::None,
+            (<span class="kw">_</span>, Tag::GetProperty) =&gt; DataPhase::None,
+            (<span class="kw">_</span>, Tag::Reset) =&gt; DataPhase::None,
+            (<span class="kw">_</span>, Tag::ConfigureMemory) =&gt; DataPhase::None,
 
-            (<span class="ident">Command::WriteMemory</span> { <span class="ident">address</span>: <span class="kw">_</span>, <span class="ident">data</span> }, <span class="kw">_</span>) =&gt; <span class="ident">DataPhase::CommandData</span>(<span class="ident">data</span>.<span class="ident">clone</span>()),
-            (<span class="ident">Command::WriteMemoryWords</span> { <span class="ident">address</span>: <span class="kw">_</span>, <span class="ident">words</span> }, <span class="kw">_</span>) =&gt; {
-                <span class="kw">use</span> <span class="ident">std::io::Write</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">words</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">4</span>);
-                <span class="kw">let</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>;
+            (Command::WriteMemory { address: <span class="kw">_</span>, data }, <span class="kw">_</span>) =&gt; DataPhase::CommandData(data.clone()),
+            (Command::WriteMemoryWords { address: <span class="kw">_</span>, words }, <span class="kw">_</span>) =&gt; {
+                <span class="kw">use </span>std::io::Write;
+                <span class="kw">let </span><span class="kw-2">mut </span>bytes = Vec::with_capacity(words.len() * <span class="number">4</span>);
+                <span class="kw">let </span>cursor = <span class="kw-2">&amp;mut </span>bytes;
 
-                <span class="kw">for</span> <span class="ident">word</span> <span class="kw">in</span> <span class="ident">words</span>.<span class="ident">iter</span>() {
-                    <span class="ident">cursor</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">word</span>.<span class="ident">to_le_bytes</span>()).<span class="ident">unwrap</span>();
+                <span class="kw">for </span>word <span class="kw">in </span>words.iter() {
+                    cursor.write_all(<span class="kw-2">&amp;</span>word.to_le_bytes()).unwrap();
                 }
 
-                <span class="ident">DataPhase::CommandData</span>(<span class="ident">bytes</span>)
+                DataPhase::CommandData(bytes)
             }
-            (<span class="ident">Command::ReceiveSbFile</span> { <span class="ident">data</span> }, <span class="kw">_</span>) =&gt; <span class="ident">DataPhase::CommandData</span>(<span class="ident">data</span>.<span class="ident">clone</span>()),
+            (Command::ReceiveSbFile { data }, <span class="kw">_</span>) =&gt; DataPhase::CommandData(data.clone()),
 
-            (<span class="ident">Command::Keystore</span>(<span class="ident">KeystoreOperation::Enroll</span>), <span class="kw">_</span>) =&gt; <span class="ident">DataPhase::None</span>,
-            (<span class="ident">Command::Keystore</span>(<span class="ident">KeystoreOperation::ReadKeystore</span>), <span class="kw">_</span>) =&gt; <span class="ident">DataPhase::ResponseData</span>,
-            (<span class="ident">Command::Keystore</span>(<span class="ident">KeystoreOperation::SetKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">data</span> }), <span class="kw">_</span>) =&gt; {
-                <span class="ident">DataPhase::CommandData</span>(<span class="ident">data</span>.<span class="ident">clone</span>())
+            (Command::Keystore(KeystoreOperation::Enroll), <span class="kw">_</span>) =&gt; DataPhase::None,
+            (Command::Keystore(KeystoreOperation::ReadKeystore), <span class="kw">_</span>) =&gt; DataPhase::ResponseData,
+            (Command::Keystore(KeystoreOperation::SetKey { key: <span class="kw">_</span>, data }), <span class="kw">_</span>) =&gt; {
+                DataPhase::CommandData(data.clone())
             }
-            (<span class="ident">Command::Keystore</span>(<span class="ident">KeystoreOperation::GenerateKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">len</span>: <span class="kw">_</span> }), <span class="kw">_</span>) =&gt; {
-                <span class="ident">DataPhase::None</span>
+            (Command::Keystore(KeystoreOperation::GenerateKey { key: <span class="kw">_</span>, len: <span class="kw">_ </span>}), <span class="kw">_</span>) =&gt; {
+                DataPhase::None
             }
-            (<span class="ident">Command::Keystore</span>(<span class="ident">KeystoreOperation::WriteNonVolatile</span>), <span class="kw">_</span>) =&gt; <span class="ident">DataPhase::None</span>,
-            (<span class="ident">Command::Keystore</span>(<span class="ident">KeystoreOperation::ReadNonVolatile</span>), <span class="kw">_</span>) =&gt; <span class="ident">DataPhase::None</span>,
+            (Command::Keystore(KeystoreOperation::WriteNonVolatile), <span class="kw">_</span>) =&gt; DataPhase::None,
+            (Command::Keystore(KeystoreOperation::ReadNonVolatile), <span class="kw">_</span>) =&gt; DataPhase::None,
 
-            <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">todo!</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parameters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">Command</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">clone</span>() {
-            <span class="ident">GetProperty</span>(<span class="ident">property</span>) =&gt; {
-                <span class="macro">vec!</span>[<span class="ident">property</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="number">0</span>]
+    <span class="kw">pub fn </span>parameters(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u32&gt; {
+        <span class="kw">use </span>Command::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self</span>.clone() {
+            GetProperty(property) =&gt; {
+                <span class="macro">vec!</span>[property <span class="kw">as </span>u8 <span class="kw">as </span>u32, <span class="number">0</span>]
             }
-            <span class="ident">ReadMemory</span> { <span class="ident">address</span>, <span class="ident">length</span> } =&gt; {
-                <span class="comment">// PyMBOOT is kinda bugged here, it signals sending 3 parameters</span>
-                <span class="comment">// (but the third one is set to zero)</span>
-                <span class="macro">vec!</span>[<span class="ident">address</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">length</span> <span class="kw">as</span> <span class="ident">u32</span>]
+            ReadMemory { address, length } =&gt; {
+                <span class="comment">// PyMBOOT is kinda bugged here, it signals sending 3 parameters
+                // (but the third one is set to zero)
+                </span><span class="macro">vec!</span>[address <span class="kw">as </span>u32, length <span class="kw">as </span>u32]
             }
-            <span class="ident">EraseFlash</span> { <span class="ident">address</span>, <span class="ident">length</span> } =&gt; {
-                <span class="macro">vec!</span>[<span class="ident">address</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">length</span> <span class="kw">as</span> <span class="ident">u32</span>]
+            EraseFlash { address, length } =&gt; {
+                <span class="macro">vec!</span>[address <span class="kw">as </span>u32, length <span class="kw">as </span>u32]
             }
-            <span class="ident">EraseFlashAll</span> =&gt; {
+            EraseFlashAll =&gt; {
                 <span class="macro">vec!</span>[]
             }
-            <span class="ident">WriteMemory</span> { <span class="ident">address</span>, <span class="ident">data</span> } =&gt; {
-                <span class="macro">vec!</span>[<span class="ident">address</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="number">0</span>]
+            WriteMemory { address, data } =&gt; {
+                <span class="macro">vec!</span>[address <span class="kw">as </span>u32, data.len() <span class="kw">as </span>u32, <span class="number">0</span>]
             }
-            <span class="ident">WriteMemoryWords</span> { <span class="ident">address</span>, <span class="ident">words</span> } =&gt; {
-                <span class="macro">vec!</span>[<span class="ident">address</span> <span class="kw">as</span> <span class="ident">u32</span>, (<span class="ident">words</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">4</span>) <span class="kw">as</span> <span class="ident">u32</span>, <span class="number">0</span>]
+            WriteMemoryWords { address, words } =&gt; {
+                <span class="macro">vec!</span>[address <span class="kw">as </span>u32, (words.len() * <span class="number">4</span>) <span class="kw">as </span>u32, <span class="number">0</span>]
             }
-            <span class="ident">ConfigureMemory</span> { <span class="ident">address</span> } =&gt; {
-                <span class="macro">vec!</span>[<span class="number">0</span>, <span class="ident">address</span> <span class="kw">as</span> <span class="ident">u32</span>]
+            ConfigureMemory { address } =&gt; {
+                <span class="macro">vec!</span>[<span class="number">0</span>, address <span class="kw">as </span>u32]
             }
-            <span class="ident">ReceiveSbFile</span> { <span class="ident">data</span> } =&gt; {
-                <span class="macro">vec!</span>[<span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="kw">_</span>]
+            ReceiveSbFile { data } =&gt; {
+                <span class="macro">vec!</span>[data.len() <span class="kw">as _</span>]
             }
-            <span class="ident">Reset</span> =&gt; {
+            Reset =&gt; {
                 <span class="macro">vec!</span>[]
             }
-            <span class="ident">Keystore</span>(<span class="ident">operation</span>) =&gt; {
-                <span class="kw">use</span> <span class="ident">KeystoreOperation</span>::<span class="kw-2">*</span>;
-                <span class="kw">match</span> <span class="ident">operation</span>.<span class="ident">clone</span>() {
-                    <span class="ident">Enroll</span> =&gt; {
-                        <span class="macro">vec!</span>[<span class="ident">u32::from</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>)]
+            Keystore(operation) =&gt; {
+                <span class="kw">use </span>KeystoreOperation::<span class="kw-2">*</span>;
+                <span class="kw">match </span>operation.clone() {
+                    Enroll =&gt; {
+                        <span class="macro">vec!</span>[u32::from(<span class="kw-2">&amp;</span>operation)]
                     }
-                    <span class="ident">ReadKeystore</span> =&gt; {
-                        <span class="macro">vec!</span>[<span class="ident">u32::from</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>)]
+                    ReadKeystore =&gt; {
+                        <span class="macro">vec!</span>[u32::from(<span class="kw-2">&amp;</span>operation)]
                     }
-                    <span class="ident">SetKey</span> { <span class="ident">key</span>, <span class="ident">data</span> } =&gt; {
-                        <span class="macro">vec!</span>[<span class="ident">u32::from</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>), <span class="ident">key</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>]
+                    SetKey { key, data } =&gt; {
+                        <span class="macro">vec!</span>[u32::from(<span class="kw-2">&amp;</span>operation), key <span class="kw">as </span>u32, data.len() <span class="kw">as </span>u32]
                     }
-                    <span class="ident">GenerateKey</span> { <span class="ident">key</span>, <span class="ident">len</span> } =&gt; {
-                        <span class="macro">vec!</span>[<span class="ident">u32::from</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>), <span class="ident">key</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">len</span>]
+                    GenerateKey { key, len } =&gt; {
+                        <span class="macro">vec!</span>[u32::from(<span class="kw-2">&amp;</span>operation), key <span class="kw">as </span>u32, len]
                     }
-                    <span class="ident">WriteNonVolatile</span> =&gt; {
-                        <span class="macro">vec!</span>[<span class="ident">u32::from</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>), <span class="number">0</span>]
+                    WriteNonVolatile =&gt; {
+                        <span class="macro">vec!</span>[u32::from(<span class="kw-2">&amp;</span>operation), <span class="number">0</span>]
                     }
-                    <span class="ident">ReadNonVolatile</span> =&gt; {
-                        <span class="macro">vec!</span>[<span class="ident">u32::from</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>), <span class="number">0</span>]
+                    ReadNonVolatile =&gt; {
+                        <span class="macro">vec!</span>[u32::from(<span class="kw-2">&amp;</span>operation), <span class="number">0</span>]
                     }
-                    <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(),
+                    <span class="kw">_ </span>=&gt; <span class="macro">todo!</span>(),
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">todo!</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">CommandTag</span> {
-        <span class="kw">use</span> <span class="ident">Command</span>::<span class="kw-2">*</span>;
-        <span class="kw">use</span> <span class="ident">CommandTag</span> <span class="kw">as</span> <span class="ident">Tag</span>;
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">EraseFlashAll</span> =&gt; <span class="ident">Tag::EraseFlashAll</span>,
-            <span class="ident">EraseFlash</span> {
-                <span class="ident">address</span>: <span class="kw">_</span>,
-                <span class="ident">length</span>: <span class="kw">_</span>,
-            } =&gt; <span class="ident">Tag::EraseFlash</span>,
-            <span class="ident">ReadMemory</span> {
-                <span class="ident">address</span>: <span class="kw">_</span>,
-                <span class="ident">length</span>: <span class="kw">_</span>,
-            } =&gt; <span class="ident">Tag::ReadMemory</span>,
-            <span class="ident">WriteMemory</span> {
-                <span class="ident">address</span>: <span class="kw">_</span>,
-                <span class="ident">data</span>: <span class="kw">_</span>,
-            } =&gt; <span class="ident">Tag::WriteMemory</span>,
-            <span class="ident">WriteMemoryWords</span> {
-                <span class="ident">address</span>: <span class="kw">_</span>,
-                <span class="ident">words</span>: <span class="kw">_</span>,
-            } =&gt; <span class="ident">Tag::WriteMemory</span>,
-            <span class="ident">FillMemory</span> =&gt; <span class="ident">Tag::FillMemory</span>,
-            <span class="ident">FlashSecurityDisable</span> =&gt; <span class="ident">Tag::FlashSecurityDisable</span>,
-            <span class="ident">GetProperty</span>(<span class="kw">_</span>) =&gt; <span class="ident">Tag::GetProperty</span>,
-            <span class="ident">ReceiveSbFile</span> { <span class="ident">data</span>: <span class="kw">_</span> } =&gt; <span class="ident">Tag::ReceiveSbFile</span>,
-            <span class="ident">Call</span> =&gt; <span class="ident">Tag::Call</span>,
-            <span class="ident">Reset</span> =&gt; <span class="ident">Tag::Reset</span>,
-            <span class="ident">FlashReadResource</span> =&gt; <span class="ident">Tag::FlashReadResource</span>,
-            <span class="ident">ConfigureMemory</span> { <span class="ident">address</span>: <span class="kw">_</span> } =&gt; <span class="ident">Tag::ConfigureMemory</span>,
-            <span class="ident">Keystore</span>(<span class="kw">_</span>) =&gt; <span class="ident">Tag::Keystore</span>,
+    <span class="kw">pub fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CommandTag {
+        <span class="kw">use </span>Command::<span class="kw-2">*</span>;
+        <span class="kw">use </span>CommandTag <span class="kw">as </span>Tag;
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            EraseFlashAll =&gt; Tag::EraseFlashAll,
+            EraseFlash {
+                address: <span class="kw">_</span>,
+                length: <span class="kw">_</span>,
+            } =&gt; Tag::EraseFlash,
+            ReadMemory {
+                address: <span class="kw">_</span>,
+                length: <span class="kw">_</span>,
+            } =&gt; Tag::ReadMemory,
+            WriteMemory {
+                address: <span class="kw">_</span>,
+                data: <span class="kw">_</span>,
+            } =&gt; Tag::WriteMemory,
+            WriteMemoryWords {
+                address: <span class="kw">_</span>,
+                words: <span class="kw">_</span>,
+            } =&gt; Tag::WriteMemory,
+            FillMemory =&gt; Tag::FillMemory,
+            FlashSecurityDisable =&gt; Tag::FlashSecurityDisable,
+            GetProperty(<span class="kw">_</span>) =&gt; Tag::GetProperty,
+            ReceiveSbFile { .. } =&gt; Tag::ReceiveSbFile,
+            Call =&gt; Tag::Call,
+            Reset =&gt; Tag::Reset,
+            FlashReadResource =&gt; Tag::FlashReadResource,
+            ConfigureMemory { address: <span class="kw">_ </span>} =&gt; Tag::ConfigureMemory,
+            Keystore(<span class="kw">_</span>) =&gt; Tag::Keystore,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HidHeader</span> {
-    <span class="ident">report_id</span>: <span class="ident">ReportId</span>,
-    <span class="ident">packet_length</span>: <span class="ident">usize</span>,
+<span class="attribute">#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+</span><span class="kw">pub struct </span>HidHeader {
+    report_id: ReportId,
+    packet_length: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">Command</span> {
-    <span class="doccomment">/// Not yet quite clear what comes from HID spec, and what&#39;s NXP framing command packets in HID.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hid_packet</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">command_packet</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">command_packet</span>();
-        <span class="comment">// dbg!(to_hex_string(&amp;command_packet.clone()));</span>
+<span class="kw">impl </span>Command {
+    <span class="doccomment">/// Not yet quite clear what comes from HID spec, and what&#39;s NXP framing command packets in HID.
+    </span><span class="kw">pub fn </span>hid_packet(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="kw">let </span>command_packet = <span class="self">self</span>.command_packet();
+        <span class="comment">// dbg!(to_hex_string(&amp;command_packet.clone()));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">header</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
-        <span class="comment">// pyMBoot does: `pack(&#39;&lt;2BH&#39;, report_id, 0x00, data_len)`</span>
-        <span class="comment">// MCU Bootloader 2.5.0 RM rev 1. (05/2018) says: 1 byte report ID, 2 bytes packet length</span>
-        <span class="comment">// It seems pyMBoot is right, and the RM is wrong</span>
-        <span class="ident">header</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">ReportId::Command</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="ident">header</span>[<span class="number">2</span>..].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span>(<span class="ident">command_packet</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u16</span>).<span class="ident">to_le_bytes</span>());
+        </span><span class="kw">let </span><span class="kw-2">mut </span>header = [<span class="number">0u8</span>; <span class="number">4</span>];
+        <span class="comment">// pyMBoot does: `pack(&#39;&lt;2BH&#39;, report_id, 0x00, data_len)`
+        // MCU Bootloader 2.5.0 RM rev 1. (05/2018) says: 1 byte report ID, 2 bytes packet length
+        // It seems pyMBoot is right, and the RM is wrong
+        </span>header[<span class="number">0</span>] = ReportId::Command <span class="kw">as </span>u8;
+        header[<span class="number">2</span>..].copy_from_slice(<span class="kw-2">&amp;</span>(command_packet.len() <span class="kw">as </span>u16).to_le_bytes());
 
-        <span class="comment">// umm...</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hid_packet</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">hid_packet</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">header</span>);
-        <span class="ident">hid_packet</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">command_packet</span>);
-        <span class="ident">hid_packet</span>
+        <span class="comment">// umm...
+        </span><span class="kw">let </span><span class="kw-2">mut </span>hid_packet = Vec::new();
+        hid_packet.extend_from_slice(<span class="kw-2">&amp;</span>header);
+        hid_packet.extend_from_slice(<span class="kw-2">&amp;</span>command_packet);
+        hid_packet
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">4</span>] {
+    <span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [u8; <span class="number">4</span>] {
         [
-            <span class="comment">// command tag</span>
-            <span class="self">self</span>.<span class="ident">tag</span>() <span class="kw">as</span> <span class="ident">u8</span>,
-            <span class="comment">// data phase flag</span>
-            <span class="self">self</span>.<span class="ident">data_phase</span>().<span class="ident">has_command_data</span>() <span class="kw">as</span> <span class="ident">u8</span>,
-            <span class="comment">// reserved</span>
-            <span class="number">0</span>,
-            <span class="comment">// number of parameters</span>
-            <span class="self">self</span>.<span class="ident">parameters</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u8</span>,
+            <span class="comment">// command tag
+            </span><span class="self">self</span>.tag() <span class="kw">as </span>u8,
+            <span class="comment">// data phase flag
+            </span><span class="self">self</span>.data_phase().has_command_data() <span class="kw">as </span>u8,
+            <span class="comment">// reserved
+            </span><span class="number">0</span>,
+            <span class="comment">// number of parameters
+            </span><span class="self">self</span>.parameters().len() <span class="kw">as </span>u8,
         ]
     }
 
-    <span class="doccomment">/// The command packet carries a 32-bit command header and a list of 32-bit little-endian parameters.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In total, it is always 32 bytes long. This implies that there can be at most 7 parameters.</span>
-    <span class="kw">fn</span> <span class="ident">command_packet</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parameters</span>();
-        <span class="macro">assert!</span>(<span class="ident">params</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">7</span>);
+    <span class="doccomment">/// The command packet carries a 32-bit command header and a list of 32-bit little-endian parameters.
+    ///
+    /// In total, it is always 32 bytes long. This implies that there can be at most 7 parameters.
+    </span><span class="kw">fn </span>command_packet(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="kw">let </span>params = <span class="self">self</span>.parameters();
+        <span class="macro">assert!</span>(params.len() &lt;= <span class="number">7</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>packet = Vec::new();
 
-        <span class="ident">packet</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">header</span>());
-        <span class="ident">params</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">packet</span>.<span class="ident">extend_from_slice</span>(<span class="ident">param</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>()));
-        <span class="ident">packet</span>.<span class="ident">resize</span>(<span class="number">32</span>, <span class="number">0</span>);
+        packet.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.header());
+        params
+            .iter()
+            .for_each(|param| packet.extend_from_slice(param.to_le_bytes().as_ref()));
+        packet.resize(<span class="number">32</span>, <span class="number">0</span>);
 
-        <span class="ident">packet</span>
+        packet
     }
 
-    <span class="comment">// todo:</span>
-    <span class="comment">// fn data_packets(&amp;self) -&gt; Iterator</span>
+    <span class="comment">// todo:
+    // fn data_packets(&amp;self) -&gt; Iterator
+</span>}
+
+<span class="attribute">#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::Sequence, Ord, PartialEq, PartialOrd)]
+</span><span class="kw">pub enum </span>ResponseTag {
+    Generic = <span class="number">0xA0</span>,
+    ReadMemory = <span class="number">0xA3</span>,
+    GetProperty = <span class="number">0xA7</span>,
+    FlashReadOnce = <span class="number">0xAF</span>,
+    FlashReadResource = <span class="number">0xB0</span>,
+    Keystore = <span class="number">0xB5</span>,
 }
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(
-    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">enum_iterator::IntoEnumIterator</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>,
-)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ResponseTag</span> {
-    <span class="ident">Generic</span> <span class="op">=</span> <span class="number">0xA0</span>,
-    <span class="ident">ReadMemory</span> <span class="op">=</span> <span class="number">0xA3</span>,
-    <span class="ident">GetProperty</span> <span class="op">=</span> <span class="number">0xA7</span>,
-    <span class="ident">FlashReadOnce</span> <span class="op">=</span> <span class="number">0xAF</span>,
-    <span class="ident">FlashReadResource</span> <span class="op">=</span> <span class="number">0xB0</span>,
-    <span class="ident">Keystore</span> <span class="op">=</span> <span class="number">0xB5</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ResponseTag</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u8</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ResponseTag</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">ResponseTag</span>::<span class="kw-2">*</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">byte</span> {
-            <span class="number">0xA0</span> =&gt; <span class="ident">Generic</span>,
-            <span class="number">0xA3</span> =&gt; <span class="ident">ReadMemory</span>,
-            <span class="number">0xA7</span> =&gt; <span class="ident">GetProperty</span>,
-            <span class="number">0xAF</span> =&gt; <span class="ident">FlashReadOnce</span>,
-            <span class="number">0xB0</span> =&gt; <span class="ident">FlashReadResource</span>,
-            <span class="number">0xB5</span> =&gt; <span class="ident">Keystore</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">byte</span>),
+<span class="kw">impl </span>TryFrom&lt;u8&gt; <span class="kw">for </span>ResponseTag {
+    <span class="kw">type </span>Error = u8;
+    <span class="kw">fn </span>try_from(byte: u8) -&gt; <span class="prelude-ty">Result</span>&lt;ResponseTag, u8&gt; {
+        <span class="kw">use </span>ResponseTag::<span class="kw-2">*</span>;
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>byte {
+            <span class="number">0xA0 </span>=&gt; Generic,
+            <span class="number">0xA3 </span>=&gt; ReadMemory,
+            <span class="number">0xA7 </span>=&gt; GetProperty,
+            <span class="number">0xAF </span>=&gt; FlashReadOnce,
+            <span class="number">0xB0 </span>=&gt; FlashReadResource,
+            <span class="number">0xB5 </span>=&gt; Keystore,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(byte),
         })
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Response</span> {
-    <span class="ident">Generic</span>,
-    <span class="ident">Data</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
-    <span class="comment">// todo: model the properties</span>
-    <span class="ident">GetProperty</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>),
-    <span class="ident">ReadMemory</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
+<span class="attribute">#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+</span><span class="kw">pub enum </span>Response {
+    Generic,
+    Data(Vec&lt;u8&gt;),
+    <span class="comment">// todo: model the properties
+    </span>GetProperty(Vec&lt;u32&gt;),
+    ReadMemory(Vec&lt;u8&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">Response</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ResponseTag</span> {
-        <span class="kw">use</span> <span class="ident">Response</span>::<span class="kw-2">*</span>;
-        <span class="kw">use</span> <span class="ident">ResponseTag</span> <span class="kw">as</span> <span class="ident">Tag</span>;
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Generic</span> =&gt; <span class="ident">Tag::Generic</span>,
-            <span class="ident">Data</span>(<span class="kw">_</span>) =&gt; <span class="ident">Tag::Generic</span>,
-            <span class="ident">GetProperty</span>(<span class="kw">_</span>) =&gt; <span class="ident">Tag::GetProperty</span>,
-            <span class="ident">ReadMemory</span>(<span class="kw">_</span>) =&gt; <span class="ident">Tag::ReadMemory</span>,
+<span class="kw">impl </span>Response {
+    <span class="kw">pub fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ResponseTag {
+        <span class="kw">use </span>Response::<span class="kw-2">*</span>;
+        <span class="kw">use </span>ResponseTag <span class="kw">as </span>Tag;
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Generic =&gt; Tag::Generic,
+            Data(<span class="kw">_</span>) =&gt; Tag::Generic,
+            GetProperty(<span class="kw">_</span>) =&gt; Tag::GetProperty,
+            ReadMemory(<span class="kw">_</span>) =&gt; Tag::ReadMemory,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(
-    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">enum_iterator::IntoEnumIterator</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>,
-)]</span>
-<span class="comment">// todo: rename to HidReportId? place in `mod hid` submodule?</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ReportId</span> {
-    <span class="ident">Command</span> <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">Response</span> <span class="op">=</span> <span class="number">3</span>,
-    <span class="ident">CommandData</span> <span class="op">=</span> <span class="number">2</span>,
-    <span class="ident">ResponseData</span> <span class="op">=</span> <span class="number">4</span>,
+<span class="attribute">#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, Hash, enum_iterator::Sequence, Ord, PartialEq, PartialOrd)]
+</span><span class="comment">// todo: rename to HidReportId? place in `mod hid` submodule?
+</span><span class="kw">pub enum </span>ReportId {
+    Command = <span class="number">1</span>,
+    Response = <span class="number">3</span>,
+    CommandData = <span class="number">2</span>,
+    ResponseData = <span class="number">4</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ReportId</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u8</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">ReportId</span>::<span class="kw-2">*</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">byte</span> {
-            <span class="number">1</span> =&gt; <span class="ident">Command</span>,
-            <span class="number">2</span> =&gt; <span class="ident">CommandData</span>,
-            <span class="number">3</span> =&gt; <span class="ident">Response</span>,
-            <span class="number">4</span> =&gt; <span class="ident">ResponseData</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">byte</span>),
+<span class="kw">impl </span>TryFrom&lt;u8&gt; <span class="kw">for </span>ReportId {
+    <span class="kw">type </span>Error = u8;
+    <span class="kw">fn </span>try_from(byte: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">use </span>ReportId::<span class="kw-2">*</span>;
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>byte {
+            <span class="number">1 </span>=&gt; Command,
+            <span class="number">2 </span>=&gt; CommandData,
+            <span class="number">3 </span>=&gt; Response,
+            <span class="number">4 </span>=&gt; ResponseData,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(byte),
         })
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Version</span> {
-    <span class="kw">pub</span> <span class="ident">mark</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">major</span>: <span class="ident">u8</span>,
-    <span class="kw">pub</span> <span class="ident">minor</span>: <span class="ident">u8</span>,
-    <span class="kw">pub</span> <span class="ident">fixation</span>: <span class="ident">u8</span>,
+<span class="attribute">#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+</span><span class="kw">pub struct </span>Version {
+    <span class="kw">pub </span>mark: <span class="prelude-ty">Option</span>&lt;char&gt;,
+    <span class="kw">pub </span>major: u8,
+    <span class="kw">pub </span>minor: u8,
+    <span class="kw">pub </span>fixation: u8,
 }
 
-<span class="kw">impl</span> <span class="ident">core::fmt::Display</span> <span class="kw">for</span> <span class="ident">Version</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span>(), <span class="ident">std::fmt::Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mark</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">mark</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">mark</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>Version {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::result::Result&lt;(), std::fmt::Error&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(mark) = <span class="self">self</span>.mark {
+            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, mark)<span class="question-mark">?</span>;
         }
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}.{}.{}&quot;</span>, <span class="self">self</span>.<span class="ident">major</span>, <span class="self">self</span>.<span class="ident">minor</span>, <span class="self">self</span>.<span class="ident">fixation</span>)
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}.{}.{}&quot;</span>, <span class="self">self</span>.major, <span class="self">self</span>.minor, <span class="self">self</span>.fixation)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Version</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="comment">// mark: char::from_u32(value &gt;&gt; 24),</span>
-            <span class="ident">mark</span>: {
-                <span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> (<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="ident">char</span>;
-                <span class="kw">if</span> <span class="ident">candidate</span>.<span class="ident">is_ascii_uppercase</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">candidate</span>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                }
+<span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>Version {
+    <span class="kw">fn </span>from(value: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            <span class="comment">// mark: char::from_u32(value &gt;&gt; 24),
+            </span>mark: {
+                <span class="kw">let </span>candidate = (value &gt;&gt; <span class="number">24</span>) <span class="kw">as </span>u8 <span class="kw">as </span>char;
+                <span class="kw">if </span>candidate.is_ascii_uppercase() {
+                    <span class="prelude-val">Some</span>(candidate)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
             },
-            <span class="ident">major</span>: (<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <span class="ident">u8</span>,
-            <span class="ident">minor</span>: (<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <span class="ident">u8</span>,
-            <span class="ident">fixation</span>: <span class="ident">value</span> <span class="kw">as</span> <span class="ident">u8</span>,
-            <span class="comment">// mark: {</span>
-            <span class="comment">//     let candidate = value as u8 as char;</span>
-            <span class="comment">//     if candidate.is_ascii_uppercase() {</span>
-            <span class="comment">//         Some(candidate)</span>
-            <span class="comment">//     } else {</span>
-            <span class="comment">//         None</span>
-            <span class="comment">//     }</span>
-            <span class="comment">// },</span>
-            <span class="comment">// major: (value &gt;&gt; 8) as u8,</span>
-            <span class="comment">// minor: (value &gt;&gt; 16) as u8,</span>
-            <span class="comment">// fixation: (value &gt;&gt; 24) as u8,</span>
-        }
+            major: (value &gt;&gt; <span class="number">16</span>) <span class="kw">as </span>u8,
+            minor: (value &gt;&gt; <span class="number">8</span>) <span class="kw">as </span>u8,
+            fixation: value <span class="kw">as </span>u8,
+            <span class="comment">// mark: {
+            //     let candidate = value as u8 as char;
+            //     if candidate.is_ascii_uppercase() {
+            //         Some(candidate)
+            //     } else {
+            //         None
+            //     }
+            // },
+            // major: (value &gt;&gt; 8) as u8,
+            // minor: (value &gt;&gt; 16) as u8,
+            // fixation: (value &gt;&gt; 24) as u8,
+        </span>}
     }
 }
 
-<span class="comment">// #[derive(Copy, Clone, Debug)]</span>
-<span class="comment">// pub enum Peripheral {</span>
-<span class="comment">//     Uart = 0x01,</span>
-<span class="comment">//     I2c = 0x02,</span>
-<span class="comment">//     Spi = 0x04,</span>
-<span class="comment">//     Can = 0x08,</span>
-<span class="comment">//     UsbHid = 0x10,</span>
-<span class="comment">//     UsbCdc = 0x20,</span>
-<span class="comment">//     UsbDfu = 0x40,</span>
-<span class="comment">// }</span>
+<span class="comment">// #[derive(Copy, Clone, Debug)]
+// pub enum Peripheral {
+//     Uart = 0x01,
+//     I2c = 0x02,
+//     Spi = 0x04,
+//     Can = 0x08,
+//     UsbHid = 0x10,
+//     UsbCdc = 0x20,
+//     UsbDfu = 0x40,
+// }
 
-<span class="comment">// impl From&lt;u8&gt; for Peripheral {</span>
-<span class="comment">//     fn from(value: u8) -&gt; Self {</span>
-<span class="comment">//         use Peripheral::*;</span>
-<span class="comment">//         match value {</span>
-<span class="comment">//             0x01 =&gt; Uart,</span>
-<span class="comment">//             0x02 =&gt; Uart,</span>
-<span class="comment">//             0x04 =&gt; Uart,</span>
-<span class="comment">//             0x08 =&gt; Uart,</span>
-<span class="comment">//             0x01 =&gt; Uart,</span>
+// impl From&lt;u8&gt; for Peripheral {
+//     fn from(value: u8) -&gt; Self {
+//         use Peripheral::*;
+//         match value {
+//             0x01 =&gt; Uart,
+//             0x02 =&gt; Uart,
+//             0x04 =&gt; Uart,
+//             0x08 =&gt; Uart,
+//             0x01 =&gt; Uart,
 
-<span class="comment">// }</span>
+// }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FlashReadMargin</span> {
-    <span class="ident">Normal</span>,
-    <span class="ident">User</span>,
-    <span class="ident">Factory</span>,
-    <span class="comment">// Unknown(u8),</span>
-}
+</span><span class="attribute">#[derive(Copy, Clone, Debug)]
+</span><span class="kw">pub enum </span>FlashReadMargin {
+    Normal,
+    User,
+    Factory,
+    <span class="comment">// Unknown(u8),
+</span>}
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">FlashReadMargin</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u8</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">frm</span>: <span class="ident">FlashReadMargin</span>) -&gt; <span class="ident">u8</span> {
-        <span class="kw">use</span> <span class="ident">FlashReadMargin</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="ident">frm</span> {
-            <span class="ident">Normal</span> =&gt; <span class="number">0</span>,
-            <span class="ident">User</span> =&gt; <span class="number">1</span>,
-            <span class="ident">Factory</span> =&gt; <span class="number">2</span>,
-            <span class="comment">// Unknown(unknown) =&gt; unknown,</span>
-        }
+<span class="kw">impl </span>From&lt;FlashReadMargin&gt; <span class="kw">for </span>u8 {
+    <span class="kw">fn </span>from(frm: FlashReadMargin) -&gt; u8 {
+        <span class="kw">use </span>FlashReadMargin::<span class="kw-2">*</span>;
+        <span class="kw">match </span>frm {
+            Normal =&gt; <span class="number">0</span>,
+            User =&gt; <span class="number">1</span>,
+            Factory =&gt; <span class="number">2</span>,
+            <span class="comment">// Unknown(unknown) =&gt; unknown,
+        </span>}
     }
 }
 
-<span class="kw">impl</span> <span class="ident">core::convert::TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FlashReadMargin</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u8</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">FlashReadMargin</span>::<span class="kw-2">*</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">byte</span> {
-            <span class="number">0</span> =&gt; <span class="ident">Normal</span>,
-            <span class="number">1</span> =&gt; <span class="ident">User</span>,
-            <span class="number">2</span> =&gt; <span class="ident">Factory</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">byte</span>),
+<span class="kw">impl </span>core::convert::TryFrom&lt;u8&gt; <span class="kw">for </span>FlashReadMargin {
+    <span class="kw">type </span>Error = u8;
+    <span class="kw">fn </span>try_from(byte: u8) -&gt; core::result::Result&lt;<span class="self">Self</span>, u8&gt; {
+        <span class="kw">use </span>FlashReadMargin::<span class="kw-2">*</span>;
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>byte {
+            <span class="number">0 </span>=&gt; Normal,
+            <span class="number">1 </span>=&gt; User,
+            <span class="number">2 </span>=&gt; Factory,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(byte),
         })
     }
 }
 
-<span class="comment">// impl From&lt;Property&gt; for u8 {</span>
-<span class="comment">//     fn from(property: Property) -&gt; u8 {</span>
-<span class="comment">//         use Property::*;</span>
-<span class="comment">//         match property {</span>
-<span class="comment">//             CurrentVersion =&gt; 0x01,</span>
-<span class="comment">//             AvailablePeripherals = 0x02,</span>
-<span class="comment">//             FlashStartAddress = 0x03,</span>
-<span class="comment">//             FlashSize =&gt; 0x04,</span>
-<span class="comment">//             FlashSectorSize = 0x05,</span>
-<span class="comment">//             FlashBlockCount = 0x06,</span>
-<span class="comment">//             AvailableCommands = 0x07,</span>
-<span class="comment">//             CrcCheckStatus = 0x08,</span>
-<span class="comment">//             LastError = 0x09,</span>
-<span class="comment">//             VerifyWrites = 0x0A,</span>
-<span class="comment">//             MaxPacketSize = 0x0B,</span>
-<span class="comment">//             ReservedRegions = 0x0C,</span>
-<span class="comment">//             ValidateRegions = 0x0D,</span>
-<span class="comment">//             RamStartAddress = 0x0E,</span>
-<span class="comment">//             RamSize = 0x0F,</span>
-<span class="comment">//             SystemDeviceIdent = 0x10,</span>
-<span class="comment">//             FlashSecurityState = 0x11,</span>
-<span class="comment">//             UniqueDeviceIdent = 0x12,</span>
-<span class="comment">//             FlashFacSupport = 0x13,</span>
-<span class="comment">//             FlashAccessSegmentSize = 0x14,</span>
-<span class="comment">//             FlashAccessSegmentCount = 0x15,</span>
-<span class="comment">//             FlashReadMargin = 0x16,</span>
-<span class="comment">//             QspiInitStatus = 0x17,</span>
-<span class="comment">//             TargetVersion = 0x18,</span>
-<span class="comment">//             ExternalMemoryAttributes = 0x19,</span>
-<span class="comment">//             ReliableUpdateStatus = 0x1A,</span>
-<span class="comment">//             FlashPageSize = 0x1B,</span>
-<span class="comment">//             IrqNotifierPin = 0x1C,</span>
-<span class="comment">//             ProtectedFlashKeystoreUpdateOpt = 0x1D,</span>
-<span class="comment">//         }</span>
-<span class="comment">//     }</span>
-<span class="comment">// }</span>
+<span class="comment">// impl From&lt;Property&gt; for u8 {
+//     fn from(property: Property) -&gt; u8 {
+//         use Property::*;
+//         match property {
+//             CurrentVersion =&gt; 0x01,
+//             AvailablePeripherals = 0x02,
+//             FlashStartAddress = 0x03,
+//             FlashSize =&gt; 0x04,
+//             FlashSectorSize = 0x05,
+//             FlashBlockCount = 0x06,
+//             AvailableCommands = 0x07,
+//             CrcCheckStatus = 0x08,
+//             LastError = 0x09,
+//             VerifyWrites = 0x0A,
+//             MaxPacketSize = 0x0B,
+//             ReservedRegions = 0x0C,
+//             ValidateRegions = 0x0D,
+//             RamStartAddress = 0x0E,
+//             RamSize = 0x0F,
+//             SystemDeviceIdent = 0x10,
+//             FlashSecurityState = 0x11,
+//             UniqueDeviceIdent = 0x12,
+//             FlashFacSupport = 0x13,
+//             FlashAccessSegmentSize = 0x14,
+//             FlashAccessSegmentCount = 0x15,
+//             FlashReadMargin = 0x16,
+//             QspiInitStatus = 0x17,
+//             TargetVersion = 0x18,
+//             ExternalMemoryAttributes = 0x19,
+//             ReliableUpdateStatus = 0x1A,
+//             FlashPageSize = 0x1B,
+//             IrqNotifierPin = 0x1C,
+//             ProtectedFlashKeystoreUpdateOpt = 0x1D,
+//         }
+//     }
+// }
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
-<span class="doccomment">/// numbers can be found in UM, Chap 7.3.2 &quot;Key descriptions&quot;</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Key</span> {
-    <span class="ident">PrinceRegion0</span> <span class="op">=</span> <span class="number">7</span>,
-    <span class="ident">PrinceRegion1</span> <span class="op">=</span> <span class="number">8</span>,
-    <span class="ident">PrinceRegion2</span> <span class="op">=</span> <span class="number">9</span>,
-    <span class="doccomment">/// used by bootloader to decrypt SB2.1 firmware images</span>
-    <span class="ident">SecureBootKek</span> <span class="op">=</span> <span class="number">3</span>,
-    <span class="ident">UniqueDeviceSecret</span> <span class="op">=</span> <span class="number">12</span>,
-    <span class="doccomment">/// not used by bootloader. idea is to use as pre-shared secret for user/firmware/apps etc.</span>
-    <span class="ident">UserPsk</span> <span class="op">=</span> <span class="number">11</span>,
+</span><span class="attribute">#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+</span><span class="doccomment">/// numbers can be found in UM, Chap 7.3.2 &quot;Key descriptions&quot;
+</span><span class="kw">pub enum </span>Key {
+    PrinceRegion0 = <span class="number">7</span>,
+    PrinceRegion1 = <span class="number">8</span>,
+    PrinceRegion2 = <span class="number">9</span>,
+    <span class="doccomment">/// used by bootloader to decrypt SB2.1 firmware images
+    </span>SecureBootKek = <span class="number">3</span>,
+    UniqueDeviceSecret = <span class="number">12</span>,
+    <span class="doccomment">/// not used by bootloader. idea is to use as pre-shared secret for user/firmware/apps etc.
+    </span>UserPsk = <span class="number">11</span>,
 }
 
-<span class="comment">// unfortunately duplicated in cli.rs, for why see there</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KEYSTORE_KEY_NAMES</span>: [<span class="kw-2">&amp;</span><span class="ident">str</span>; <span class="number">6</span>] <span class="op">=</span> [
+<span class="comment">// unfortunately duplicated in cli.rs, for why see there
+</span><span class="kw">pub const </span>KEYSTORE_KEY_NAMES: [<span class="kw-2">&amp;</span>str; <span class="number">6</span>] = [
     <span class="string">&quot;secure-boot-kek&quot;</span>,
     <span class="string">&quot;user-key&quot;</span>,
     <span class="string">&quot;unique-device-secret&quot;</span>,
@@ -1138,84 +1120,83 @@
     <span class="string">&quot;prince-region-2&quot;</span>,
 ];
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Key</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">String</span>;
+<span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span>str&gt; <span class="kw">for </span>Key {
+    <span class="kw">type </span>Error = String;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">Key</span>::<span class="kw-2">*</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">name</span> {
-            <span class="string">&quot;prince-region-0&quot;</span> =&gt; <span class="ident">PrinceRegion0</span>,
-            <span class="string">&quot;prince-region-1&quot;</span> =&gt; <span class="ident">PrinceRegion1</span>,
-            <span class="string">&quot;prince-region-2&quot;</span> =&gt; <span class="ident">PrinceRegion2</span>,
-            <span class="string">&quot;secure-boot-kek&quot;</span> =&gt; <span class="ident">SecureBootKek</span>,
-            <span class="string">&quot;unique-device-secret&quot;</span> =&gt; <span class="ident">UniqueDeviceSecret</span>,
-            <span class="string">&quot;user-key&quot;</span> =&gt; <span class="ident">UserPsk</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">name</span>.<span class="ident">to_string</span>()),
+    <span class="kw">fn </span>try_from(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">use </span>Key::<span class="kw-2">*</span>;
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>name {
+            <span class="string">&quot;prince-region-0&quot; </span>=&gt; PrinceRegion0,
+            <span class="string">&quot;prince-region-1&quot; </span>=&gt; PrinceRegion1,
+            <span class="string">&quot;prince-region-2&quot; </span>=&gt; PrinceRegion2,
+            <span class="string">&quot;secure-boot-kek&quot; </span>=&gt; SecureBootKek,
+            <span class="string">&quot;unique-device-secret&quot; </span>=&gt; UniqueDeviceSecret,
+            <span class="string">&quot;user-key&quot; </span>=&gt; UserPsk,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(name.to_string()),
         })
     }
 }
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;sub-cmd&quot;</span>)]</span>
-<span class="comment">// naming taken from docs, could also be called Subcommand, or even Command</span>
-<span class="doccomment">/// This is the interface definition to a somewhat limited bootloader API,</span>
-<span class="doccomment">/// that then operates on the actual PFR data and PUF periphreal.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The operations Enroll, SetKey, GenerateKey create activation codes or key codes,</span>
-<span class="doccomment">/// which the bootloader keeps in RAM and only writes to PFR once WriteNonVolatile is</span>
-<span class="doccomment">/// called. If this is not done, on reboot, the PUF is unenrolled again, or the keys</span>
-<span class="doccomment">/// are not set anymore.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It doesn&#39;t however seem possible to set/generate new keys after reboot without</span>
-<span class="doccomment">/// re-enrolling PUF, calling set/generate key results in a `Generic(Fail)`. Calling</span>
-<span class="doccomment">/// ReadNonVolatile does not help; the author does not understand the effect of this command.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">KeystoreOperation</span> {
-    <span class="ident">Enroll</span>,
-    <span class="ident">SetKey</span> { <span class="ident">key</span>: <span class="ident">Key</span>, <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> },
-    <span class="ident">GenerateKey</span> { <span class="ident">key</span>: <span class="ident">Key</span>, <span class="ident">len</span>: <span class="ident">u32</span> },
-    <span class="ident">WriteNonVolatile</span>,
-    <span class="ident">ReadNonVolatile</span>,
-    <span class="ident">WriteKeystore</span>,
-    <span class="ident">ReadKeystore</span>,
+<span class="attribute">#[repr(u8)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[serde(tag = <span class="string">&quot;sub-cmd&quot;</span>)]
+</span><span class="comment">// naming taken from docs, could also be called Subcommand, or even Command
+</span><span class="doccomment">/// This is the interface definition to a somewhat limited bootloader API,
+/// that then operates on the actual PFR data and PUF periphreal.
+///
+/// The operations Enroll, SetKey, GenerateKey create activation codes or key codes,
+/// which the bootloader keeps in RAM and only writes to PFR once WriteNonVolatile is
+/// called. If this is not done, on reboot, the PUF is unenrolled again, or the keys
+/// are not set anymore.
+///
+/// It doesn&#39;t however seem possible to set/generate new keys after reboot without
+/// re-enrolling PUF, calling set/generate key results in a `Generic(Fail)`. Calling
+/// ReadNonVolatile does not help; the author does not understand the effect of this command.
+</span><span class="kw">pub enum </span>KeystoreOperation {
+    Enroll,
+    SetKey { key: Key, data: Vec&lt;u8&gt; },
+    GenerateKey { key: Key, len: u32 },
+    WriteNonVolatile,
+    ReadNonVolatile,
+    WriteKeystore,
+    ReadKeystore,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">KeystoreOperation</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">operation</span>: <span class="kw-2">&amp;</span><span class="ident">KeystoreOperation</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">KeystoreOperation</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="ident">operation</span> {
-            <span class="ident">Enroll</span> =&gt; <span class="number">0</span>,
-            <span class="ident">SetKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">data</span>: <span class="kw">_</span> } =&gt; <span class="number">1</span>,
-            <span class="ident">GenerateKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">len</span>: <span class="kw">_</span> } =&gt; <span class="number">2</span>,
-            <span class="ident">WriteNonVolatile</span> =&gt; <span class="number">3</span>,
-            <span class="ident">ReadNonVolatile</span> =&gt; <span class="number">4</span>,
-            <span class="ident">WriteKeystore</span> =&gt; <span class="number">5</span>,
-            <span class="ident">ReadKeystore</span> =&gt; <span class="number">6</span>,
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>KeystoreOperation&gt; <span class="kw">for </span>u32 {
+    <span class="kw">fn </span>from(operation: <span class="kw-2">&amp;</span>KeystoreOperation) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>KeystoreOperation::<span class="kw-2">*</span>;
+        <span class="kw">match </span>operation {
+            Enroll =&gt; <span class="number">0</span>,
+            SetKey { key: <span class="kw">_</span>, data: <span class="kw">_ </span>} =&gt; <span class="number">1</span>,
+            GenerateKey { key: <span class="kw">_</span>, len: <span class="kw">_ </span>} =&gt; <span class="number">2</span>,
+            WriteNonVolatile =&gt; <span class="number">3</span>,
+            ReadNonVolatile =&gt; <span class="number">4</span>,
+            WriteKeystore =&gt; <span class="number">5</span>,
+            ReadKeystore =&gt; <span class="number">6</span>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;with-device&quot;</span>, <span class="ident">test</span>))]</span>
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="attribute">#[cfg(all(feature = <span class="string">&quot;with-device&quot;</span>, test))]
+    </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="comment">// #[test]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;with-device&quot;</span>, <span class="ident">test</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">command_packet</span>() {
-        <span class="comment">// 7 0 0 2  1 0 0 0  0 0 0 0</span>
-        <span class="macro">insta::assert_debug_snapshot!</span>(
-            <span class="ident">Command::GetProperty</span>(<span class="ident">Property::CurrentVersion</span>).<span class="ident">command_packet</span>()
+    <span class="comment">// #[test]
+    </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;with-device&quot;</span>, test))]
+    </span><span class="kw">fn </span>command_packet() {
+        <span class="comment">// 7 0 0 2  1 0 0 0  0 0 0 0
+        </span><span class="macro">insta::assert_debug_snapshot!</span>(
+            Command::GetProperty(Property::CurrentVersion).command_packet()
         );
     }
 
-    <span class="comment">// #[test]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;with-device&quot;</span>, <span class="ident">test</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">hid_packet</span>() {
-        <span class="comment">// 1 0 C 0  7 0 0 2  1 0 0 0  0 0 0 0</span>
-        <span class="macro">insta::assert_debug_snapshot!</span>(<span class="ident">Command::GetProperty</span>(<span class="ident">Property::CurrentVersion</span>).<span class="ident">hid_packet</span>());
+    <span class="comment">// #[test]
+    </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;with-device&quot;</span>, test))]
+    </span><span class="kw">fn </span>hid_packet() {
+        <span class="comment">// 1 0 C 0  7 0 0 2  1 0 0 0  0 0 0 0
+        </span><span class="macro">insta::assert_debug_snapshot!</span>(Command::GetProperty(Property::CurrentVersion).hid_packet());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/bootloader/protocol.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>protocol.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/bootloader/protocol.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>protocol.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -463,465 +457,478 @@
 <span id="457">457</span>
 <span id="458">458</span>
 <span id="459">459</span>
-</pre><pre class="rust"><code><span class="comment">// https://www.nxp.com/docs/en/reference-manual/MCUBOOTRM.pdf</span>
-<span class="comment">//</span>
-<span class="comment">// - all fields in packets are little-endian</span>
-<span class="comment">// - each command sent from host is replied to with response</span>
-<span class="comment">// - optional data phase, either command or response (not both!)</span>
-<span class="comment">//   RM uses &quot;incoming&quot; (host-&gt;MCU) and &quot;outgoing&quot; (host&lt;-MCU) terminology</span>
-<span class="comment">//</span>
-<span class="comment">//</span>
-<span class="comment">// 1) no data phase:</span>
-<span class="comment">//   --&gt; command</span>
-<span class="comment">//   &lt;-- generic response</span>
-<span class="comment">//</span>
-<span class="comment">//</span>
-<span class="comment">// 2) command data phase:</span>
-<span class="comment">//   --&gt; command (has-data-phase flag set)</span>
-<span class="comment">//   &lt;-- initial generic response (must signal success status to proceed with data phase)</span>
-<span class="comment">//   ==&gt; inital command data packet</span>
-<span class="comment">//   ⋮</span>
-<span class="comment">//   ==&gt; final command data packet</span>
-<span class="comment">//   &lt;-- final generic response (contains status for entire operation)</span>
-<span class="comment">//</span>
-<span class="comment">//  Device may abort data phase by sending finale generic response early, with status abort</span>
-<span class="comment">//</span>
-<span class="comment">//</span>
-<span class="comment">// 3) response data phase:</span>
-<span class="comment">//   --&gt; command</span>
-<span class="comment">//   &lt;-- initial non-generic response (must signal has-data to proceed with data phase)</span>
-<span class="comment">//   &lt;== initial response data packet</span>
-<span class="comment">//    ⋮</span>
-<span class="comment">//   &lt;== final reponse data packet</span>
-<span class="comment">//   &lt;-- final generic response (contains status for entire operation)</span>
-<span class="comment">//</span>
-<span class="comment">//  Device may abort data phase early by sending zero-length packet</span>
-<span class="comment">//  Host may abort data phase by sending generic response (?is this a thing?)</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+</pre><pre class="rust"><code><span class="comment">// https://www.nxp.com/docs/en/reference-manual/MCUBOOTRM.pdf
+//
+// - all fields in packets are little-endian
+// - each command sent from host is replied to with response
+// - optional data phase, either command or response (not both!)
+//   RM uses &quot;incoming&quot; (host-&gt;MCU) and &quot;outgoing&quot; (host&lt;-MCU) terminology
+//
+//
+// 1) no data phase:
+//   --&gt; command
+//   &lt;-- generic response
+//
+//
+// 2) command data phase:
+//   --&gt; command (has-data-phase flag set)
+//   &lt;-- initial generic response (must signal success status to proceed with data phase)
+//   ==&gt; inital command data packet
+//   ⋮
+//   ==&gt; final command data packet
+//   &lt;-- final generic response (contains status for entire operation)
+//
+//  Device may abort data phase by sending finale generic response early, with status abort
+//
+//
+// 3) response data phase:
+//   --&gt; command
+//   &lt;-- initial non-generic response (must signal has-data to proceed with data phase)
+//   &lt;== initial response data packet
+//    ⋮
+//   &lt;== final reponse data packet
+//   &lt;-- final generic response (contains status for entire operation)
+//
+//  Device may abort data phase early by sending zero-length packet
+//  Host may abort data phase by sending generic response (?is this a thing?)
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Error</span> <span class="kw">as</span> <span class="ident">BootloaderError</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bootloader</span>::{<span class="ident">command</span>, <span class="ident">property</span>};
-<span class="kw">use</span> <span class="ident">core::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
+</span><span class="kw">use </span><span class="kw">super</span>::Error <span class="kw">as </span>BootloaderError;
+<span class="kw">use </span><span class="kw">crate</span>::bootloader::{command, property};
+<span class="kw">use </span>core::convert::{TryFrom, TryInto};
 
-<span class="kw">use</span> <span class="ident">hidapi</span>::{<span class="ident">HidDevice</span>, <span class="ident">HidResult</span>};
+<span class="kw">use </span>hidapi::{HidDevice, HidResult};
 
-<span class="doccomment">/// The NXP bootloader protocol. Interact via `fn call(Command) -&gt; Result&lt;Response&gt;`</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Protocol</span> {
-    <span class="ident">device</span>: <span class="ident">HidDevice</span>,
+<span class="doccomment">/// The NXP bootloader protocol. Interact via `fn call(Command) -&gt; Result&lt;Response&gt;`
+</span><span class="kw">pub struct </span>Protocol {
+    device: HidDevice,
 }
 
-<span class="doccomment">/// The NXP bootloader protocol error type</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">thiserror::Error</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;receiver aborted data phase&quot;</span>)]</span>
-    <span class="ident">AbortDataPhase</span>,
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;expected data response packet&quot;</span>)]</span>
-    <span class="ident">ExpectedDataPacket</span>,
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;expected (non-data) response packet&quot;</span>)]</span>
-    <span class="ident">ExpectedResponsePacket</span>,
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;error from underlying hidapi&quot;</span>)]</span>
-    <span class="ident">HidApi</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">hidapi::HidError</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;invalid HID report ID ({0})&quot;</span>)]</span>
-    <span class="ident">InvalidReportId</span>(<span class="ident">u8</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;unknown response tag ({0})&quot;</span>)]</span>
-    <span class="ident">UnknownResponseTag</span>(<span class="ident">u8</span>),
+<span class="doccomment">/// The NXP bootloader protocol error type
+</span><span class="attribute">#[derive(thiserror::Error, Debug)]
+</span><span class="kw">pub enum </span>Error {
+    <span class="attribute">#[error(<span class="string">&quot;receiver aborted data phase&quot;</span>)]
+    </span>AbortDataPhase,
+    <span class="attribute">#[error(<span class="string">&quot;expected data response packet&quot;</span>)]
+    </span>ExpectedDataPacket,
+    <span class="attribute">#[error(<span class="string">&quot;expected (non-data) response packet&quot;</span>)]
+    </span>ExpectedResponsePacket,
+    <span class="attribute">#[error(<span class="string">&quot;error from underlying hidapi&quot;</span>)]
+    </span>HidApi(<span class="attribute">#[from] </span>hidapi::HidError),
+    <span class="attribute">#[error(<span class="string">&quot;invalid HID report ID ({0})&quot;</span>)]
+    </span>InvalidReportId(u8),
+    <span class="attribute">#[error(<span class="string">&quot;unknown response tag ({0})&quot;</span>)]
+    </span>UnknownResponseTag(u8),
 
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;unspecified protocol error&quot;</span>)]</span>
-    <span class="ident">Unspecified</span>,
+    <span class="attribute">#[error(<span class="string">&quot;unspecified protocol error&quot;</span>)]
+    </span>Unspecified,
 }
 
-<span class="doccomment">/// The NXP bootloader protocol result type, with split status as error</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="doccomment">/// The NXP bootloader protocol result type, with split status as error
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, Error&gt;;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResponsePacket</span> {
-    <span class="kw">pub</span> <span class="ident">tag</span>: <span class="ident">command::ResponseTag</span>,
-    <span class="kw">pub</span> <span class="ident">has_data</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">status</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BootloaderError</span><span class="op">&gt;</span>,
-    <span class="comment">// pub mirrored_command_header: [u8; 4],</span>
-    <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>ResponsePacket {
+    <span class="kw">pub </span>tag: command::ResponseTag,
+    <span class="kw">pub </span>has_data: bool,
+    <span class="kw">pub </span>status: <span class="prelude-ty">Option</span>&lt;BootloaderError&gt;,
+    <span class="comment">// pub mirrored_command_header: [u8; 4],
+    </span><span class="kw">pub </span>parameters: Vec&lt;u32&gt;,
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ReceivedPacket</span> {
-    <span class="ident">Response</span>(<span class="ident">ResponsePacket</span>),
-    <span class="ident">Data</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
+<span class="kw">pub enum </span>ReceivedPacket {
+    Response(ResponsePacket),
+    Data(Vec&lt;u8&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">ReceivedPacket</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ResponsePacket</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">packet</span>: <span class="ident">ReceivedPacket</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ReceivedPacket::Response</span>(<span class="ident">packet</span>) <span class="op">=</span> <span class="ident">packet</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">packet</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::ExpectedResponsePacket</span>)
+<span class="kw">impl </span>TryFrom&lt;ReceivedPacket&gt; <span class="kw">for </span>ResponsePacket {
+    <span class="kw">type </span>Error = Error;
+    <span class="kw">fn </span>try_from(packet: ReceivedPacket) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span>ReceivedPacket::Response(packet) = packet {
+            <span class="prelude-val">Ok</span>(packet)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(Error::ExpectedResponsePacket)
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">ReceivedPacket</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">packet</span>: <span class="ident">ReceivedPacket</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ReceivedPacket::Data</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">packet</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">data</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::ExpectedDataPacket</span>)
+<span class="kw">impl </span>TryFrom&lt;ReceivedPacket&gt; <span class="kw">for </span>Vec&lt;u8&gt; {
+    <span class="kw">type </span>Error = Error;
+    <span class="kw">fn </span>try_from(packet: ReceivedPacket) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span>ReceivedPacket::Data(data) = packet {
+            <span class="prelude-val">Ok</span>(data)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(Error::ExpectedDataPacket)
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">READ_TIMEOUT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">2000</span>;
+<span class="kw">pub const </span>READ_TIMEOUT: i32 = <span class="number">2000</span>;
 
-<span class="kw">impl</span> <span class="ident">Protocol</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">property</span>(
+<span class="kw">impl </span>Protocol {
+    <span class="kw">pub fn </span>property(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">property</span>: <span class="ident">property::Property</span>,
-    ) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident"><span class="kw">crate</span>::bootloader::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">command::Command::GetProperty</span>(<span class="ident">property</span>))
-            .<span class="ident">expect</span>(<span class="string">&quot;success&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">command::Response::GetProperty</span>(<span class="ident">values</span>) <span class="op">=</span> <span class="ident">response</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">values</span>)
-        } <span class="kw">else</span> {
+        property: property::Property,
+    ) -&gt; core::result::Result&lt;Vec&lt;u32&gt;, <span class="kw">crate</span>::bootloader::Error&gt; {
+        <span class="kw">let </span>response = <span class="self">self
+            </span>.call(<span class="kw-2">&amp;</span>command::Command::GetProperty(property))
+            .expect(<span class="string">&quot;success&quot;</span>);
+        <span class="kw">if let </span>command::Response::GetProperty(values) = response {
+            <span class="prelude-val">Ok</span>(values)
+        } <span class="kw">else </span>{
             <span class="macro">todo!</span>();
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">command</span>: <span class="kw-2">&amp;</span><span class="ident">command::Command</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">command::Response</span><span class="op">&gt;</span> {
-        <span class="comment">// construct command packet</span>
-        <span class="kw">let</span> <span class="ident">command_packet</span> <span class="op">=</span> <span class="ident">command</span>.<span class="ident">hid_packet</span>();
+    <span class="kw">pub fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, command: <span class="kw-2">&amp;</span>command::Command) -&gt; <span class="prelude-ty">Result</span>&lt;command::Response&gt; {
+        <span class="self">self</span>.call_progress(command, <span class="prelude-val">None</span>)
+    }
 
-        <span class="comment">// send command packet</span>
-        <span class="self">self</span>.<span class="ident">write</span>(<span class="ident">command_packet</span>.<span class="ident">as_slice</span>())<span class="question-mark">?</span>;
-        <span class="macro">trace!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span><span class="ident">command_packet</span>));
+    <span class="kw">pub fn </span>call_progress&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        command: <span class="kw-2">&amp;</span>command::Command,
+        progress: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">dyn </span>Fn(usize)&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;command::Response&gt; {
+        <span class="comment">// construct command packet
+        </span><span class="kw">let </span>command_packet = command.hid_packet();
 
-        <span class="kw">let</span> <span class="ident">initial_response</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_packet</span>()<span class="question-mark">?</span>;
+        <span class="comment">// send command packet
+        </span><span class="self">self</span>.write(command_packet.as_slice())<span class="question-mark">?</span>;
+        <span class="macro">trace!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span>command_packet));
 
-        <span class="comment">// parse initial reponse packet</span>
-        <span class="kw">match</span> (<span class="ident">command</span>.<span class="ident">clone</span>(), <span class="ident">command</span>.<span class="ident">tag</span>(), <span class="ident">command</span>.<span class="ident">data_phase</span>()) {
-            <span class="comment">// case 1: no data phases</span>
-            (<span class="ident">command</span>, <span class="ident">_tag</span>, <span class="ident">command::DataPhase::None</span>) =&gt; {
-                <span class="comment">// we expect a non-data packet, not signaling additional data packets, with</span>
-                <span class="comment">// successful status, mirroring our command header</span>
-                <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">ResponsePacket::try_from</span>(<span class="ident">initial_response</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>initial_response = <span class="self">self</span>.read_packet()<span class="question-mark">?</span>;
 
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">packet</span>.<span class="ident">has_data</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">status</span> {
-                    <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">status</span>);
+        <span class="comment">// parse initial reponse packet
+        </span><span class="kw">match </span>(command.clone(), command.tag(), command.data_phase()) {
+            <span class="comment">// case 1: no data phases
+            </span>(command, _tag, command::DataPhase::None) =&gt; {
+                <span class="comment">// we expect a non-data packet, not signaling additional data packets, with
+                // successful status, mirroring our command header
+                </span><span class="kw">let </span>packet = ResponsePacket::try_from(initial_response)<span class="question-mark">?</span>;
+
+                <span class="macro">assert!</span>(!packet.has_data);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(status) = packet.status {
+                    <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, status);
                 }
 
-                <span class="kw">use</span> <span class="ident">command::Command</span>::<span class="kw-2">*</span>;
-                <span class="kw">match</span> <span class="ident">command</span> {
-                    <span class="ident">Reset</span>
-                    <span class="op">|</span> <span class="ident">EraseFlash</span> {
-                        <span class="ident">address</span>: <span class="kw">_</span>,
-                        <span class="ident">length</span>: <span class="kw">_</span>,
+                <span class="kw">use </span>command::Command::<span class="kw-2">*</span>;
+                <span class="kw">match </span>command {
+                    Reset
+                    | EraseFlash {
+                        address: <span class="kw">_</span>,
+                        length: <span class="kw">_</span>,
                     }
-                    <span class="op">|</span> <span class="ident">EraseFlashAll</span>
-                    <span class="op">|</span> <span class="ident">ConfigureMemory</span> { .. }
-                    <span class="op">|</span> <span class="ident">Keystore</span>(<span class="ident">command::KeystoreOperation::Enroll</span>)
-                    <span class="op">|</span> <span class="ident">Keystore</span>(<span class="ident">command::KeystoreOperation::GenerateKey</span> { <span class="ident">key</span>: <span class="kw">_</span>, <span class="ident">len</span>: <span class="kw">_</span> })
-                    <span class="op">|</span> <span class="ident">Keystore</span>(<span class="ident">command::KeystoreOperation::WriteNonVolatile</span>)
-                    <span class="op">|</span> <span class="ident">Keystore</span>(<span class="ident">command::KeystoreOperation::ReadNonVolatile</span>) =&gt; {
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">tag</span>, <span class="ident">command::ResponseTag::Generic</span>);
-                        <span class="comment">// general property of generic responses: 2 parameters, status and mirrored command header</span>
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+                    | EraseFlashAll
+                    | ConfigureMemory { .. }
+                    | Keystore(command::KeystoreOperation::Enroll)
+                    | Keystore(command::KeystoreOperation::GenerateKey { key: <span class="kw">_</span>, len: <span class="kw">_ </span>})
+                    | Keystore(command::KeystoreOperation::WriteNonVolatile)
+                    | Keystore(command::KeystoreOperation::ReadNonVolatile) =&gt; {
+                        <span class="macro">assert_eq!</span>(packet.tag, command::ResponseTag::Generic);
+                        <span class="comment">// general property of generic responses: 2 parameters, status and mirrored command header
+                        </span><span class="macro">assert_eq!</span>(packet.parameters.len(), <span class="number">1</span>);
                         <span class="macro">assert_eq!</span>(
-                            <span class="ident">packet</span>.<span class="ident">parameters</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>()[..<span class="number">2</span>],
-                            <span class="ident">command</span>.<span class="ident">header</span>()[..<span class="number">2</span>]
+                            packet.parameters[<span class="number">0</span>].to_le_bytes()[..<span class="number">2</span>],
+                            command.header()[..<span class="number">2</span>]
                         );
 
-                        <span class="prelude-val">Ok</span>(<span class="ident">command::Response::Generic</span>)
+                        <span class="prelude-val">Ok</span>(command::Response::Generic)
                     }
-                    <span class="ident">GetProperty</span>(<span class="ident">_property</span>) =&gt; {
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">tag</span>, <span class="ident">command::ResponseTag::GetProperty</span>);
-                        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">packet</span>.<span class="ident">parameters</span>.<span class="ident">is_empty</span>());
-                        <span class="prelude-val">Ok</span>(<span class="ident">command::Response::GetProperty</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>))
+                    GetProperty(_property) =&gt; {
+                        <span class="macro">assert_eq!</span>(packet.tag, command::ResponseTag::GetProperty);
+                        <span class="macro">assert!</span>(!packet.parameters.is_empty());
+                        <span class="prelude-val">Ok</span>(command::Response::GetProperty(packet.parameters))
                     }
-                    <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(),
+                    <span class="kw">_ </span>=&gt; <span class="macro">todo!</span>(),
                 }
             }
 
-            <span class="comment">// case 2: command data phases</span>
-            (<span class="ident">command</span>, <span class="ident">_tag</span>, <span class="ident">command::DataPhase::CommandData</span>(<span class="ident">data</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">ResponsePacket::try_from</span>(<span class="ident">initial_response</span>)<span class="question-mark">?</span>;
+            <span class="comment">// case 2: command data phases
+            </span>(command, _tag, command::DataPhase::CommandData(data)) =&gt; {
+                <span class="kw">let </span>packet = ResponsePacket::try_from(initial_response)<span class="question-mark">?</span>;
 
-                <span class="comment">// for SetKey, LHS is true, whereas for WriteMemory, it is not (unexpectedly?)</span>
-                <span class="comment">// assert_eq!(packet.has_data, command.data_phase().has_command_data());</span>
-                <span class="macro">assert!</span>(<span class="ident">packet</span>.<span class="ident">status</span>.<span class="ident">is_none</span>());
-                <span class="kw">match</span> <span class="ident">command</span>.<span class="ident">clone</span>() {
-                    <span class="ident">command::Command::Keystore</span>(<span class="ident">command::KeystoreOperation::SetKey</span> {
-                        <span class="ident">key</span>: <span class="kw">_</span>,
-                        <span class="ident">data</span>: <span class="kw">_</span>,
+                <span class="comment">// for SetKey, LHS is true, whereas for WriteMemory, it is not (unexpectedly?)
+                // assert_eq!(packet.has_data, command.data_phase().has_command_data());
+                </span><span class="macro">assert!</span>(packet.status.is_none());
+                <span class="kw">match </span>command.clone() {
+                    command::Command::Keystore(command::KeystoreOperation::SetKey {
+                        key: <span class="kw">_</span>,
+                        data: <span class="kw">_</span>,
                     }) =&gt; {
-                        <span class="comment">// todo: can we use bigger chunks?</span>
-                        <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">chunks</span>(<span class="number">32</span>) {
-                            <span class="comment">// // TODO: somewhere in here, should &quot;peek&quot; a read to see if device sent</span>
-                            <span class="comment">// // an abort (i.e. a generic response)</span>
-                            <span class="comment">// let mut minibuf = [0u8; 4];</span>
-                            <span class="comment">// dbg!(self.device.read_timeout(&amp;mut minibuf, 1000).unwrap());</span>
-                            <span class="comment">//</span>
-                            <span class="comment">// I guess the device would just ignore our sent data if it were</span>
-                            <span class="comment">// unhappy, so we&#39;d find out after the fact. Although maybe sending</span>
-                            <span class="comment">// might block?</span>
+                        <span class="comment">// todo: can we use bigger chunks?
+                        </span><span class="kw">for </span>chunk <span class="kw">in </span>data.chunks(<span class="number">32</span>) {
+                            <span class="comment">// // TODO: somewhere in here, should &quot;peek&quot; a read to see if device sent
+                            // // an abort (i.e. a generic response)
+                            // let mut minibuf = [0u8; 4];
+                            // dbg!(self.device.read_timeout(&amp;mut minibuf, 1000).unwrap());
+                            //
+                            // I guess the device would just ignore our sent data if it were
+                            // unhappy, so we&#39;d find out after the fact. Although maybe sending
+                            // might block?
 
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_packet</span> <span class="op">=</span> <span class="macro">vec!</span>[
-                                <span class="ident">command::ReportId::CommandData</span> <span class="kw">as</span> <span class="ident">u8</span>,
+                            </span><span class="kw">let </span><span class="kw-2">mut </span>data_packet = <span class="macro">vec!</span>[
+                                command::ReportId::CommandData <span class="kw">as </span>u8,
                                 <span class="number">0</span>,
-                                <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u8</span>,
-                                <span class="number">0</span>,
-                            ];
-                            <span class="ident">data_packet</span>.<span class="ident">extend_from_slice</span>(<span class="ident">chunk</span>);
-                            <span class="ident">data_packet</span>.<span class="ident">resize</span>(<span class="number">4</span> <span class="op">+</span> <span class="number">32</span>, <span class="number">0</span>);
-                            <span class="macro">trace!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span><span class="ident">data_packet</span>, <span class="number">4</span>));
-                            <span class="self">self</span>.<span class="ident">write</span>(<span class="ident">data_packet</span>.<span class="ident">as_slice</span>())<span class="question-mark">?</span>;
-                        }
-
-                        <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">ResponsePacket::try_from</span>(<span class="self">self</span>.<span class="ident">read_packet</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-                        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">packet</span>.<span class="ident">has_data</span>);
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">status</span> {
-                            <span class="macro">panic!</span>(<span class="string">&quot;unexpected status {:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">status</span>);
-                        }
-                        <span class="comment">// assert!(packet.status.is_none());</span>
-
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">tag</span>, <span class="ident">command::ResponseTag::Generic</span>);
-                        <span class="comment">// general property of generic responses: 2 parameters, status and mirrored command header</span>
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-                        <span class="comment">// it seems the device &quot;forgets&quot; about the parameters the original command</span>
-                        <span class="comment">// contained (address + length)</span>
-                        <span class="comment">// ooorrr, Table 4-11 (&quot;The Command tag parameter identifies the response to the command sent by the host.&quot;)</span>
-                        <span class="comment">// just means that the command tag is set</span>
-                        <span class="comment">//</span>
-                        <span class="comment">// UPDATE: doesn&#39;t even reflect the second byte (has-data flag)</span>
-                        <span class="comment">// e.g.: we send: 15010003, we get back: 15000000</span>
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>()[<span class="number">0</span>], <span class="ident">command</span>.<span class="ident">header</span>()[<span class="number">0</span>]);
-
-                        <span class="prelude-val">Ok</span>(<span class="ident">command::Response::Generic</span>)
-                    }
-                    <span class="ident">command::Command::WriteMemory</span> {
-                        <span class="ident">address</span>: <span class="kw">_</span>,
-                        <span class="ident">data</span>: <span class="kw">_</span>,
-                    }
-                    <span class="op">|</span> <span class="ident">command::Command::WriteMemoryWords</span> { .. } =&gt; {
-                        <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">chunks</span>(<span class="number">32</span>) {
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_packet</span> <span class="op">=</span> <span class="macro">vec!</span>[
-                                <span class="ident">command::ReportId::CommandData</span> <span class="kw">as</span> <span class="ident">u8</span>,
-                                <span class="number">0</span>,
-                                <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u8</span>,
+                                chunk.len() <span class="kw">as </span>u8,
                                 <span class="number">0</span>,
                             ];
-                            <span class="ident">data_packet</span>.<span class="ident">extend_from_slice</span>(<span class="ident">chunk</span>);
-                            <span class="ident">data_packet</span>.<span class="ident">resize</span>(<span class="number">4</span> <span class="op">+</span> <span class="number">32</span>, <span class="number">0</span>);
-                            <span class="macro">trace!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span><span class="ident">data_packet</span>, <span class="number">4</span>));
-                            <span class="self">self</span>.<span class="ident">write</span>(<span class="ident">data_packet</span>.<span class="ident">as_slice</span>())<span class="question-mark">?</span>;
+                            data_packet.extend_from_slice(chunk);
+                            data_packet.resize(<span class="number">4 </span>+ <span class="number">32</span>, <span class="number">0</span>);
+                            <span class="macro">trace!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span>data_packet, <span class="number">4</span>));
+                            <span class="self">self</span>.write(data_packet.as_slice())<span class="question-mark">?</span>;
                         }
 
-                        <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">ResponsePacket::try_from</span>(<span class="self">self</span>.<span class="ident">read_packet</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-                        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">packet</span>.<span class="ident">has_data</span>);
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">status</span> {
-                            <span class="macro">panic!</span>(<span class="string">&quot;unexpected status {:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">status</span>);
+                        <span class="kw">let </span>packet = ResponsePacket::try_from(<span class="self">self</span>.read_packet()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+                        <span class="macro">assert!</span>(!packet.has_data);
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(status) = packet.status {
+                            <span class="macro">panic!</span>(<span class="string">&quot;unexpected status {:?}&quot;</span>, <span class="kw-2">&amp;</span>status);
                         }
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">tag</span>, <span class="ident">command::ResponseTag::Generic</span>);
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>()[<span class="number">0</span>], <span class="ident">command</span>.<span class="ident">header</span>()[<span class="number">0</span>]);
+                        <span class="comment">// assert!(packet.status.is_none());
 
-                        <span class="prelude-val">Ok</span>(<span class="ident">command::Response::Generic</span>)
+                        </span><span class="macro">assert_eq!</span>(packet.tag, command::ResponseTag::Generic);
+                        <span class="comment">// general property of generic responses: 2 parameters, status and mirrored command header
+                        </span><span class="macro">assert_eq!</span>(packet.parameters.len(), <span class="number">1</span>);
+                        <span class="comment">// it seems the device &quot;forgets&quot; about the parameters the original command
+                        // contained (address + length)
+                        // ooorrr, Table 4-11 (&quot;The Command tag parameter identifies the response to the command sent by the host.&quot;)
+                        // just means that the command tag is set
+                        //
+                        // UPDATE: doesn&#39;t even reflect the second byte (has-data flag)
+                        // e.g.: we send: 15010003, we get back: 15000000
+                        </span><span class="macro">assert_eq!</span>(packet.parameters[<span class="number">0</span>].to_le_bytes()[<span class="number">0</span>], command.header()[<span class="number">0</span>]);
+
+                        <span class="prelude-val">Ok</span>(command::Response::Generic)
                     }
-                    <span class="ident">command::Command::ReceiveSbFile</span> { <span class="ident">data</span> } =&gt; {
-                        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;progressbar&quot;</span>)]</span>
-                        <span class="kw">let</span> <span class="ident">bar</span> <span class="op">=</span> <span class="ident">indicatif::ProgressBar::new</span>(<span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>);
-                        <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">chunks</span>(<span class="number">32</span>) {
-                            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;progressbar&quot;</span>)]</span>
-                            <span class="ident">bar</span>.<span class="ident">inc</span>(<span class="number">32</span>);
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_packet</span> <span class="op">=</span> <span class="macro">vec!</span>[
-                                <span class="ident">command::ReportId::CommandData</span> <span class="kw">as</span> <span class="ident">u8</span>,
+                    command::Command::WriteMemory {
+                        address: <span class="kw">_</span>,
+                        data: <span class="kw">_</span>,
+                    }
+                    | command::Command::WriteMemoryWords { .. } =&gt; {
+                        <span class="kw">for </span>chunk <span class="kw">in </span>data.chunks(<span class="number">32</span>) {
+                            <span class="kw">let </span><span class="kw-2">mut </span>data_packet = <span class="macro">vec!</span>[
+                                command::ReportId::CommandData <span class="kw">as </span>u8,
                                 <span class="number">0</span>,
-                                <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u8</span>,
+                                chunk.len() <span class="kw">as </span>u8,
                                 <span class="number">0</span>,
                             ];
-                            <span class="ident">data_packet</span>.<span class="ident">extend_from_slice</span>(<span class="ident">chunk</span>);
-                            <span class="ident">data_packet</span>.<span class="ident">resize</span>(<span class="number">4</span> <span class="op">+</span> <span class="number">32</span>, <span class="number">0</span>);
-                            <span class="macro">trace!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span><span class="ident">data_packet</span>, <span class="number">4</span>));
-                            <span class="self">self</span>.<span class="ident">write</span>(<span class="ident">data_packet</span>.<span class="ident">as_slice</span>())<span class="question-mark">?</span>;
-                            <span class="comment">// let packet = self.read_packet().unwrap();</span>
-                            <span class="comment">// let what = self.device.read_timeout(&amp;mut [], 0).unwrap();</span>
+                            data_packet.extend_from_slice(chunk);
+                            data_packet.resize(<span class="number">4 </span>+ <span class="number">32</span>, <span class="number">0</span>);
+                            <span class="macro">trace!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span>data_packet, <span class="number">4</span>));
+                            <span class="self">self</span>.write(data_packet.as_slice())<span class="question-mark">?</span>;
                         }
 
-                        <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">ResponsePacket::try_from</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">read_packet</span>() {
-                            <span class="prelude-val">Err</span>(<span class="ident">Error::AbortDataPhase</span>) =&gt; {
+                        <span class="kw">let </span>packet = ResponsePacket::try_from(<span class="self">self</span>.read_packet()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+                        <span class="macro">assert!</span>(!packet.has_data);
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(status) = packet.status {
+                            <span class="macro">panic!</span>(<span class="string">&quot;unexpected status {:?}&quot;</span>, <span class="kw-2">&amp;</span>status);
+                        }
+                        <span class="macro">assert_eq!</span>(packet.tag, command::ResponseTag::Generic);
+                        <span class="macro">assert_eq!</span>(packet.parameters.len(), <span class="number">1</span>);
+                        <span class="macro">assert_eq!</span>(packet.parameters[<span class="number">0</span>].to_le_bytes()[<span class="number">0</span>], command.header()[<span class="number">0</span>]);
+
+                        <span class="prelude-val">Ok</span>(command::Response::Generic)
+                    }
+                    command::Command::ReceiveSbFile { data } =&gt; {
+                        <span class="kw">let </span><span class="kw-2">mut </span>position: usize = <span class="number">0</span>;
+                        <span class="kw">for </span>chunk <span class="kw">in </span>data.chunks(<span class="number">32</span>) {
+                            position += <span class="number">32</span>;
+                            <span class="kw">let _ </span>= progress.map(|progress| progress(position));
+                            <span class="kw">let </span><span class="kw-2">mut </span>data_packet = <span class="macro">vec!</span>[
+                                command::ReportId::CommandData <span class="kw">as </span>u8,
+                                <span class="number">0</span>,
+                                chunk.len() <span class="kw">as </span>u8,
+                                <span class="number">0</span>,
+                            ];
+                            data_packet.extend_from_slice(chunk);
+                            data_packet.resize(<span class="number">4 </span>+ <span class="number">32</span>, <span class="number">0</span>);
+                            <span class="macro">trace!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span>data_packet, <span class="number">4</span>));
+                            <span class="self">self</span>.write(data_packet.as_slice())<span class="question-mark">?</span>;
+                            <span class="comment">// let packet = self.read_packet().unwrap();
+                            // let what = self.device.read_timeout(&amp;mut [], 0).unwrap();
+                        </span>}
+
+                        <span class="kw">let </span>packet = ResponsePacket::try_from(<span class="kw">match </span><span class="self">self</span>.read_packet() {
+                            <span class="prelude-val">Err</span>(Error::AbortDataPhase) =&gt; {
                                 <span class="macro">println!</span>(<span class="string">&quot;aborting&quot;</span>);
-                                <span class="self">self</span>.<span class="ident">read_packet</span>().<span class="ident">unwrap</span>()
+                                <span class="self">self</span>.read_packet().unwrap()
                             }
-                            <span class="ident">x</span> =&gt; <span class="ident">x</span><span class="question-mark">?</span>,
+                            x =&gt; x<span class="question-mark">?</span>,
                         })<span class="question-mark">?</span>;
-                        <span class="comment">// let packet = ResponsePacket::try_from(self.read_packet()?)?;</span>
-                        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">packet</span>.<span class="ident">has_data</span>);
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">status</span> {
-                            <span class="macro">panic!</span>(<span class="string">&quot;unexpected status {:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">status</span>);
+                        <span class="comment">// let packet = ResponsePacket::try_from(self.read_packet()?)?;
+                        </span><span class="macro">assert!</span>(!packet.has_data);
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(status) = packet.status {
+                            <span class="macro">panic!</span>(<span class="string">&quot;unexpected status {:?}&quot;</span>, <span class="kw-2">&amp;</span>status);
                         }
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">tag</span>, <span class="ident">command::ResponseTag::Generic</span>);
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-                        <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>()[<span class="number">0</span>], <span class="ident">command</span>.<span class="ident">header</span>()[<span class="number">0</span>]);
+                        <span class="macro">assert_eq!</span>(packet.tag, command::ResponseTag::Generic);
+                        <span class="macro">assert_eq!</span>(packet.parameters.len(), <span class="number">1</span>);
+                        <span class="macro">assert_eq!</span>(packet.parameters[<span class="number">0</span>].to_le_bytes()[<span class="number">0</span>], command.header()[<span class="number">0</span>]);
 
-                        <span class="prelude-val">Ok</span>(<span class="ident">command::Response::Generic</span>)
+                        <span class="prelude-val">Ok</span>(command::Response::Generic)
                     }
-                    <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(),
+                    <span class="kw">_ </span>=&gt; <span class="macro">todo!</span>(),
                 }
             }
 
-            <span class="comment">// case 3: reponse data phases</span>
-            (<span class="ident">command::Command::Keystore</span>(<span class="ident">command::KeystoreOperation::ReadKeystore</span>), <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">_packet</span> <span class="op">=</span> <span class="ident">ResponsePacket::try_from</span>(<span class="ident">initial_response</span>)<span class="question-mark">?</span>;
+            <span class="comment">// case 3: reponse data phases
+            </span>(command::Command::Keystore(command::KeystoreOperation::ReadKeystore), <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>_packet = ResponsePacket::try_from(initial_response)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="number">3</span> <span class="op">*</span> <span class="number">512</span>;
-                <span class="kw">while</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">length</span> {
-                    <span class="kw">let</span> <span class="ident">partial_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_packet</span>()<span class="question-mark">?</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>;
-                    <span class="macro">assert!</span>(<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">partial_data</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">length</span>);
-                    <span class="ident">data</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">partial_data</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
+                <span class="kw">let </span>length = <span class="number">3 </span>* <span class="number">512</span>;
+                <span class="kw">while </span>data.len() &lt; length {
+                    <span class="kw">let </span>partial_data: Vec&lt;u8&gt; = <span class="self">self</span>.read_packet()<span class="question-mark">?</span>.try_into()<span class="question-mark">?</span>;
+                    <span class="macro">assert!</span>(data.len() + partial_data.len() &lt;= length);
+                    data.extend_from_slice(<span class="kw-2">&amp;</span>partial_data);
                 }
 
-                <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">ResponsePacket::try_from</span>(<span class="self">self</span>.<span class="ident">read_packet</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-                <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>()[<span class="number">0</span>], <span class="ident">command</span>.<span class="ident">header</span>()[<span class="number">0</span>]);
+                <span class="kw">let </span>packet = ResponsePacket::try_from(<span class="self">self</span>.read_packet()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+                <span class="macro">assert_eq!</span>(packet.parameters[<span class="number">0</span>].to_le_bytes()[<span class="number">0</span>], command.header()[<span class="number">0</span>]);
 
-                <span class="macro">debug!</span>(<span class="string">&quot;read {} in total&quot;</span>, <span class="ident">data</span>.<span class="ident">len</span>());
-                <span class="prelude-val">Ok</span>(<span class="ident">command::Response::Data</span>(<span class="ident">data</span>))
+                <span class="macro">debug!</span>(<span class="string">&quot;read {} in total&quot;</span>, data.len());
+                <span class="prelude-val">Ok</span>(command::Response::Data(data))
             }
 
-            (<span class="ident">command::Command::ReadMemory</span> { <span class="ident">address</span>: <span class="kw">_</span>, <span class="ident">length</span> }, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">ResponsePacket::try_from</span>(<span class="ident">initial_response</span>)<span class="question-mark">?</span>;
-                <span class="comment">// assert_eq!([0x03, 0x00, 0x0C, 0x00], &amp;initial_generic_response[..4]);</span>
-                <span class="macro">assert!</span>(<span class="ident">packet</span>.<span class="ident">has_data</span>);
-                <span class="macro">assert!</span>(<span class="ident">packet</span>.<span class="ident">status</span>.<span class="ident">is_none</span>());
-                <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">tag</span>, <span class="ident">command::ResponseTag::ReadMemory</span>);
+            (command::Command::ReadMemory { address: <span class="kw">_</span>, length }, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>packet = ResponsePacket::try_from(initial_response)<span class="question-mark">?</span>;
+                <span class="comment">// assert_eq!([0x03, 0x00, 0x0C, 0x00], &amp;initial_generic_response[..4]);
+                </span><span class="macro">assert!</span>(packet.has_data);
+                <span class="macro">assert!</span>(packet.status.is_none());
+                <span class="macro">assert_eq!</span>(packet.tag, command::ResponseTag::ReadMemory);
 
-                <span class="comment">// ReadMemory response: 2 parameters, status and then number of bytes to be</span>
-                <span class="comment">// sent in data phase</span>
-                <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-                <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">length</span>);
+                <span class="comment">// ReadMemory response: 2 parameters, status and then number of bytes to be
+                // sent in data phase
+                </span><span class="macro">assert_eq!</span>(packet.parameters.len(), <span class="number">1</span>);
+                <span class="macro">assert_eq!</span>(packet.parameters[<span class="number">0</span>] <span class="kw">as </span>usize, length);
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">while</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">length</span> {
-                    <span class="kw">let</span> <span class="ident">partial_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_packet</span>()<span class="question-mark">?</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>;
-                    <span class="macro">assert!</span>(<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">partial_data</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">length</span>);
-                    <span class="ident">data</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">partial_data</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
+                <span class="kw">while </span>data.len() &lt; length {
+                    <span class="kw">let </span>partial_data: Vec&lt;u8&gt; = <span class="self">self</span>.read_packet()<span class="question-mark">?</span>.try_into()<span class="question-mark">?</span>;
+                    <span class="macro">assert!</span>(data.len() + partial_data.len() &lt;= length);
+                    data.extend_from_slice(<span class="kw-2">&amp;</span>partial_data);
                 }
 
-                <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">ResponsePacket::try_from</span>(<span class="self">self</span>.<span class="ident">read_packet</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">packet</span>.<span class="ident">has_data</span>);
-                <span class="macro">assert!</span>(<span class="ident">packet</span>.<span class="ident">status</span>.<span class="ident">is_none</span>());
+                <span class="kw">let </span>packet = ResponsePacket::try_from(<span class="self">self</span>.read_packet()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+                <span class="macro">assert!</span>(!packet.has_data);
+                <span class="macro">assert!</span>(packet.status.is_none());
 
-                <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">tag</span>, <span class="ident">command::ResponseTag::Generic</span>);
-                <span class="comment">// general property of generic responses: 2 parameters, status and mirrored command header</span>
-                <span class="macro">assert_eq!</span>(<span class="ident">packet</span>.<span class="ident">parameters</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-                <span class="comment">// it seems the device &quot;forgets&quot; about the parameters the original command</span>
-                <span class="comment">// contained (address + length)</span>
-                <span class="comment">// ooorrr, Table 4-11 (&quot;The Command tag parameter identifies the response to the command sent by the host.&quot;)</span>
-                <span class="comment">// just means that the command tag is set</span>
-                <span class="macro">assert_eq!</span>(
-                    <span class="ident">packet</span>.<span class="ident">parameters</span>[<span class="number">0</span>].<span class="ident">to_le_bytes</span>()[..<span class="number">2</span>],
-                    <span class="ident">command</span>.<span class="ident">header</span>()[..<span class="number">2</span>]
+                <span class="macro">assert_eq!</span>(packet.tag, command::ResponseTag::Generic);
+                <span class="comment">// general property of generic responses: 2 parameters, status and mirrored command header
+                </span><span class="macro">assert_eq!</span>(packet.parameters.len(), <span class="number">1</span>);
+                <span class="comment">// it seems the device &quot;forgets&quot; about the parameters the original command
+                // contained (address + length)
+                // ooorrr, Table 4-11 (&quot;The Command tag parameter identifies the response to the command sent by the host.&quot;)
+                // just means that the command tag is set
+                </span><span class="macro">assert_eq!</span>(
+                    packet.parameters[<span class="number">0</span>].to_le_bytes()[..<span class="number">2</span>],
+                    command.header()[..<span class="number">2</span>]
                 );
 
-                <span class="prelude-val">Ok</span>(<span class="ident">command::Response::ReadMemory</span>(<span class="ident">data</span>))
+                <span class="prelude-val">Ok</span>(command::Response::ReadMemory(data))
             }
-            <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">todo!</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_packet</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ReceivedPacket</span><span class="op">&gt;</span> {
-        <span class="comment">// read data with timeout</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">data</span>.<span class="ident">resize</span>(<span class="number">256</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">read_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>, <span class="ident">READ_TIMEOUT</span>)<span class="question-mark">?</span>;
-        <span class="ident">data</span>.<span class="ident">resize</span>(<span class="ident">read</span>, <span class="number">0</span>);
+    <span class="kw">pub fn </span>read_packet(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ReceivedPacket&gt; {
+        <span class="comment">// read data with timeout
+        </span><span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
+        data.resize(<span class="number">256</span>, <span class="number">0</span>);
+        <span class="kw">let </span>read = <span class="self">self</span>.device.read_timeout(<span class="kw-2">&amp;mut </span>data, READ_TIMEOUT)<span class="question-mark">?</span>;
+        data.resize(read, <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">report_id</span> <span class="op">=</span> <span class="ident">command::ReportId::try_from</span>(<span class="ident">data</span>[<span class="number">0</span>]).<span class="ident">map_err</span>(<span class="ident">Error::InvalidReportId</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>report_id = command::ReportId::try_from(data[<span class="number">0</span>]).map_err(Error::InvalidReportId)<span class="question-mark">?</span>;
 
-        <span class="comment">// the device often sends &quot;extra junk&quot;; we split this off early</span>
-        <span class="kw">let</span> <span class="ident">expected_packet_len</span> <span class="op">=</span> <span class="ident">u16::from_le_bytes</span>(<span class="ident">data</span>[<span class="number">2</span>..<span class="number">4</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()) <span class="kw">as</span> <span class="ident">usize</span>;
-        <span class="ident">data</span>.<span class="ident">resize</span>(<span class="number">4</span> <span class="op">+</span> <span class="ident">expected_packet_len</span>, <span class="number">0</span>);
-        <span class="macro">trace!</span>(<span class="string">&quot;--&gt; {} ({}B)&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="number">4</span>), <span class="ident">data</span>.<span class="ident">len</span>());
+        <span class="comment">// the device often sends &quot;extra junk&quot;; we split this off early
+        </span><span class="kw">let </span>expected_packet_len = u16::from_le_bytes(data[<span class="number">2</span>..<span class="number">4</span>].try_into().unwrap()) <span class="kw">as </span>usize;
+        data.resize(<span class="number">4 </span>+ expected_packet_len, <span class="number">0</span>);
+        <span class="macro">trace!</span>(<span class="string">&quot;--&gt; {} ({}B)&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span>data, <span class="number">4</span>), data.len());
 
-        <span class="kw">let</span> <span class="ident">response_packet</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">split_off</span>(<span class="number">4</span>);
+        <span class="kw">let </span>response_packet = data.split_off(<span class="number">4</span>);
 
-        <span class="comment">// now handle the response packet</span>
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">report_id</span> {
-            <span class="ident">command::ReportId::Response</span> =&gt; {
-                <span class="comment">// NB: this can be  &quot;short&quot; answer (just `03 00 00 00`), which means an</span>
-                <span class="comment">// &quot;AbortDataPhase&quot;.</span>
-                <span class="comment">// In this case, need to pull naother response to get the error.</span>
-                <span class="kw">if</span> <span class="ident">response_packet</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::AbortDataPhase</span>);
+        <span class="comment">// now handle the response packet
+        </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>report_id {
+            command::ReportId::Response =&gt; {
+                <span class="comment">// NB: this can be  &quot;short&quot; answer (just `03 00 00 00`), which means an
+                // &quot;AbortDataPhase&quot;.
+                // In this case, need to pull naother response to get the error.
+                </span><span class="kw">if </span>response_packet.is_empty() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::AbortDataPhase);
                 }
-                <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">command::ResponseTag::try_from</span>(<span class="ident">response_packet</span>[<span class="number">0</span>])
-                    .<span class="ident">map_err</span>(<span class="ident">Error::UnknownResponseTag</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">has_data</span> <span class="op">=</span> (<span class="ident">response_packet</span>[<span class="number">1</span>] <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
-                <span class="kw">let</span> <span class="ident">expected_param_count</span> <span class="op">=</span> <span class="ident">response_packet</span>[<span class="number">3</span>] <span class="kw">as</span> <span class="ident">usize</span>;
+                <span class="kw">let </span>tag = command::ResponseTag::try_from(response_packet[<span class="number">0</span>])
+                    .map_err(Error::UnknownResponseTag)<span class="question-mark">?</span>;
+                <span class="kw">let </span>has_data = (response_packet[<span class="number">1</span>] &amp; <span class="number">1</span>) != <span class="number">0</span>;
+                <span class="kw">let </span>expected_param_count = response_packet[<span class="number">3</span>] <span class="kw">as </span>usize;
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">response_packet</span>[<span class="number">4</span>..]
-                    .<span class="ident">chunks</span>(<span class="number">4</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">chunk</span><span class="op">|</span> <span class="ident">u32::from_le_bytes</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()))
-                    .<span class="ident">collect</span>();
-                <span class="macro">assert_eq!</span>(<span class="ident">expected_param_count</span>, <span class="ident">parameters</span>.<span class="ident">len</span>());
+                <span class="kw">let </span><span class="kw-2">mut </span>parameters: Vec&lt;u32&gt; = response_packet[<span class="number">4</span>..]
+                    .chunks(<span class="number">4</span>)
+                    .map(|chunk| u32::from_le_bytes(chunk.try_into().unwrap()))
+                    .collect();
+                <span class="macro">assert_eq!</span>(expected_param_count, parameters.len());
 
-                <span class="comment">// first parameter is always status</span>
-                <span class="kw">let</span> <span class="ident">status_code</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">remove</span>(<span class="number">0</span>);
-                <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">status_code</span> {
-                    <span class="number">0</span> =&gt; <span class="prelude-val">None</span>,
-                    <span class="ident">code</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BootloaderError::from</span>(<span class="ident">code</span>)),
+                <span class="comment">// first parameter is always status
+                </span><span class="kw">let </span>status_code = parameters.remove(<span class="number">0</span>);
+                <span class="kw">let </span>status = <span class="kw">match </span>status_code {
+                    <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
+                    code =&gt; <span class="prelude-val">Some</span>(BootloaderError::from(code)),
                 };
 
-                <span class="comment">// NB: this is only true for Generic responses</span>
-                <span class="comment">// // second parameter is always mirrored command header</span>
-                <span class="comment">// let mirrored_command_header = parameters.remove(0).to_le_bytes();</span>
+                <span class="comment">// NB: this is only true for Generic responses
+                // // second parameter is always mirrored command header
+                // let mirrored_command_header = parameters.remove(0).to_le_bytes();
 
-                <span class="ident">ReceivedPacket::Response</span>(<span class="ident">ResponsePacket</span> {
-                    <span class="ident">tag</span>,
-                    <span class="ident">has_data</span>,
-                    <span class="ident">status</span>,
-                    <span class="comment">// mirrored_command_header,</span>
-                    <span class="ident">parameters</span>,
+                </span>ReceivedPacket::Response(ResponsePacket {
+                    tag,
+                    has_data,
+                    status,
+                    <span class="comment">// mirrored_command_header,
+                    </span>parameters,
                 })
             }
-            <span class="ident">command::ReportId::ResponseData</span> =&gt; <span class="ident">ReceivedPacket::Data</span>(<span class="ident">response_packet</span>),
-            <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(),
+            command::ReportId::ResponseData =&gt; ReceivedPacket::Data(response_packet),
+            <span class="kw">_ </span>=&gt; <span class="macro">todo!</span>(),
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">sent</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">write</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">all</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">len</span>();
-        <span class="kw">if</span> <span class="ident">sent</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">all</span> {
+    <span class="kw">pub fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>sent = <span class="self">self</span>.device.write(data)<span class="question-mark">?</span>;
+        <span class="kw">let </span>all = data.len();
+        <span class="kw">if </span>sent &gt;= all {
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">hidapi::HidError::IncompleteSendError</span> { <span class="ident">sent</span>, <span class="ident">all</span> }.<span class="ident">into</span>())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(hidapi::HidError::IncompleteSendError { sent, all }.into())
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_timeout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">usize</span>) -&gt; <span class="ident">HidResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">data</span>.<span class="ident">resize</span>(<span class="number">256</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">read_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>, <span class="ident">timeout</span> <span class="kw">as</span> <span class="ident">i32</span>)<span class="question-mark">?</span>;
-        <span class="ident">data</span>.<span class="ident">resize</span>(<span class="ident">read</span>, <span class="number">0</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">data</span>)
+    <span class="kw">pub fn </span>read_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, timeout: usize) -&gt; HidResult&lt;Vec&lt;u8&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
+        data.resize(<span class="number">256</span>, <span class="number">0</span>);
+        <span class="kw">let </span>read = <span class="self">self</span>.device.read_timeout(<span class="kw-2">&amp;mut </span>data, timeout <span class="kw">as </span>i32)<span class="question-mark">?</span>;
+        data.resize(read, <span class="number">0</span>);
+        <span class="prelude-val">Ok</span>(data)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Protocol</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">device</span>: <span class="ident">HidDevice</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">device</span> }
+<span class="kw">impl </span>Protocol {
+    <span class="kw">pub fn </span>new(device: HidDevice) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ device }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">Protocol</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Device&quot;</span>)
-            <span class="comment">// .debug_struct(&quot;HidDevice&quot;)</span>
-            .<span class="ident">field</span>(<span class="string">&quot;manufacturer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">device</span>.<span class="ident">get_manufacturer_string</span>())
-            .<span class="ident">field</span>(<span class="string">&quot;product&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">device</span>.<span class="ident">get_product_string</span>())
-            .<span class="ident">field</span>(<span class="string">&quot;serial number&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">device</span>.<span class="ident">get_serial_number_string</span>())
-            <span class="comment">// .finish()</span>
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Protocol {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">&quot;Device&quot;</span>)
+            <span class="comment">// .debug_struct(&quot;HidDevice&quot;)
+            </span>.field(<span class="string">&quot;manufacturer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.device.get_manufacturer_string())
+            .field(<span class="string">&quot;product&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.device.get_product_string())
+            .field(<span class="string">&quot;serial number&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.device.get_serial_number_string())
+            <span class="comment">// .finish()
+            </span>.finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

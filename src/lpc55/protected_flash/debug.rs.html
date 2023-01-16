@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/protected_flash/debug.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>debug.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/protected_flash/debug.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>debug.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -363,365 +357,364 @@
 <span id="357">357</span>
 <span id="358">358</span>
 <span id="359">359</span>
-</pre><pre class="rust"><code><span class="comment">// https://www.nxp.com/docs/en/application-note/AN13037.pdf</span>
+</pre><pre class="rust"><code><span class="comment">// https://www.nxp.com/docs/en/application-note/AN13037.pdf
 
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+</span><span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::is_default</span>;
+<span class="kw">use </span><span class="kw">crate</span>::util::is_default;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
-<span class="doccomment">/// Wrapper around the detailed debug access settings,</span>
-<span class="doccomment">/// allowing to completely enable or disable with ease.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Use the custom variant for more detail.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugAccess</span> {
-    <span class="doccomment">/// The state of an empty key (all four relevant words are all-zero)</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It seems that this state has the same effect as `Enabled`,</span>
-    <span class="doccomment">/// if not please open a GitHub issue!</span>
-    <span class="ident">Default</span>,
-    <span class="doccomment">/// Debugging access is not possible</span>
-    <span class="ident">Disabled</span>,
-    <span class="doccomment">/// Debugging access is possible</span>
-    <span class="ident">Enabled</span>,
-    <span class="doccomment">/// Debugger must present a Debug Credential (this functionality</span>
-    <span class="doccomment">/// is not currently implemented or further exposed).</span>
-    <span class="ident">Authenticate</span>,
-    <span class="doccomment">/// &quot;Bring your own settings&quot;</span>
-    <span class="ident">Custom</span>(<span class="ident">DebugSettings</span>),
+<span class="attribute">#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+</span><span class="doccomment">/// Wrapper around the detailed debug access settings,
+/// allowing to completely enable or disable with ease.
+///
+/// Use the custom variant for more detail.
+</span><span class="kw">pub enum </span>DebugAccess {
+    <span class="doccomment">/// The state of an empty key (all four relevant words are all-zero)
+    ///
+    /// It seems that this state has the same effect as `Enabled`,
+    /// if not please open a GitHub issue!
+    </span>Default,
+    <span class="doccomment">/// Debugging access is not possible
+    </span>Disabled,
+    <span class="doccomment">/// Debugging access is possible
+    </span>Enabled,
+    <span class="doccomment">/// Debugger must present a Debug Credential (this functionality
+    /// is not currently implemented or further exposed).
+    </span>Authenticate,
+    <span class="doccomment">/// &quot;Bring your own settings&quot;
+    </span>Custom(DebugSettings),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>)]</span>
-<span class="doccomment">/// Controls access of debuggers to specific subsystems.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// To understand if access is possible:</span>
-<span class="doccomment">/// - factory + customer setting: Enabled -&gt; yes</span>
-<span class="doccomment">/// - factor + customer set to Enabled or Authenticate -&gt; need a prepared debug certificate</span>
-<span class="doccomment">///   (this is not implemented in this library)</span>
-<span class="doccomment">/// - any setting Illegal =&gt; device may lock up</span>
-<span class="doccomment">/// - any setting Disabled =&gt; access not possible!!</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Peculiarities to be aware of:</span>
-<span class="doccomment">/// - Factory settings (`CC_SOCU_PIN`, `CC_SOCU_DFLT`) can be made stricter, but not relaxed,</span>
-<span class="doccomment">///   using customer settings (`DCFG_CC_SOCU_NS_PIN`, `DCFG_CC_SOCU_NS_DFLT`)</span>
-<span class="doccomment">/// - As long as the factory page is not sealed, the setting can be changed there.</span>
-<span class="doccomment">/// - To change settings in the customer page, the ping/pong dance must be done.</span>
-<span class="doccomment">/// - The enabled bit (&quot;DFLT&quot;) determines which setting is potentially in effect</span>
-<span class="doccomment">/// - The fixed bit (&quot;PIN&quot;) determines whether a debugger may activate the potentially</span>
-<span class="doccomment">///   effective settings (by presenting a Debug Authentication certificate)</span>
-<span class="doccomment">/// - The non-fixed enabled setting is illegal.</span>
-<span class="doccomment">/// - All bits are written in the lower half-word, and must be also written in inverted</span>
-<span class="doccomment">///   form in the upper half-word.</span>
-<span class="doccomment">/// - Except, it seems, the default / empty setting, where both PIN and DFLT words are all zero.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In this implementation, we disregard customer settings from configuration files,</span>
-<span class="doccomment">/// enforcing that only the firmware changes them.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// TODO: We could also model the factory default, where the entire word is zeros.</span>
-<span class="doccomment">/// This would need some special handling + research.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DebugSetting</span> {
-    <span class="doccomment">/// Default state at startup. Will only be accepted when writing to</span>
-    <span class="doccomment">/// factory settings when *all* settings are default.</span>
-    <span class="ident">Default</span>,
-    <span class="doccomment">/// Disabled at startup, debugging not possible</span>
-    <span class="ident">Disabled</span>,
-    <span class="doccomment">/// Debugging enabled at startup (debugger can&#39;t turn off).</span>
-    <span class="doccomment">/// &quot;Access to the sub-domain is always enabled.&quot;</span>
-    <span class="ident">Enabled</span>,
-    <span class="comment">// /// Enabled the policy, but it could be changed by authenticated debugger</span>
-    <span class="doccomment">/// According to UM 11126, 51.7.14, Table 1064:</span>
-    <span class="doccomment">/// &quot;Illegal setting. Part may lock-up if this setting is selected.&quot;</span>
-    <span class="ident">Illegal</span>,
-    <span class="doccomment">/// Debugging disabled at startup, only authenticated debugger can access</span>
-    <span class="ident">Authenticate</span>,
+<span class="attribute">#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+</span><span class="doccomment">/// Controls access of debuggers to specific subsystems.
+///
+/// To understand if access is possible:
+/// - factory + customer setting: Enabled -&gt; yes
+/// - factor + customer set to Enabled or Authenticate -&gt; need a prepared debug certificate
+///   (this is not implemented in this library)
+/// - any setting Illegal =&gt; device may lock up
+/// - any setting Disabled =&gt; access not possible!!
+///
+/// Peculiarities to be aware of:
+/// - Factory settings (`CC_SOCU_PIN`, `CC_SOCU_DFLT`) can be made stricter, but not relaxed,
+///   using customer settings (`DCFG_CC_SOCU_NS_PIN`, `DCFG_CC_SOCU_NS_DFLT`)
+/// - As long as the factory page is not sealed, the setting can be changed there.
+/// - To change settings in the customer page, the ping/pong dance must be done.
+/// - The enabled bit (&quot;DFLT&quot;) determines which setting is potentially in effect
+/// - The fixed bit (&quot;PIN&quot;) determines whether a debugger may activate the potentially
+///   effective settings (by presenting a Debug Authentication certificate)
+/// - The non-fixed enabled setting is illegal.
+/// - All bits are written in the lower half-word, and must be also written in inverted
+///   form in the upper half-word.
+/// - Except, it seems, the default / empty setting, where both PIN and DFLT words are all zero.
+///
+/// In this implementation, we disregard customer settings from configuration files,
+/// enforcing that only the firmware changes them.
+///
+/// TODO: We could also model the factory default, where the entire word is zeros.
+/// This would need some special handling + research.
+</span><span class="kw">pub enum </span>DebugSetting {
+    <span class="doccomment">/// Default state at startup. Will only be accepted when writing to
+    /// factory settings when *all* settings are default.
+    </span>Default,
+    <span class="doccomment">/// Disabled at startup, debugging not possible
+    </span>Disabled,
+    <span class="doccomment">/// Debugging enabled at startup (debugger can&#39;t turn off).
+    /// &quot;Access to the sub-domain is always enabled.&quot;
+    </span>Enabled,
+    <span class="comment">// /// Enabled the policy, but it could be changed by authenticated debugger
+    </span><span class="doccomment">/// According to UM 11126, 51.7.14, Table 1064:
+    /// &quot;Illegal setting. Part may lock-up if this setting is selected.&quot;
+    </span>Illegal,
+    <span class="doccomment">/// Debugging disabled at startup, only authenticated debugger can access
+    </span>Authenticate,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugAccess</span> {
-    <span class="doccomment">/// Set to default, so that `lpc55 factory-settings` does not</span>
-    <span class="doccomment">/// turn off debugging on an otherwise empty key, unless explicitly</span>
-    <span class="doccomment">/// configured to be turned off.</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Default</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>DebugAccess {
+    <span class="doccomment">/// Set to default, so that `lpc55 factory-settings` does not
+    /// turn off debugging on an otherwise empty key, unless explicitly
+    /// configured to be turned off.
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Default
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DebugSetting</span> {
-    <span class="doccomment">/// Set to enabled, so that `lpc55 factory-settings` does not</span>
-    <span class="doccomment">/// turn off debugging on an otherwise empty key, unless explicitly</span>
-    <span class="doccomment">/// configured to be turned off.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It might be possible to set the default to `Self::Default` here,</span>
-    <span class="doccomment">/// if we research whether its valid for some settings to stay</span>
-    <span class="doccomment">/// 0 in both bits and also in the &quot;inverted&quot; section.</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Enabled</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>DebugSetting {
+    <span class="doccomment">/// Set to enabled, so that `lpc55 factory-settings` does not
+    /// turn off debugging on an otherwise empty key, unless explicitly
+    /// configured to be turned off.
+    ///
+    /// It might be possible to set the default to `Self::Default` here,
+    /// if we research whether its valid for some settings to stay
+    /// 0 in both bits and also in the &quot;inverted&quot; section.
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Enabled
     }
 }
 
-<span class="kw">impl</span> <span class="ident">DebugSetting</span> {
-    <span class="doccomment">/// Called `PIN` by NXP, e.g in UM 11126, 51.7.14</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The interpretation is that the setting in the &quot;enabled&quot;</span>
-    <span class="doccomment">/// bit can not be changed by the debugger (i.e. it can</span>
-    <span class="doccomment">/// not enabled debugging by providing an appropriate Debug</span>
-    <span class="doccomment">/// Credential (DC)).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In their words:</span>
-    <span class="doccomment">/// &quot;A bitmask that specifies which debug domains are predetermined</span>
-    <span class="doccomment">/// by device configuration.&quot;</span>
-    <span class="kw">fn</span> <span class="ident">fixed_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">use</span> <span class="ident">DebugSetting</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Authenticate</span> <span class="op">|</span> <span class="ident">Default</span> <span class="op">|</span> <span class="ident">Illegal</span> =&gt; <span class="number">0</span>,
-            <span class="ident">Disabled</span> <span class="op">|</span> <span class="ident">Enabled</span> =&gt; <span class="number">1</span>,
+<span class="kw">impl </span>DebugSetting {
+    <span class="doccomment">/// Called `PIN` by NXP, e.g in UM 11126, 51.7.14
+    ///
+    /// The interpretation is that the setting in the &quot;enabled&quot;
+    /// bit can not be changed by the debugger (i.e. it can
+    /// not enabled debugging by providing an appropriate Debug
+    /// Credential (DC)).
+    ///
+    /// In their words:
+    /// &quot;A bitmask that specifies which debug domains are predetermined
+    /// by device configuration.&quot;
+    </span><span class="kw">fn </span>fixed_bit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="kw">use </span>DebugSetting::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Authenticate | Default | Illegal =&gt; <span class="number">0</span>,
+            Disabled | Enabled =&gt; <span class="number">1</span>,
         }
     }
-    <span class="doccomment">/// Called `DFLT` by NXP, e.g in UM 11126, 51.7.14</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The setting that is applied during startup.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In their words:</span>
-    <span class="doccomment">/// &quot;Provides the final access level for those bits that the SOCU_PIN</span>
-    <span class="doccomment">/// field indicated are predetermined by device configuration.&quot;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It seems that the meaning of this bit is incorrectly used</span>
-    <span class="doccomment">/// for the enabled and disabled states in Table 1064 of that section.</span>
-    <span class="doccomment">/// And indeed, AN13037 confirms this.</span>
-    <span class="kw">fn</span> <span class="ident">enabled_bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">use</span> <span class="ident">DebugSetting</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Disabled</span> <span class="op">|</span> <span class="ident">Default</span> <span class="op">|</span> <span class="ident">Authenticate</span> =&gt; <span class="number">0</span>,
-            <span class="ident">Enabled</span> <span class="op">|</span> <span class="ident">Illegal</span> =&gt; <span class="number">1</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">bool</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSetting</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">bits</span>: [<span class="ident">bool</span>; <span class="number">2</span>]) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> [<span class="ident">fixed</span>, <span class="ident">enabled</span>] <span class="op">=</span> <span class="ident">bits</span>;
-        <span class="kw">use</span> <span class="ident">DebugSetting</span>::<span class="kw-2">*</span>;
-        <span class="comment">//  UM, 517.1.4, Table 1064</span>
-        <span class="comment">//  It seems that Enabled and Disabled are mixed up / incorrect in the table.</span>
-        <span class="comment">//</span>
-        <span class="comment">//  Indeed, AN13037 confirms this.</span>
-        <span class="kw">match</span> (<span class="ident">fixed</span>, <span class="ident">enabled</span>) {
-            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="ident">Enabled</span>,
-            (<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; <span class="ident">Authenticate</span>,
-            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="ident">Illegal</span>,
-            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="ident">Disabled</span>,
+    <span class="doccomment">/// Called `DFLT` by NXP, e.g in UM 11126, 51.7.14
+    ///
+    /// The setting that is applied during startup.
+    ///
+    /// In their words:
+    /// &quot;Provides the final access level for those bits that the SOCU_PIN
+    /// field indicated are predetermined by device configuration.&quot;
+    ///
+    /// It seems that the meaning of this bit is incorrectly used
+    /// for the enabled and disabled states in Table 1064 of that section.
+    /// And indeed, AN13037 confirms this.
+    </span><span class="kw">fn </span>enabled_bit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="kw">use </span>DebugSetting::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Disabled | Default | Authenticate =&gt; <span class="number">0</span>,
+            Enabled | Illegal =&gt; <span class="number">1</span>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(
-    <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Serialize</span>,
-)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
-<span class="comment">// The `{non,}secure_{non,}invasive` settings pertain to CPU0,</span>
-<span class="comment">// whereas CPU1 has two separate settings.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugSettings</span> {
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="doccomment">/// non-invasive debugging of the TrustZone non-secure domain of CPU0</span>
-    <span class="kw">pub</span> <span class="ident">nonsecure_noninvasive</span>: <span class="ident">DebugSetting</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="doccomment">/// invasive debugging of the TrustZone non-secure domain of CPU0</span>
-    <span class="kw">pub</span> <span class="ident">nonsecure_invasive</span>: <span class="ident">DebugSetting</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="doccomment">/// non-invasive debugging of the TrustZone secure domain of CPU0</span>
-    <span class="kw">pub</span> <span class="ident">secure_noninvasive</span>: <span class="ident">DebugSetting</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="doccomment">/// invasive debugging of the TrustZone secure domain of CPU0</span>
-    <span class="kw">pub</span> <span class="ident">secure_invasive</span>: <span class="ident">DebugSetting</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="doccomment">/// non-invasive debugging of CPU1</span>
-    <span class="kw">pub</span> <span class="ident">cpu1_noninvasive</span>: <span class="ident">DebugSetting</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="doccomment">/// invasive debugging of CPU1</span>
-    <span class="kw">pub</span> <span class="ident">cpu1_invasive</span>: <span class="ident">DebugSetting</span>,
-
-    <span class="doccomment">/// JTAG test access port</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">jtag_tap</span>: <span class="ident">DebugSetting</span>,
-
-    <span class="doccomment">/// Flash mass erase command</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">flash_mass_erase_command</span>: <span class="ident">DebugSetting</span>,
-
-    <span class="doccomment">/// ISP boot command</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">isp_boot_command</span>: <span class="ident">DebugSetting</span>,
-    <span class="doccomment">/// FA (fault analysis) command</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">fault_analysis_command</span>: <span class="ident">DebugSetting</span>,
-
-    <span class="doccomment">/// enforce UUID match during debug authentication</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">check_uuid</span>: <span class="ident">bool</span>,
+<span class="kw">impl </span>From&lt;[bool; <span class="number">2</span>]&gt; <span class="kw">for </span>DebugSetting {
+    <span class="kw">fn </span>from(bits: [bool; <span class="number">2</span>]) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>[fixed, enabled] = bits;
+        <span class="kw">use </span>DebugSetting::<span class="kw-2">*</span>;
+        <span class="comment">//  UM, 517.1.4, Table 1064
+        //  It seems that Enabled and Disabled are mixed up / incorrect in the table.
+        //
+        //  Indeed, AN13037 confirms this.
+        </span><span class="kw">match </span>(fixed, enabled) {
+            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; Enabled,
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; Authenticate,
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; Illegal,
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; Disabled,
+        }
+    }
 }
 
-<span class="kw">impl</span> <span class="ident">DebugSettings</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_legal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+<span class="attribute">#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+#[serde(rename_all = <span class="string">&quot;kebab-case&quot;</span>)]
+</span><span class="comment">// The `{non,}secure_{non,}invasive` settings pertain to CPU0,
+// whereas CPU1 has two separate settings.
+</span><span class="kw">pub struct </span>DebugSettings {
+    <span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="doccomment">/// non-invasive debugging of the TrustZone non-secure domain of CPU0
+    </span><span class="kw">pub </span>nonsecure_noninvasive: DebugSetting,
+    <span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="doccomment">/// invasive debugging of the TrustZone non-secure domain of CPU0
+    </span><span class="kw">pub </span>nonsecure_invasive: DebugSetting,
+    <span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="doccomment">/// non-invasive debugging of the TrustZone secure domain of CPU0
+    </span><span class="kw">pub </span>secure_noninvasive: DebugSetting,
+    <span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="doccomment">/// invasive debugging of the TrustZone secure domain of CPU0
+    </span><span class="kw">pub </span>secure_invasive: DebugSetting,
+    <span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="doccomment">/// non-invasive debugging of CPU1
+    </span><span class="kw">pub </span>cpu1_noninvasive: DebugSetting,
+    <span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="doccomment">/// invasive debugging of CPU1
+    </span><span class="kw">pub </span>cpu1_invasive: DebugSetting,
+
+    <span class="doccomment">/// JTAG test access port
+    </span><span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="kw">pub </span>jtag_tap: DebugSetting,
+
+    <span class="doccomment">/// Flash mass erase command
+    </span><span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="kw">pub </span>flash_mass_erase_command: DebugSetting,
+
+    <span class="doccomment">/// ISP boot command
+    </span><span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="kw">pub </span>isp_boot_command: DebugSetting,
+    <span class="doccomment">/// FA (fault analysis) command
+    </span><span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="kw">pub </span>fault_analysis_command: DebugSetting,
+
+    <span class="doccomment">/// enforce UUID match during debug authentication
+    </span><span class="attribute">#[serde(default)]
+    #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+    </span><span class="kw">pub </span>check_uuid: bool,
+}
+
+<span class="kw">impl </span>DebugSettings {
+    <span class="kw">pub fn </span>are_all_legal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         [
-            <span class="self">self</span>.<span class="ident">nonsecure_noninvasive</span>,
-            <span class="self">self</span>.<span class="ident">nonsecure_invasive</span>,
-            <span class="self">self</span>.<span class="ident">secure_noninvasive</span>,
-            <span class="self">self</span>.<span class="ident">secure_invasive</span>,
-            <span class="self">self</span>.<span class="ident">cpu1_noninvasive</span>,
-            <span class="self">self</span>.<span class="ident">cpu1_invasive</span>,
-            <span class="self">self</span>.<span class="ident">jtag_tap</span>,
-            <span class="self">self</span>.<span class="ident">flash_mass_erase_command</span>,
-            <span class="self">self</span>.<span class="ident">isp_boot_command</span>,
-            <span class="self">self</span>.<span class="ident">fault_analysis_command</span>,
+            <span class="self">self</span>.nonsecure_noninvasive,
+            <span class="self">self</span>.nonsecure_invasive,
+            <span class="self">self</span>.secure_noninvasive,
+            <span class="self">self</span>.secure_invasive,
+            <span class="self">self</span>.cpu1_noninvasive,
+            <span class="self">self</span>.cpu1_invasive,
+            <span class="self">self</span>.jtag_tap,
+            <span class="self">self</span>.flash_mass_erase_command,
+            <span class="self">self</span>.isp_boot_command,
+            <span class="self">self</span>.fault_analysis_command,
         ]
-        .<span class="ident">iter</span>()
-        .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">setting</span><span class="op">|</span> <span class="ident">setting</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DebugSetting::Illegal</span>)
+        .iter()
+        .all(|<span class="kw-2">&amp;</span>setting| setting != DebugSetting::Illegal)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_non_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub fn </span>are_all_non_default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         [
-            <span class="self">self</span>.<span class="ident">nonsecure_noninvasive</span>,
-            <span class="self">self</span>.<span class="ident">nonsecure_invasive</span>,
-            <span class="self">self</span>.<span class="ident">secure_noninvasive</span>,
-            <span class="self">self</span>.<span class="ident">secure_invasive</span>,
-            <span class="self">self</span>.<span class="ident">cpu1_noninvasive</span>,
-            <span class="self">self</span>.<span class="ident">cpu1_invasive</span>,
-            <span class="self">self</span>.<span class="ident">jtag_tap</span>,
-            <span class="self">self</span>.<span class="ident">flash_mass_erase_command</span>,
-            <span class="self">self</span>.<span class="ident">isp_boot_command</span>,
-            <span class="self">self</span>.<span class="ident">fault_analysis_command</span>,
+            <span class="self">self</span>.nonsecure_noninvasive,
+            <span class="self">self</span>.nonsecure_invasive,
+            <span class="self">self</span>.secure_noninvasive,
+            <span class="self">self</span>.secure_invasive,
+            <span class="self">self</span>.cpu1_noninvasive,
+            <span class="self">self</span>.cpu1_invasive,
+            <span class="self">self</span>.jtag_tap,
+            <span class="self">self</span>.flash_mass_erase_command,
+            <span class="self">self</span>.isp_boot_command,
+            <span class="self">self</span>.fault_analysis_command,
         ]
-        .<span class="ident">iter</span>()
-        .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">setting</span><span class="op">|</span> <span class="ident">setting</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DebugSetting::Default</span>)
+        .iter()
+        .all(|<span class="kw-2">&amp;</span>setting| setting != DebugSetting::Default)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_all_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">DebugAccess::Default</span>.<span class="ident">into</span>()
+    <span class="kw">pub fn </span>are_all_default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw-2">*</span><span class="self">self </span>== DebugAccess::Default.into()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugAccess</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSettings</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DebugAccess</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">DebugSetting</span>::<span class="kw-2">*</span>;
+<span class="kw">impl </span>From&lt;DebugAccess&gt; <span class="kw">for </span>DebugSettings {
+    <span class="kw">fn </span>from(value: DebugAccess) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>DebugSetting::<span class="kw-2">*</span>;
 
-        <span class="kw">fn</span> <span class="ident">filled_with</span>(<span class="ident">setting</span>: <span class="ident">DebugSetting</span>, <span class="ident">check_uuid</span>: <span class="ident">bool</span>) -&gt; <span class="ident">DebugSettings</span> {
-            <span class="ident">DebugSettings</span> {
-                <span class="ident">nonsecure_noninvasive</span>: <span class="ident">setting</span>,
-                <span class="ident">nonsecure_invasive</span>: <span class="ident">setting</span>,
-                <span class="ident">secure_noninvasive</span>: <span class="ident">setting</span>,
-                <span class="ident">secure_invasive</span>: <span class="ident">setting</span>,
-                <span class="ident">cpu1_noninvasive</span>: <span class="ident">setting</span>,
-                <span class="ident">cpu1_invasive</span>: <span class="ident">setting</span>,
-                <span class="ident">jtag_tap</span>: <span class="ident">setting</span>,
-                <span class="ident">flash_mass_erase_command</span>: <span class="ident">setting</span>,
-                <span class="ident">isp_boot_command</span>: <span class="ident">setting</span>,
-                <span class="ident">fault_analysis_command</span>: <span class="ident">setting</span>,
-                <span class="ident">check_uuid</span>,
+        <span class="kw">fn </span>filled_with(setting: DebugSetting, check_uuid: bool) -&gt; DebugSettings {
+            DebugSettings {
+                nonsecure_noninvasive: setting,
+                nonsecure_invasive: setting,
+                secure_noninvasive: setting,
+                secure_invasive: setting,
+                cpu1_noninvasive: setting,
+                cpu1_invasive: setting,
+                jtag_tap: setting,
+                flash_mass_erase_command: setting,
+                isp_boot_command: setting,
+                fault_analysis_command: setting,
+                check_uuid,
             }
         }
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">DebugAccess::Default</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Default</span>, <span class="bool-val">false</span>),
-            <span class="ident">DebugAccess::Disabled</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Disabled</span>, <span class="bool-val">true</span>),
-            <span class="ident">DebugAccess::Enabled</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Enabled</span>, <span class="bool-val">false</span>),
-            <span class="ident">DebugAccess::Authenticate</span> =&gt; <span class="ident">filled_with</span>(<span class="ident">Authenticate</span>, <span class="bool-val">false</span>),
+        <span class="kw">match </span>value {
+            DebugAccess::Default =&gt; filled_with(Default, <span class="bool-val">false</span>),
+            DebugAccess::Disabled =&gt; filled_with(Disabled, <span class="bool-val">true</span>),
+            DebugAccess::Enabled =&gt; filled_with(Enabled, <span class="bool-val">false</span>),
+            DebugAccess::Authenticate =&gt; filled_with(Authenticate, <span class="bool-val">false</span>),
 
-            <span class="ident">DebugAccess::Custom</span>(<span class="ident">settings</span>) =&gt; <span class="ident">settings</span>,
+            DebugAccess::Custom(settings) =&gt; settings,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSettings</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAccess</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">settings</span>: <span class="ident">DebugSettings</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">are_all_default</span>() {
-            <span class="kw">return</span> <span class="ident">DebugAccess::Default</span>;
+<span class="kw">impl </span>From&lt;DebugSettings&gt; <span class="kw">for </span>DebugAccess {
+    <span class="kw">fn </span>from(settings: DebugSettings) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>settings.are_all_default() {
+            <span class="kw">return </span>DebugAccess::Default;
         };
-        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">==</span> <span class="ident">DebugAccess::Authenticate</span>.<span class="ident">into</span>() {
-            <span class="kw">return</span> <span class="ident">DebugAccess::Authenticate</span>;
+        <span class="kw">if </span>settings == DebugAccess::Authenticate.into() {
+            <span class="kw">return </span>DebugAccess::Authenticate;
         }
-        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">==</span> <span class="ident">DebugAccess::Disabled</span>.<span class="ident">into</span>() {
-            <span class="kw">return</span> <span class="ident">DebugAccess::Disabled</span>;
+        <span class="kw">if </span>settings == DebugAccess::Disabled.into() {
+            <span class="kw">return </span>DebugAccess::Disabled;
         }
-        <span class="kw">if</span> <span class="ident">settings</span> <span class="op">==</span> <span class="ident">DebugAccess::Enabled</span>.<span class="ident">into</span>() {
-            <span class="kw">return</span> <span class="ident">DebugAccess::Enabled</span>;
+        <span class="kw">if </span>settings == DebugAccess::Enabled.into() {
+            <span class="kw">return </span>DebugAccess::Enabled;
         }
-        <span class="ident">DebugAccess::Custom</span>(<span class="ident">settings</span>)
+        DebugAccess::Custom(settings)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugSettings</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: [<span class="ident">u32</span>; <span class="number">2</span>]) -&gt; <span class="self">Self</span> {
-        <span class="comment">// fix = debugger can&#39;t change = PIN</span>
-        <span class="comment">// set = DFLT</span>
-        <span class="kw">let</span> [<span class="ident">fix</span>, <span class="ident">set</span>] <span class="op">=</span> <span class="ident">value</span>;
-        <span class="kw">if</span> (<span class="ident">fix</span>, <span class="ident">set</span>) <span class="op">==</span> (<span class="number">0</span>, <span class="number">0</span>) {
-            <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">DebugAccess::Default</span>)
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">from_bit</span> <span class="op">=</span>
-                <span class="op">|</span><span class="ident">bit</span>: <span class="ident">usize</span><span class="op">|</span> <span class="ident">DebugSetting::from</span>([((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">bit</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>, ((<span class="ident">set</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">bit</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>]);
-            <span class="self">Self</span> {
-                <span class="ident">nonsecure_noninvasive</span>: <span class="ident">from_bit</span>(<span class="number">0</span>),
-                <span class="ident">nonsecure_invasive</span>: <span class="ident">from_bit</span>(<span class="number">1</span>),
-                <span class="ident">secure_noninvasive</span>: <span class="ident">from_bit</span>(<span class="number">2</span>),
-                <span class="ident">secure_invasive</span>: <span class="ident">from_bit</span>(<span class="number">3</span>),
-                <span class="ident">jtag_tap</span>: <span class="ident">from_bit</span>(<span class="number">4</span>),
-                <span class="ident">cpu1_invasive</span>: <span class="ident">from_bit</span>(<span class="number">5</span>),
-                <span class="ident">isp_boot_command</span>: <span class="ident">from_bit</span>(<span class="number">6</span>),
-                <span class="ident">fault_analysis_command</span>: <span class="ident">from_bit</span>(<span class="number">7</span>),
-                <span class="ident">flash_mass_erase_command</span>: <span class="ident">from_bit</span>(<span class="number">8</span>),
-                <span class="ident">cpu1_noninvasive</span>: <span class="ident">from_bit</span>(<span class="number">9</span>),
-                <span class="ident">check_uuid</span>: ((<span class="ident">fix</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">15</span>) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
+<span class="kw">impl </span>From&lt;[u32; <span class="number">2</span>]&gt; <span class="kw">for </span>DebugSettings {
+    <span class="kw">fn </span>from(value: [u32; <span class="number">2</span>]) -&gt; <span class="self">Self </span>{
+        <span class="comment">// fix = debugger can&#39;t change = PIN
+        // set = DFLT
+        </span><span class="kw">let </span>[fix, set] = value;
+        <span class="kw">if </span>(fix, set) == (<span class="number">0</span>, <span class="number">0</span>) {
+            <span class="self">Self</span>::from(DebugAccess::Default)
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>from_bit =
+                |bit: usize| DebugSetting::from([((fix &gt;&gt; bit) &amp; <span class="number">1</span>) != <span class="number">0</span>, ((set &gt;&gt; bit) &amp; <span class="number">1</span>) != <span class="number">0</span>]);
+            <span class="self">Self </span>{
+                nonsecure_noninvasive: from_bit(<span class="number">0</span>),
+                nonsecure_invasive: from_bit(<span class="number">1</span>),
+                secure_noninvasive: from_bit(<span class="number">2</span>),
+                secure_invasive: from_bit(<span class="number">3</span>),
+                jtag_tap: from_bit(<span class="number">4</span>),
+                cpu1_invasive: from_bit(<span class="number">5</span>),
+                isp_boot_command: from_bit(<span class="number">6</span>),
+                fault_analysis_command: from_bit(<span class="number">7</span>),
+                flash_mass_erase_command: from_bit(<span class="number">8</span>),
+                cpu1_noninvasive: from_bit(<span class="number">9</span>),
+                check_uuid: ((fix &gt;&gt; <span class="number">15</span>) &amp; <span class="number">1</span>) != <span class="number">0</span>,
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebugSettings</span><span class="op">&gt;</span> <span class="kw">for</span> [<span class="ident">u32</span>; <span class="number">2</span>] {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">settings</span>: <span class="ident">DebugSettings</span>) -&gt; [<span class="ident">u32</span>; <span class="number">2</span>] {
-        <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">are_all_default</span>() {
-            <span class="kw">return</span> [<span class="number">0</span>, <span class="number">0</span>];
+<span class="kw">impl </span>From&lt;DebugSettings&gt; <span class="kw">for </span>[u32; <span class="number">2</span>] {
+    <span class="kw">fn </span>from(settings: DebugSettings) -&gt; [u32; <span class="number">2</span>] {
+        <span class="kw">if </span>settings.are_all_default() {
+            <span class="kw">return </span>[<span class="number">0</span>, <span class="number">0</span>];
         };
 
-        <span class="macro">assert!</span>(<span class="ident">settings</span>.<span class="ident">are_all_legal</span>());
-        <span class="macro">assert!</span>(<span class="ident">settings</span>.<span class="ident">are_all_non_default</span>());
+        <span class="macro">assert!</span>(settings.are_all_legal());
+        <span class="macro">assert!</span>(settings.are_all_non_default());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fixed</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enabled</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>fixed: u32 = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>enabled: u32 = <span class="number">0</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set_bits</span> <span class="op">=</span> <span class="op">|</span><span class="ident">setting</span>: <span class="ident">DebugSetting</span>, <span class="ident">bit</span>: <span class="ident">usize</span><span class="op">|</span> {
-            <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> <span class="ident">setting</span>.<span class="ident">fixed_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">bit</span>;
-            <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> <span class="ident">setting</span>.<span class="ident">enabled_bit</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">bit</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>set_bits = |setting: DebugSetting, bit: usize| {
+            fixed |= setting.fixed_bit() &lt;&lt; bit;
+            enabled |= setting.enabled_bit() &lt;&lt; bit;
         };
 
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">nonsecure_noninvasive</span>, <span class="number">0</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">nonsecure_invasive</span>, <span class="number">1</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">secure_noninvasive</span>, <span class="number">2</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">secure_invasive</span>, <span class="number">3</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">jtag_tap</span>, <span class="number">4</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">cpu1_invasive</span>, <span class="number">5</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">isp_boot_command</span>, <span class="number">6</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">fault_analysis_command</span>, <span class="number">7</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">flash_mass_erase_command</span>, <span class="number">8</span>);
-        <span class="ident">set_bits</span>(<span class="ident">settings</span>.<span class="ident">cpu1_noninvasive</span>, <span class="number">9</span>);
+        set_bits(settings.nonsecure_noninvasive, <span class="number">0</span>);
+        set_bits(settings.nonsecure_invasive, <span class="number">1</span>);
+        set_bits(settings.secure_noninvasive, <span class="number">2</span>);
+        set_bits(settings.secure_invasive, <span class="number">3</span>);
+        set_bits(settings.jtag_tap, <span class="number">4</span>);
+        set_bits(settings.cpu1_invasive, <span class="number">5</span>);
+        set_bits(settings.isp_boot_command, <span class="number">6</span>);
+        set_bits(settings.fault_analysis_command, <span class="number">7</span>);
+        set_bits(settings.flash_mass_erase_command, <span class="number">8</span>);
+        set_bits(settings.cpu1_noninvasive, <span class="number">9</span>);
 
-        <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">settings</span>.<span class="ident">check_uuid</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">15</span>;
+        fixed |= (settings.check_uuid <span class="kw">as </span>u32) &lt;&lt; <span class="number">15</span>;
 
-        <span class="comment">// &quot;Inverse value of [15:0]&quot;</span>
-        <span class="ident">fixed</span> <span class="op">|</span><span class="op">=</span> ((<span class="op">!</span><span class="ident">fixed</span>) <span class="op">&amp;</span> <span class="number">0xffff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>;
-        <span class="ident">enabled</span> <span class="op">|</span><span class="op">=</span> ((<span class="op">!</span><span class="ident">enabled</span>) <span class="op">&amp;</span> <span class="number">0xffff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>;
+        <span class="comment">// &quot;Inverse value of [15:0]&quot;
+        </span>fixed |= ((!fixed) &amp; <span class="number">0xffff</span>) &lt;&lt; <span class="number">16</span>;
+        enabled |= ((!enabled) &amp; <span class="number">0xffff</span>) &lt;&lt; <span class="number">16</span>;
 
-        [<span class="ident">fixed</span>, <span class="ident">enabled</span>]
+        [fixed, enabled]
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

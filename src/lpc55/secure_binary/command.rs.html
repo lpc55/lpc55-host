@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/secure_binary/command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/secure_binary/command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../lpc55/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -494,496 +488,495 @@
 <span id="488">488</span>
 <span id="489">489</span>
 <span id="490">490</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">std::fs</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::convert::{TryFrom, TryInto};
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>std::fs;
 
-<span class="kw">use</span> <span class="ident">nom</span>::{
-    <span class="comment">// branch::alt,</span>
-    <span class="ident">bytes::complete::take</span>,
-    <span class="comment">// combinator::{</span>
-    <span class="comment">//     map, value, verify,</span>
-    <span class="comment">// },</span>
-    <span class="comment">// multi::{</span>
-    <span class="comment">//     fill,</span>
-    <span class="comment">// },</span>
-    <span class="ident">number::complete</span>::{
-        <span class="ident">le_u16</span>,
-        <span class="ident">le_u32</span>, <span class="comment">//le_u64, le_u128,</span>
-        <span class="ident">u8</span>,
+<span class="kw">use </span>nom::{
+    <span class="comment">// branch::alt,
+    </span>bytes::complete::take,
+    <span class="comment">// combinator::{
+    //     map, value, verify,
+    // },
+    // multi::{
+    //     fill,
+    // },
+    </span>number::complete::{
+        le_u16,
+        le_u32, <span class="comment">//le_u64, le_u128,
+        </span>u8,
     },
-    <span class="ident">sequence::tuple</span>,
+    sequence::tuple,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::crypto::crc32</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::is_default</span>;
+<span class="kw">use </span><span class="kw">crate</span>::crypto::crc32;
+<span class="kw">use </span><span class="kw">crate</span>::util::is_default;
 
-<span class="kw">const</span> <span class="ident">START_OF_PROTECTED_FLASH</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x9_DE00</span>;
+<span class="kw">const </span>START_OF_PROTECTED_FLASH: u32 = <span class="number">0x9_DE00</span>;
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BootTag</span> {
-    <span class="ident">Nop</span> <span class="op">=</span> <span class="number">0</span>,
-    <span class="ident">Tag</span> <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">Load</span> <span class="op">=</span> <span class="number">2</span>,
-    <span class="ident">Fill</span> <span class="op">=</span> <span class="number">3</span>,
-    <span class="ident">Jump</span> <span class="op">=</span> <span class="number">4</span>,
-    <span class="ident">Call</span> <span class="op">=</span> <span class="number">5</span>,
-    <span class="ident">ChangeBootMode</span> <span class="op">=</span> <span class="number">6</span>,
-    <span class="ident">Erase</span> <span class="op">=</span> <span class="number">7</span>,
-    <span class="ident">Reset</span> <span class="op">=</span> <span class="number">8</span>,
-    <span class="ident">MemoryEnable</span> <span class="op">=</span> <span class="number">9</span>,
-    <span class="ident">ProgramPersistentBits</span> <span class="op">=</span> <span class="number">0xA</span>,
-    <span class="ident">CheckFirmwareVersion</span> <span class="op">=</span> <span class="number">0xB</span>,
-    <span class="ident">KeystoreToNonvolatile</span> <span class="op">=</span> <span class="number">0xC</span>,
-    <span class="ident">KeystoreFromNonvolatile</span> <span class="op">=</span> <span class="number">0xD</span>,
+<span class="attribute">#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>BootTag {
+    Nop = <span class="number">0</span>,
+    Tag = <span class="number">1</span>,
+    Load = <span class="number">2</span>,
+    Fill = <span class="number">3</span>,
+    Jump = <span class="number">4</span>,
+    Call = <span class="number">5</span>,
+    ChangeBootMode = <span class="number">6</span>,
+    Erase = <span class="number">7</span>,
+    Reset = <span class="number">8</span>,
+    MemoryEnable = <span class="number">9</span>,
+    ProgramPersistentBits = <span class="number">0xA</span>,
+    CheckFirmwareVersion = <span class="number">0xB</span>,
+    KeystoreToNonvolatile = <span class="number">0xC</span>,
+    KeystoreFromNonvolatile = <span class="number">0xD</span>,
 }
 
-<span class="comment">// struct boot_command_t</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawBootCommand</span> {
-    <span class="kw">pub</span> <span class="ident">checksum</span>: <span class="ident">u8</span>,
-    <span class="kw">pub</span> <span class="ident">tag</span>: <span class="ident">u8</span>,
-    <span class="kw">pub</span> <span class="ident">flags</span>: <span class="ident">u16</span>,
-    <span class="kw">pub</span> <span class="ident">address</span>: <span class="ident">u32</span>,
-    <span class="kw">pub</span> <span class="ident">count</span>: <span class="ident">u32</span>,
-    <span class="kw">pub</span> <span class="ident">data</span>: <span class="ident">u32</span>,
+<span class="comment">// struct boot_command_t
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>RawBootCommand {
+    <span class="kw">pub </span>checksum: u8,
+    <span class="kw">pub </span>tag: u8,
+    <span class="kw">pub </span>flags: u16,
+    <span class="kw">pub </span>address: u32,
+    <span class="kw">pub </span>count: u32,
+    <span class="kw">pub </span>data: u32,
 }
 
-<span class="kw">impl</span> <span class="ident">RawBootCommand</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">16</span>] {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>, <span class="self">self</span>.<span class="ident">tag</span>];
-        <span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
-        <span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="self">self</span>.<span class="ident">address</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
-        <span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="self">self</span>.<span class="ident">count</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
-        <span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
-        <span class="kw">let</span> <span class="ident">checksum</span> <span class="op">=</span> <span class="ident">buffer</span>[<span class="number">1</span>..]
-            .<span class="ident">iter</span>()
-            .<span class="ident">fold</span>(<span class="number">0x5au8</span>, <span class="op">|</span><span class="ident">acc</span>, <span class="ident">x</span><span class="op">|</span> <span class="ident">acc</span>.<span class="ident">wrapping_add</span>(<span class="kw-2">*</span><span class="ident">x</span>));
-        <span class="ident">buffer</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">checksum</span>;
-        <span class="ident">buffer</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()
+<span class="kw">impl </span>RawBootCommand {
+    <span class="kw">pub fn </span>to_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [u8; <span class="number">16</span>] {
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="macro">vec!</span>[<span class="number">0</span>, <span class="self">self</span>.tag];
+        buffer.extend_from_slice(<span class="self">self</span>.flags.to_le_bytes().as_ref());
+        buffer.extend_from_slice(<span class="self">self</span>.address.to_le_bytes().as_ref());
+        buffer.extend_from_slice(<span class="self">self</span>.count.to_le_bytes().as_ref());
+        buffer.extend_from_slice(<span class="self">self</span>.data.to_le_bytes().as_ref());
+        <span class="kw">let </span>checksum = buffer[<span class="number">1</span>..]
+            .iter()
+            .fold(<span class="number">0x5au8</span>, |acc, x| acc.wrapping_add(<span class="kw-2">*</span>x));
+        buffer[<span class="number">0</span>] = checksum;
+        buffer.try_into().unwrap()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">nom::IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="self">Self</span>, ()<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">i</span>, (<span class="ident">checksum</span>, <span class="ident">tag</span>, <span class="ident">flags</span>, <span class="ident">address</span>, <span class="ident">count</span>, <span class="ident">data</span>)) <span class="op">=</span>
-            <span class="ident">tuple</span>((<span class="ident">u8</span>, <span class="ident">u8</span>, <span class="ident">le_u16</span>, <span class="ident">le_u32</span>, <span class="ident">le_u32</span>, <span class="ident">le_u32</span>))(<span class="ident">bytes</span>)<span class="question-mark">?</span>;
+    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; nom::IResult&lt;<span class="kw-2">&amp;</span>[u8], <span class="self">Self</span>, ()&gt; {
+        <span class="kw">let </span>(i, (checksum, tag, flags, address, count, data)) =
+            tuple((u8, u8, le_u16, le_u32, le_u32, le_u32))(bytes)<span class="question-mark">?</span>;
 
-        <span class="comment">// by previous, bytes.len() &gt;= 16</span>
-        <span class="macro">info!</span>(<span class="string">&quot;raw boot command: {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[..<span class="number">16</span>]));
-        <span class="kw">let</span> <span class="ident">calculated_checksum</span> <span class="op">=</span> <span class="ident">bytes</span>[<span class="number">1</span>..<span class="number">16</span>]
-            .<span class="ident">iter</span>()
-            .<span class="ident">fold</span>(<span class="number">0x5au8</span>, <span class="op">|</span><span class="ident">acc</span>, <span class="ident">x</span><span class="op">|</span> <span class="ident">acc</span>.<span class="ident">wrapping_add</span>(<span class="kw-2">*</span><span class="ident">x</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">calculated_checksum</span>, <span class="ident">checksum</span>);
+        <span class="comment">// by previous, bytes.len() &gt;= 16
+        </span><span class="macro">info!</span>(<span class="string">&quot;raw boot command: {}&quot;</span>, <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span>bytes[..<span class="number">16</span>]));
+        <span class="kw">let </span>calculated_checksum = bytes[<span class="number">1</span>..<span class="number">16</span>]
+            .iter()
+            .fold(<span class="number">0x5au8</span>, |acc, x| acc.wrapping_add(<span class="kw-2">*</span>x));
+        <span class="macro">assert_eq!</span>(calculated_checksum, checksum);
 
         <span class="prelude-val">Ok</span>((
-            <span class="ident">i</span>,
-            <span class="self">Self</span> {
-                <span class="ident">checksum</span>,
-                <span class="ident">tag</span>,
-                <span class="ident">flags</span>,
-                <span class="ident">address</span>,
-                <span class="ident">count</span>,
-                <span class="ident">data</span>,
+            i,
+            <span class="self">Self </span>{
+                checksum,
+                tag,
+                flags,
+                address,
+                count,
+                data,
             },
         ))
     }
 }
 
-<span class="doccomment">/// Commands used to define SB2.1 files</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Currently, we only need to erase and load (partial) files.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Example</span>
-<span class="doccomment">/// Since there does not seem to exit a command to enter the bootloader, but</span>
-<span class="doccomment">/// a corrupt / missing firmware makes the MCU enter the bootloader, one way</span>
-<span class="doccomment">/// to do so is the following specification, which erases the first flash page.</span>
-<span class="doccomment">/// ```ignore</span>
-<span class="doccomment">/// [[commands]]</span>
-<span class="doccomment">/// cmd = &quot;Erase&quot;</span>
-<span class="doccomment">/// start = 0</span>
-<span class="doccomment">/// end = 512</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Example</span>
-<span class="doccomment">/// To securely flash firmware, it is advised to write the first page last, so that</span>
-<span class="doccomment">/// if flashing goes wrong or is interrupted, the MCU stays in the bootloader on next boot.</span>
-<span class="doccomment">/// ```ignore</span>
-<span class="doccomment">/// [[commands]]</span>
-<span class="doccomment">/// cmd = &quot;Erase&quot;</span>
-<span class="doccomment">/// start = 0</span>
-<span class="doccomment">/// end = 0x8_9800</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [[commands]]</span>
-<span class="doccomment">/// ## write firmware, skipping first flash page</span>
-<span class="doccomment">/// cmd = &quot;Load&quot;</span>
-<span class="doccomment">/// file = &quot;example.sb2&quot;</span>
-<span class="doccomment">/// src = 512</span>
-<span class="doccomment">/// dst = 512</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [[commands]]</span>
-<span class="doccomment">/// ## write first flash page of firmware</span>
-<span class="doccomment">/// cmd = &quot;Load&quot;</span>
-<span class="doccomment">/// file = &quot;example.sb2&quot;</span>
-<span class="doccomment">/// len = 512</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;cmd&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SingleBootCommandDescription</span> {
-    <span class="doccomment">/// Maps to `BootCommand::EraseRegion`, but `start` and `end` are given in bytes.</span>
-    <span class="ident">Erase</span> {
-        <span class="ident">start</span>: <span class="ident">u32</span>,
-        <span class="ident">end</span>: <span class="ident">u32</span>,
+<span class="doccomment">/// Commands used to define SB2.1 files
+///
+/// Currently, we only need to erase and load (partial) files.
+///
+/// ### Example
+/// Since there does not seem to exit a command to enter the bootloader, but
+/// a corrupt / missing firmware makes the MCU enter the bootloader, one way
+/// to do so is the following specification, which erases the first flash page.
+/// ```ignore
+/// [[commands]]
+/// cmd = &quot;Erase&quot;
+/// start = 0
+/// end = 512
+/// ```
+///
+/// ### Example
+/// To securely flash firmware, it is advised to write the first page last, so that
+/// if flashing goes wrong or is interrupted, the MCU stays in the bootloader on next boot.
+/// ```ignore
+/// [[commands]]
+/// cmd = &quot;Erase&quot;
+/// start = 0
+/// end = 0x8_9800
+///
+/// [[commands]]
+/// ## write firmware, skipping first flash page
+/// cmd = &quot;Load&quot;
+/// file = &quot;example.sb2&quot;
+/// src = 512
+/// dst = 512
+///
+/// [[commands]]
+/// ## write first flash page of firmware
+/// cmd = &quot;Load&quot;
+/// file = &quot;example.sb2&quot;
+/// len = 512
+/// ```
+</span><span class="attribute">#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(tag = <span class="string">&quot;cmd&quot;</span>)]
+</span><span class="kw">pub enum </span>SingleBootCommandDescription {
+    <span class="doccomment">/// Maps to `BootCommand::EraseRegion`, but `start` and `end` are given in bytes.
+    </span>Erase {
+        start: u32,
+        end: u32,
     },
-    <span class="doccomment">/// Load (part) of the data reference in `source` to flash.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The syntax is such that if source data and destination flash were slices</span>
-    <span class="doccomment">/// `src: &amp;[u8]` and `dst: &amp;mut [u8]`, this command would do:</span>
-    <span class="doccomment">/// ```ignore</span>
-    <span class="doccomment">/// let src_len = src.len() - cmd.src;</span>
-    <span class="doccomment">/// let len = cmd.len.unwrap_or(src_len);</span>
-    <span class="doccomment">/// dst[cmd.dst..][..len].copy_from_slice(&amp;src[cmd.src..][..len]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">Load</span> {
-        <span class="ident">file</span>: <span class="ident">String</span>,
+    <span class="doccomment">/// Load (part) of the data reference in `source` to flash.
+    ///
+    /// The syntax is such that if source data and destination flash were slices
+    /// `src: &amp;[u8]` and `dst: &amp;mut [u8]`, this command would do:
+    /// ```ignore
+    /// let src_len = src.len() - cmd.src;
+    /// let len = cmd.len.unwrap_or(src_len);
+    /// dst[cmd.dst..][..len].copy_from_slice(&amp;src[cmd.src..][..len]);
+    /// ```
+    </span>Load {
+        file: String,
 
-        <span class="doccomment">/// source offset in bytes (default 0)</span>
-        <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-        <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-        <span class="ident">src</span>: <span class="ident">u32</span>,
+        <span class="doccomment">/// source offset in bytes (default 0)
+        </span><span class="attribute">#[serde(default)]
+        #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+        </span>src: u32,
 
-        <span class="doccomment">/// destination offset in bytes (default 0)</span>
-        <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-        <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_default&quot;</span>)]</span>
-        <span class="ident">dst</span>: <span class="ident">u32</span>,
+        <span class="doccomment">/// destination offset in bytes (default 0)
+        </span><span class="attribute">#[serde(default)]
+        #[serde(skip_serializing_if = <span class="string">&quot;is_default&quot;</span>)]
+        </span>dst: u32,
 
-        <span class="doccomment">/// number of bytes to copy</span>
-        <span class="comment">// #[serde(default)]</span>
-        <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
-        <span class="ident">len</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-    },
-
-    <span class="ident">CheckNonsecureFirmwareVersion</span> {
-        <span class="ident">version</span>: <span class="ident">u32</span>,
+        <span class="doccomment">/// number of bytes to copy
+        </span><span class="comment">// #[serde(default)]
+        </span><span class="attribute">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+        </span>len: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     },
 
-    <span class="ident">CheckSecureFirmwareVersion</span> {
-        <span class="ident">version</span>: <span class="ident">u32</span>,
+    CheckNonsecureFirmwareVersion {
+        version: u32,
+    },
+
+    CheckSecureFirmwareVersion {
+        version: u32,
     },
 }
 
-<span class="doccomment">/// High level commands that lpc55 will convert safely into commands used to define SB2.1 files</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Example</span>
-<span class="doccomment">/// ```ignore</span>
-<span class="doccomment">/// [[commands]]</span>
-<span class="doccomment">/// seq = &quot;UploadImage&quot;</span>
-<span class="doccomment">/// image = &quot;Signed&quot;</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;seq&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BootCommandSequenceDescription</span> {
-    <span class="doccomment">/// Takes the filename specified in image from `config.firmware`,</span>
-    <span class="doccomment">/// pads to 512B if necessary, erases flash, then uploads securely</span>
-    <span class="doccomment">/// (all but first block, only then the first block).</span>
-    <span class="ident">UploadSignedImage</span>,
+<span class="doccomment">/// High level commands that lpc55 will convert safely into commands used to define SB2.1 files
+///
+/// ### Example
+/// ```ignore
+/// [[commands]]
+/// seq = &quot;UploadImage&quot;
+/// image = &quot;Signed&quot;
+/// ```
+///
+</span><span class="attribute">#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(tag = <span class="string">&quot;seq&quot;</span>)]
+</span><span class="kw">pub enum </span>BootCommandSequenceDescription {
+    <span class="doccomment">/// Takes the filename specified in image from `config.firmware`,
+    /// pads to 512B if necessary, erases flash, then uploads securely
+    /// (all but first block, only then the first block).
+    </span>UploadSignedImage,
 
-    <span class="doccomment">/// Takes the version specified in `config.firmware.product` and</span>
-    <span class="doccomment">/// checks that it is greater than or equal to both the &quot;Secure&quot;</span>
-    <span class="doccomment">/// and &quot;Nonsecure&quot; firmware versions in the customer data page on the device.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This uses an interpretation and encoding of the `[u16; 3]` Version</span>
-    <span class="doccomment">/// as an incrementing `u32` counter. Namely, major version is interpreted</span>
-    <span class="doccomment">/// as an era (signaling breaking changes) and restricted to below 1024.</span>
-    <span class="doccomment">/// Minor version is interpreted as days since the twenties (unrestricted</span>
-    <span class="doccomment">/// for practical purposes). Patch version is restricted to below 64, and</span>
-    <span class="doccomment">/// would rarely be used.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// So, for instance, `1:20210520` would correspond to `1.505.0`,</span>
-    <span class="doccomment">/// since `(dt.date(2021, 5, 20) - dt.date(2020, 1, 1)).days = 505`, and</span>
-    <span class="doccomment">/// map to the counter `(1 &lt;&lt; 22) + (505 &lt;&lt; 6) = 4226624`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the check fails, then the SB2 update stops.</span>
-    <span class="ident">CheckDerivedFirmwareVersions</span>,
+    <span class="doccomment">/// Takes the version specified in `config.firmware.product` and
+    /// checks that it is greater than or equal to both the &quot;Secure&quot;
+    /// and &quot;Nonsecure&quot; firmware versions in the customer data page on the device.
+    ///
+    /// This uses an interpretation and encoding of the `[u16; 3]` Version
+    /// as an incrementing `u32` counter. Namely, major version is interpreted
+    /// as an era (signaling breaking changes) and restricted to below 1024.
+    /// Minor version is interpreted as days since the twenties (unrestricted
+    /// for practical purposes). Patch version is restricted to below 64, and
+    /// would rarely be used.
+    ///
+    /// So, for instance, `1:20210520` would correspond to `1.505.0`,
+    /// since `(dt.date(2021, 5, 20) - dt.date(2020, 1, 1)).days = 505`, and
+    /// map to the counter `(1 &lt;&lt; 22) + (505 &lt;&lt; 6) = 4226624`.
+    ///
+    /// If the check fails, then the SB2 update stops.
+    </span>CheckDerivedFirmwareVersions,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">untagged</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BootCommandDescription</span> {
-    <span class="ident">Single</span>(<span class="ident">SingleBootCommandDescription</span>),
-    <span class="ident">Sequence</span>(<span class="ident">BootCommandSequenceDescription</span>),
+<span class="attribute">#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
+</span><span class="kw">pub enum </span>BootCommandDescription {
+    Single(SingleBootCommandDescription),
+    Sequence(BootCommandSequenceDescription),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SingleBootCommandDescription</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BootCommand</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">anyhow::Error</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SingleBootCommandDescription&gt; <span class="kw">for </span>BootCommand {
+    <span class="kw">type </span>Error = anyhow::Error;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SingleBootCommandDescription</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">BootCommand</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">SingleBootCommandDescription</span>::<span class="kw-2">*</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">cmd</span> {
-            <span class="ident">Erase</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; <span class="ident">BootCommand::EraseRegion</span> {
-                <span class="ident">address</span>: <span class="kw-2">*</span><span class="ident">start</span>,
-                <span class="ident">bytes</span>: <span class="ident">core::cmp::max</span>(<span class="number">0</span>, <span class="kw-2">*</span><span class="ident">end</span> <span class="op">-</span> <span class="kw-2">*</span><span class="ident">start</span>),
+    <span class="kw">fn </span>try_from(cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SingleBootCommandDescription) -&gt; anyhow::Result&lt;BootCommand&gt; {
+        <span class="kw">use </span>SingleBootCommandDescription::<span class="kw-2">*</span>;
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>cmd {
+            Erase { start, end } =&gt; BootCommand::EraseRegion {
+                address: <span class="kw-2">*</span>start,
+                bytes: core::cmp::max(<span class="number">0</span>, <span class="kw-2">*</span>end - <span class="kw-2">*</span>start),
             },
-            <span class="ident">Load</span> {
-                <span class="ident">file</span>,
-                <span class="ident">src</span>,
-                <span class="ident">dst</span>,
-                <span class="ident">len</span>,
+            Load {
+                file,
+                src,
+                dst,
+                len,
             } =&gt; {
-                <span class="kw">let</span> <span class="ident">image</span> <span class="op">=</span> <span class="ident">fs::read</span>(<span class="ident">file</span>)<span class="question-mark">?</span>;
+                <span class="kw">let </span>image = fs::read(file)<span class="question-mark">?</span>;
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">len</span>) <span class="op">=</span> <span class="ident">len</span> {
-                    <span class="kw">if</span> (<span class="ident">image</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">src</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;image too small!&quot;</span>));
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(len) = len {
+                    <span class="kw">if </span>(image.len() <span class="kw">as </span>u32) &lt; len + src {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;image too small!&quot;</span>));
                     }
                 }
-                <span class="kw">let</span> <span class="ident">src_len</span> <span class="op">=</span> <span class="ident">image</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="kw-2">*</span><span class="ident">src</span> <span class="kw">as</span> <span class="ident">usize</span>;
-                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">unwrap_or</span>(<span class="ident">src_len</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="kw">as</span> <span class="ident">usize</span>;
-                <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::from</span>(<span class="kw-2">&amp;</span><span class="ident">image</span>[<span class="kw-2">*</span><span class="ident">src</span> <span class="kw">as</span> <span class="ident">usize</span>..][..<span class="ident">len</span>]);
-                <span class="ident">BootCommand::Load</span> {
-                    <span class="ident">address</span>: <span class="kw-2">*</span><span class="ident">dst</span>,
-                    <span class="ident">data</span>,
+                <span class="kw">let </span>src_len = image.len() - <span class="kw-2">*</span>src <span class="kw">as </span>usize;
+                <span class="kw">let </span>len = len.unwrap_or(src_len <span class="kw">as </span>u32) <span class="kw">as </span>usize;
+                <span class="kw">let </span>data = Vec::from(<span class="kw-2">&amp;</span>image[<span class="kw-2">*</span>src <span class="kw">as </span>usize..][..len]);
+                BootCommand::Load {
+                    address: <span class="kw-2">*</span>dst,
+                    data,
                 }
             }
-            <span class="ident">CheckNonsecureFirmwareVersion</span> { <span class="ident">version</span> } =&gt; {
-                <span class="ident">BootCommand::CheckNonsecureFirmwareVersion</span> { <span class="ident">version</span>: <span class="kw-2">*</span><span class="ident">version</span> }
+            CheckNonsecureFirmwareVersion { version } =&gt; {
+                BootCommand::CheckNonsecureFirmwareVersion { version: <span class="kw-2">*</span>version }
             }
-            <span class="ident">CheckSecureFirmwareVersion</span> { <span class="ident">version</span> } =&gt; {
-                <span class="ident">BootCommand::CheckSecureFirmwareVersion</span> { <span class="ident">version</span>: <span class="kw-2">*</span><span class="ident">version</span> }
+            CheckSecureFirmwareVersion { version } =&gt; {
+                BootCommand::CheckSecureFirmwareVersion { version: <span class="kw-2">*</span>version }
             }
         })
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>)]</span>
-<span class="comment">// The LPC55xx ROM loader provides the support for the following bootloader commands:</span>
-<span class="comment">// * WriteMemory, FillMemory, ConfigureMemory, FlashEraseAll, FlashEraseRegion,</span>
-<span class="comment">// SB 2.1 introduces two new commands that can be used to prevent firmware roll-back:</span>
-<span class="comment">// * SecureFirmwareVersion, NonsecureFirmwareVersion</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BootCommand</span> {
-    <span class="comment">// example: 5A|00|0000|00000000|00000000|00000000</span>
-    <span class="ident">Nop</span>,
-    <span class="comment">// example: F3|01|0180|00000000|B2640000|01000000</span>
-    <span class="ident">Tag</span> {
-        <span class="ident">last</span>: <span class="ident">bool</span>,
-        <span class="ident">tag</span>: <span class="ident">u32</span>,
-        <span class="ident">flags</span>: <span class="ident">u32</span>,
-        <span class="ident">cipher_blocks</span>: <span class="ident">u32</span>,
+<span class="attribute">#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+</span><span class="comment">// The LPC55xx ROM loader provides the support for the following bootloader commands:
+// * WriteMemory, FillMemory, ConfigureMemory, FlashEraseAll, FlashEraseRegion,
+// SB 2.1 introduces two new commands that can be used to prevent firmware roll-back:
+// * SecureFirmwareVersion, NonsecureFirmwareVersion
+</span><span class="kw">pub enum </span>BootCommand {
+    <span class="comment">// example: 5A|00|0000|00000000|00000000|00000000
+    </span>Nop,
+    <span class="comment">// example: F3|01|0180|00000000|B2640000|01000000
+    </span>Tag {
+        last: bool,
+        tag: u32,
+        flags: u32,
+        cipher_blocks: u32,
     },
-    <span class="comment">// example: 8F|02|0000|00000000|00020000|A6D9585A</span>
-    <span class="ident">Load</span> {
-        <span class="ident">address</span>: <span class="ident">u32</span>,
-        <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+    <span class="comment">// example: 8F|02|0000|00000000|00020000|A6D9585A
+    </span>Load {
+        address: u32,
+        data: Vec&lt;u8&gt;,
     },
-    <span class="comment">// example?</span>
-    <span class="doccomment">/// See ELFTOSB document for explanations of what is supposed to happen when</span>
-    <span class="doccomment">/// address is not on a word boundary.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In any case, if a byte is supposed to be repeated, it must be replicated</span>
-    <span class="doccomment">/// four times in the `pattern`, e.g. &quot;fill with 0xF1&quot; =&gt; pattern = `0xf1f1_f1f1`.</span>
-    <span class="ident">Fill</span> {
-        <span class="ident">address</span>: <span class="ident">u32</span>,
-        <span class="ident">bytes</span>: <span class="ident">u32</span>,
-        <span class="ident">pattern</span>: <span class="ident">u32</span>,
+    <span class="comment">// example?
+    </span><span class="doccomment">/// See ELFTOSB document for explanations of what is supposed to happen when
+    /// address is not on a word boundary.
+    ///
+    /// In any case, if a byte is supposed to be repeated, it must be replicated
+    /// four times in the `pattern`, e.g. &quot;fill with 0xF1&quot; =&gt; pattern = `0xf1f1_f1f1`.
+    </span>Fill {
+        address: u32,
+        bytes: u32,
+        pattern: u32,
     },
-    <span class="comment">// example?</span>
-    <span class="ident">EraseAll</span>,
-    <span class="comment">// example: 01|07|0000|00000000|00980800|00000000</span>
-    <span class="comment">// NB: this command is interpreted as &quot;erase all flash sectors that intersect with the</span>
-    <span class="comment">// specified region&quot;</span>
-    <span class="ident">EraseRegion</span> {
-        <span class="ident">address</span>: <span class="ident">u32</span>,
-        <span class="ident">bytes</span>: <span class="ident">u32</span>,
+    <span class="comment">// example?
+    </span>EraseAll,
+    <span class="comment">// example: 01|07|0000|00000000|00980800|00000000
+    // NB: this command is interpreted as &quot;erase all flash sectors that intersect with the
+    // specified region&quot;
+    </span>EraseRegion {
+        address: u32,
+        bytes: u32,
     },
-    <span class="ident">CheckSecureFirmwareVersion</span> {
-        <span class="ident">version</span>: <span class="ident">u32</span>,
+    CheckSecureFirmwareVersion {
+        version: u32,
     },
-    <span class="ident">CheckNonsecureFirmwareVersion</span> {
-        <span class="ident">version</span>: <span class="ident">u32</span>,
+    CheckNonsecureFirmwareVersion {
+        version: u32,
     },
 }
 
-<span class="kw">impl</span> <span class="ident">BootCommand</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">BootCommand</span>::<span class="kw-2">*</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmd</span>: <span class="ident">RawBootCommand</span> <span class="op">=</span> <span class="ident">Default::default</span>();
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Nop</span> =&gt; {
-                <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::Nop</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
+<span class="kw">impl </span>BootCommand {
+    <span class="kw">pub fn </span>to_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="kw">use </span>BootCommand::<span class="kw-2">*</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>cmd: RawBootCommand = Default::default();
+        <span class="kw">match </span><span class="self">self </span>{
+            Nop =&gt; {
+                cmd.tag = BootTag::Nop <span class="kw">as </span>u8;
+                Vec::from(cmd.to_bytes().as_ref())
             }
-            <span class="ident">Tag</span> {
-                <span class="ident">last</span>,
-                <span class="ident">tag</span>,
-                <span class="ident">flags</span>,
-                <span class="ident">cipher_blocks</span>,
+            Tag {
+                last,
+                tag,
+                flags,
+                cipher_blocks,
             } =&gt; {
-                <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::Tag</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">last</span> {
-                    <span class="ident">cmd</span>.<span class="ident">flags</span> <span class="op">=</span> <span class="number">1</span>;
-                } <span class="kw">else</span> {
-                    <span class="ident">cmd</span>.<span class="ident">flags</span> <span class="op">=</span> <span class="number">0x8001</span>;
+                cmd.tag = BootTag::Tag <span class="kw">as </span>u8;
+                <span class="kw">if </span><span class="kw-2">*</span>last {
+                    cmd.flags = <span class="number">1</span>;
+                } <span class="kw">else </span>{
+                    cmd.flags = <span class="number">0x8001</span>;
                 }
-                <span class="ident">cmd</span>.<span class="ident">address</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">tag</span>;
-                <span class="ident">cmd</span>.<span class="ident">data</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">flags</span>;
-                <span class="ident">cmd</span>.<span class="ident">count</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">cipher_blocks</span>;
-                <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
+                cmd.address = <span class="kw-2">*</span>tag;
+                cmd.data = <span class="kw-2">*</span>flags;
+                cmd.count = <span class="kw-2">*</span>cipher_blocks;
+                Vec::from(cmd.to_bytes().as_ref())
             }
-            <span class="ident">Load</span> { <span class="ident">address</span>, <span class="ident">data</span> } =&gt; {
-                <span class="kw">if</span> <span class="ident">address</span> <span class="op">+</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">START_OF_PROTECTED_FLASH</span> {
+            Load { address, data } =&gt; {
+                <span class="kw">if </span>address + data.len() <span class="kw">as </span>u32 &gt;= START_OF_PROTECTED_FLASH {
                     <span class="macro">panic!</span>(<span class="string">&quot;It is nearly always a mistake to write into the protected flash area&quot;</span>);
                 }
-                <span class="comment">//           CRC|tag|flags  addr     count    data</span>
-                <span class="comment">// expected:  54|02|0000    00000000 78090000 7E976AF8</span>
-                <span class="comment">// generated: 03|02|0000    00000000 78090000 FD96E7AC (...)</span>
-                <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::Load</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="ident">cmd</span>.<span class="ident">address</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">address</span>;
-                <span class="ident">cmd</span>.<span class="ident">count</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
-                <span class="comment">// this takes advantage of the fact that our crc32</span>
-                <span class="comment">// adds &quot;padding till multiple of 16 bytes with zeros&quot;</span>
-                <span class="comment">// to the CRC calculation.</span>
-                <span class="ident">cmd</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">crc32</span>(<span class="ident">data</span>);
-                <span class="kw">let</span> <span class="ident">blocks</span> <span class="op">=</span> (<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">15</span>) <span class="op">/</span> <span class="number">16</span>;
-                <span class="comment">// let blocks = (data.len() + 3) / 4;</span>
-                <span class="comment">// let padding = blocks*16 - data.len();</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vec</span> <span class="op">=</span> <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>());
-                <span class="macro">println!</span>(<span class="string">&quot;generated {}&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span><span class="ident">vec</span>, <span class="number">4</span>));
-                <span class="comment">// panic!();</span>
-                <span class="ident">vec</span>.<span class="ident">extend_from_slice</span>(<span class="ident">data</span>.<span class="ident">as_ref</span>());
-                <span class="comment">// add padding</span>
-                <span class="comment">// NB: NXP says to fill with random bytes, I don&#39;t see the point.</span>
-                <span class="comment">// We&#39;re not actually encrypting anyway, and AES is supposed to be a... cipher ;)</span>
-                <span class="comment">// vec.resize(32 + 16*blocks, 0);</span>
-                <span class="comment">// vec.resize(16 + 4*blocks, 0);</span>
-                <span class="ident">vec</span>.<span class="ident">resize</span>(<span class="number">16</span> <span class="op">+</span> <span class="number">16</span> <span class="op">*</span> <span class="ident">blocks</span>, <span class="number">0</span>);
-                <span class="ident">vec</span>
+                <span class="comment">//           CRC|tag|flags  addr     count    data
+                // expected:  54|02|0000    00000000 78090000 7E976AF8
+                // generated: 03|02|0000    00000000 78090000 FD96E7AC (...)
+                </span>cmd.tag = BootTag::Load <span class="kw">as </span>u8;
+                cmd.address = <span class="kw-2">*</span>address;
+                cmd.count = data.len() <span class="kw">as </span>u32;
+                <span class="comment">// this takes advantage of the fact that our crc32
+                // adds &quot;padding till multiple of 16 bytes with zeros&quot;
+                // to the CRC calculation.
+                </span>cmd.data = crc32(data);
+                <span class="kw">let </span>blocks = (data.len() + <span class="number">15</span>) / <span class="number">16</span>;
+                <span class="comment">// let blocks = (data.len() + 3) / 4;
+                // let padding = blocks*16 - data.len();
+                </span><span class="kw">let </span><span class="kw-2">mut </span>vec = Vec::from(cmd.to_bytes().as_ref());
+                <span class="macro">println!</span>(<span class="string">&quot;generated {}&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span>vec, <span class="number">4</span>));
+                <span class="comment">// panic!();
+                </span>vec.extend_from_slice(data.as_ref());
+                <span class="comment">// add padding
+                // NB: NXP says to fill with random bytes, I don&#39;t see the point.
+                // We&#39;re not actually encrypting anyway, and AES is supposed to be a... cipher ;)
+                // vec.resize(32 + 16*blocks, 0);
+                // vec.resize(16 + 4*blocks, 0);
+                </span>vec.resize(<span class="number">16 </span>+ <span class="number">16 </span>* blocks, <span class="number">0</span>);
+                vec
             }
-            <span class="ident">EraseAll</span> =&gt; {
-                <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::Erase</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="ident">cmd</span>.<span class="ident">flags</span> <span class="op">=</span> <span class="number">1</span>;
-                <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
+            EraseAll =&gt; {
+                cmd.tag = BootTag::Erase <span class="kw">as </span>u8;
+                cmd.flags = <span class="number">1</span>;
+                Vec::from(cmd.to_bytes().as_ref())
             }
-            <span class="ident">EraseRegion</span> { <span class="ident">address</span>, <span class="ident">bytes</span> } =&gt; {
-                <span class="kw">if</span> <span class="ident">address</span> <span class="op">+</span> <span class="ident">bytes</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">START_OF_PROTECTED_FLASH</span> {
+            EraseRegion { address, bytes } =&gt; {
+                <span class="kw">if </span>address + bytes &gt;= START_OF_PROTECTED_FLASH {
                     <span class="macro">panic!</span>(<span class="string">&quot;It is nearly always a mistake to erase the protected flash area&quot;</span>);
                 }
-                <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::Erase</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="ident">cmd</span>.<span class="ident">address</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">address</span>;
-                <span class="ident">cmd</span>.<span class="ident">count</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">bytes</span>;
-                <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
+                cmd.tag = BootTag::Erase <span class="kw">as </span>u8;
+                cmd.address = <span class="kw-2">*</span>address;
+                cmd.count = <span class="kw-2">*</span>bytes;
+                Vec::from(cmd.to_bytes().as_ref())
             }
-            <span class="ident">CheckSecureFirmwareVersion</span> { <span class="ident">version</span> } =&gt; {
-                <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::CheckFirmwareVersion</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="comment">// according to nxp/spsdk</span>
-                <span class="ident">cmd</span>.<span class="ident">address</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="ident">cmd</span>.<span class="ident">count</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">version</span>;
-                <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
+            CheckSecureFirmwareVersion { version } =&gt; {
+                cmd.tag = BootTag::CheckFirmwareVersion <span class="kw">as </span>u8;
+                <span class="comment">// according to nxp/spsdk
+                </span>cmd.address = <span class="number">0</span>;
+                cmd.count = <span class="kw-2">*</span>version;
+                Vec::from(cmd.to_bytes().as_ref())
             }
-            <span class="ident">CheckNonsecureFirmwareVersion</span> { <span class="ident">version</span> } =&gt; {
-                <span class="ident">cmd</span>.<span class="ident">tag</span> <span class="op">=</span> <span class="ident">BootTag::CheckFirmwareVersion</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="ident">cmd</span>.<span class="ident">address</span> <span class="op">=</span> <span class="number">1</span>;
-                <span class="ident">cmd</span>.<span class="ident">count</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">version</span>;
-                <span class="ident">Vec::from</span>(<span class="ident">cmd</span>.<span class="ident">to_bytes</span>().<span class="ident">as_ref</span>())
+            CheckNonsecureFirmwareVersion { version } =&gt; {
+                cmd.tag = BootTag::CheckFirmwareVersion <span class="kw">as </span>u8;
+                cmd.address = <span class="number">1</span>;
+                cmd.count = <span class="kw-2">*</span>version;
+                Vec::from(cmd.to_bytes().as_ref())
             }
-            <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">todo!</span>(),
         }
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">nom::IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="self">Self</span>, ()<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">i</span>, <span class="ident">raw</span>) <span class="op">=</span> <span class="ident">RawBootCommand::from_bytes</span>(<span class="ident">bytes</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">raw</span>.<span class="ident">tag</span> {
-            <span class="comment">// BootTag::Nop =&gt; {</span>
-            <span class="number">0</span> =&gt; {
-                <span class="comment">// todo? check everything zero except checksum</span>
-                (<span class="ident">i</span>, <span class="ident"><span class="self">Self</span>::Nop</span>)
+    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; nom::IResult&lt;<span class="kw-2">&amp;</span>[u8], <span class="self">Self</span>, ()&gt; {
+        <span class="kw">let </span>(i, raw) = RawBootCommand::from_bytes(bytes)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>raw.tag {
+            <span class="comment">// BootTag::Nop =&gt; {
+            </span><span class="number">0 </span>=&gt; {
+                <span class="comment">// todo? check everything zero except checksum
+                </span>(i, <span class="self">Self</span>::Nop)
             }
-            <span class="comment">// BootTag::Tag =&gt; {</span>
-            <span class="number">1</span> =&gt; (
-                <span class="ident">i</span>,
-                <span class="ident"><span class="self">Self</span>::Tag</span> {
-                    <span class="ident">last</span>: (<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
-                    <span class="ident">tag</span>: <span class="ident">raw</span>.<span class="ident">address</span>,
-                    <span class="ident">flags</span>: <span class="ident">raw</span>.<span class="ident">data</span>,
-                    <span class="ident">cipher_blocks</span>: <span class="ident">raw</span>.<span class="ident">count</span>,
+            <span class="comment">// BootTag::Tag =&gt; {
+            </span><span class="number">1 </span>=&gt; (
+                i,
+                <span class="self">Self</span>::Tag {
+                    last: (raw.flags &amp; <span class="number">1</span>) != <span class="number">0</span>,
+                    tag: raw.address,
+                    flags: raw.data,
+                    cipher_blocks: raw.count,
                 },
             ),
-            <span class="comment">// BootTag::Load =&gt; {</span>
-            <span class="number">2</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">blocks</span> <span class="op">=</span> (<span class="ident">raw</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">15</span>) <span class="op">/</span> <span class="number">16</span>;
-                <span class="kw">let</span> (<span class="ident">i</span>, <span class="ident">data_ref</span>) <span class="op">=</span> <span class="ident">take</span>(<span class="ident">blocks</span> <span class="op">*</span> <span class="number">16</span>)(<span class="ident">i</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::from</span>(<span class="kw-2">&amp;</span><span class="ident">data_ref</span>[..<span class="ident">raw</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>]);
-                <span class="kw">if</span> <span class="ident">raw</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">!</span><span class="op">=</span> <span class="ident">data_ref</span>.<span class="ident">len</span>() {
+            <span class="comment">// BootTag::Load =&gt; {
+            </span><span class="number">2 </span>=&gt; {
+                <span class="kw">let </span>blocks = (raw.count <span class="kw">as </span>usize + <span class="number">15</span>) / <span class="number">16</span>;
+                <span class="kw">let </span>(i, data_ref) = take(blocks * <span class="number">16</span>)(i)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = Vec::from(<span class="kw-2">&amp;</span>data_ref[..raw.count <span class="kw">as </span>usize]);
+                <span class="kw">if </span>raw.count <span class="kw">as </span>usize != data_ref.len() {
                     <span class="macro">info!</span>(
                         <span class="string">&quot;surplus random bytes skipped when reading: {}&quot;</span>,
-                        <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span><span class="ident">data_ref</span>[<span class="ident">raw</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>..])
+                        <span class="macro">hex_str!</span>(<span class="kw-2">&amp;</span>data_ref[raw.count <span class="kw">as </span>usize..])
                     );
                 }
-                <span class="comment">// verify &quot;CRC-32&quot; calculation:</span>
-                <span class="comment">// raw.data == CRC over entire contents of `data_ref`, including padding</span>
-                <span class="kw">let</span> <span class="ident">calculated_crc</span> <span class="op">=</span> <span class="ident">crc32</span>(<span class="ident">data_ref</span>);
-                <span class="macro">assert_eq!</span>(<span class="ident">calculated_crc</span>, <span class="ident">raw</span>.<span class="ident">data</span>);
+                <span class="comment">// verify &quot;CRC-32&quot; calculation:
+                // raw.data == CRC over entire contents of `data_ref`, including padding
+                </span><span class="kw">let </span>calculated_crc = crc32(data_ref);
+                <span class="macro">assert_eq!</span>(calculated_crc, raw.data);
                 (
-                    <span class="ident">i</span>,
-                    <span class="ident"><span class="self">Self</span>::Load</span> {
-                        <span class="ident">address</span>: <span class="ident">raw</span>.<span class="ident">address</span>,
-                        <span class="comment">// bytes: data.len(),</span>
-                        <span class="ident">data</span>,
+                    i,
+                    <span class="self">Self</span>::Load {
+                        address: raw.address,
+                        <span class="comment">// bytes: data.len(),
+                        </span>data,
                     },
                 )
             }
-            <span class="comment">// BootTag::Fill =&gt; {</span>
-            <span class="number">3</span> =&gt; (
-                <span class="ident">i</span>,
-                <span class="ident"><span class="self">Self</span>::Fill</span> {
-                    <span class="ident">address</span>: <span class="ident">raw</span>.<span class="ident">address</span>,
-                    <span class="ident">bytes</span>: <span class="ident">raw</span>.<span class="ident">count</span>,
-                    <span class="ident">pattern</span>: <span class="ident">raw</span>.<span class="ident">data</span>,
+            <span class="comment">// BootTag::Fill =&gt; {
+            </span><span class="number">3 </span>=&gt; (
+                i,
+                <span class="self">Self</span>::Fill {
+                    address: raw.address,
+                    bytes: raw.count,
+                    pattern: raw.data,
                 },
             ),
-            <span class="comment">// BootTag::Erase =&gt; {</span>
-            <span class="number">7</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">erase_all</span> <span class="op">=</span> (<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
-                <span class="kw">let</span> <span class="ident">disable_flash_security_state</span> <span class="op">=</span> (<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;</span> <span class="number">2</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
-                <span class="comment">// not supported yet</span>
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">disable_flash_security_state</span>);
-                <span class="kw">let</span> <span class="ident">memory_controller_id</span> <span class="op">=</span> (<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="op">&amp;</span> <span class="number">0b1111</span>;
-                <span class="comment">// expect &quot;internal&quot; flash&quot;</span>
-                <span class="macro">assert_eq!</span>(<span class="ident">memory_controller_id</span>, <span class="number">0x0</span>);
+            <span class="comment">// BootTag::Erase =&gt; {
+            </span><span class="number">7 </span>=&gt; {
+                <span class="kw">let </span>erase_all = (raw.flags &amp; <span class="number">1</span>) != <span class="number">0</span>;
+                <span class="kw">let </span>disable_flash_security_state = (raw.flags &amp; <span class="number">2</span>) != <span class="number">0</span>;
+                <span class="comment">// not supported yet
+                </span><span class="macro">assert!</span>(!disable_flash_security_state);
+                <span class="kw">let </span>memory_controller_id = (raw.flags &gt;&gt; <span class="number">8</span>) &amp; <span class="number">0b1111</span>;
+                <span class="comment">// expect &quot;internal&quot; flash&quot;
+                </span><span class="macro">assert_eq!</span>(memory_controller_id, <span class="number">0x0</span>);
 
-                <span class="kw">if</span> <span class="ident">erase_all</span> {
-                    <span class="comment">// raw.address and raw.count are ignored</span>
-                    (<span class="ident">i</span>, <span class="ident"><span class="self">Self</span>::EraseAll</span>)
-                } <span class="kw">else</span> {
+                <span class="kw">if </span>erase_all {
+                    <span class="comment">// raw.address and raw.count are ignored
+                    </span>(i, <span class="self">Self</span>::EraseAll)
+                } <span class="kw">else </span>{
                     (
-                        <span class="ident">i</span>,
-                        <span class="ident"><span class="self">Self</span>::EraseRegion</span> {
-                            <span class="ident">address</span>: <span class="ident">raw</span>.<span class="ident">address</span>,
-                            <span class="ident">bytes</span>: <span class="ident">raw</span>.<span class="ident">count</span>,
+                        i,
+                        <span class="self">Self</span>::EraseRegion {
+                            address: raw.address,
+                            bytes: raw.count,
                         },
                     )
                 }
             }
-            <span class="comment">// BootTag::CheckFirmwareVersion =&gt; {</span>
-            <span class="number">0xB</span> =&gt; {
-                <span class="comment">// header.m_address = ENDIAN_HOST_TO_LITTLE_U32((uint32_t)m_versionType);</span>
-                <span class="comment">// header.m_count = ENDIAN_HOST_TO_LITTLE_U32(m_version);</span>
-                <span class="comment">// SecureVersion = 0x0,</span>
-                <span class="comment">// NonSecureVersion = 0x1,</span>
-                <span class="kw">let</span> <span class="ident">nonsecure_version</span> <span class="op">=</span> (<span class="ident">raw</span>.<span class="ident">address</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
-                <span class="comment">// header.m_address = ENDIAN_HOST_TO_LITTLE_U32((uint32_t)m_versionType);</span>
-                <span class="comment">// header.m_count = ENDIAN_HOST_TO_LITTLE_U32(m_version);</span>
-                <span class="kw">if</span> <span class="ident">nonsecure_version</span> {
+            <span class="comment">// BootTag::CheckFirmwareVersion =&gt; {
+            </span><span class="number">0xB </span>=&gt; {
+                <span class="comment">// header.m_address = ENDIAN_HOST_TO_LITTLE_U32((uint32_t)m_versionType);
+                // header.m_count = ENDIAN_HOST_TO_LITTLE_U32(m_version);
+                // SecureVersion = 0x0,
+                // NonSecureVersion = 0x1,
+                </span><span class="kw">let </span>nonsecure_version = (raw.address &amp; <span class="number">1</span>) != <span class="number">0</span>;
+                <span class="comment">// header.m_address = ENDIAN_HOST_TO_LITTLE_U32((uint32_t)m_versionType);
+                // header.m_count = ENDIAN_HOST_TO_LITTLE_U32(m_version);
+                </span><span class="kw">if </span>nonsecure_version {
                     (
-                        <span class="ident">i</span>,
-                        <span class="ident"><span class="self">Self</span>::CheckNonsecureFirmwareVersion</span> { <span class="ident">version</span>: <span class="ident">raw</span>.<span class="ident">count</span> },
+                        i,
+                        <span class="self">Self</span>::CheckNonsecureFirmwareVersion { version: raw.count },
                     )
-                } <span class="kw">else</span> {
-                    (<span class="ident">i</span>, <span class="ident"><span class="self">Self</span>::CheckSecureFirmwareVersion</span> { <span class="ident">version</span>: <span class="ident">raw</span>.<span class="ident">count</span> })
+                } <span class="kw">else </span>{
+                    (i, <span class="self">Self</span>::CheckSecureFirmwareVersion { version: raw.count })
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(<span class="string">&quot;implement other boot commands&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">todo!</span>(<span class="string">&quot;implement other boot commands&quot;</span>),
         })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

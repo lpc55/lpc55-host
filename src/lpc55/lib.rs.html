@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../lpc55/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../lpc55/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../lpc55/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -53,55 +47,54 @@
 <span id="47">47</span>
 <span id="48">48</span>
 <span id="49">49</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Host-side library to interact with and provision NXP LPC55 devices.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Additionally, a command-line tool `lpc55` is implemented, so far</span>
-<span class="doccomment">//! it can list all properties via `lpc55 info`, and read out memory</span>
-<span class="doccomment">//! (with some restrictions).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! For instance `lpc55 read-memory $((0x9DE00)) $((7*512)) -o output.bin`</span>
-<span class="doccomment">//! extracts the PFR (protected flash region) of an unlocked device.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The grand goal is to have an easily configurable `cargo` subcommand</span>
-<span class="doccomment">//! which allows creating and flashing SB2.1 (secure binary) files from</span>
-<span class="doccomment">//! regular ELF files, signed via a PKCS#11 backend.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## But why?!</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Vendor tools `blhost` and `elftosb` are semi-open source, officially</span>
-<span class="doccomment">//! they are BSD-licensed, but code is only available behind a login screen.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! pyMBoot is instructive but in Python (and a bit buggy in parts).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! There is also the somehow underadvertised &lt;https://github.com/NXPmicro/spsdk&gt;.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Host-side library to interact with and provision NXP LPC55 devices.
+//!
+//! Additionally, a command-line tool `lpc55` is implemented, so far
+//! it can list all properties via `lpc55 info`, and read out memory
+//! (with some restrictions).
+//!
+//! For instance `lpc55 read-memory $((0x9DE00)) $((7*512)) -o output.bin`
+//! extracts the PFR (protected flash region) of an unlocked device.
+//!
+//! The grand goal is to have an easily configurable `cargo` subcommand
+//! which allows creating and flashing SB2.1 (secure binary) files from
+//! regular ELF files, signed via a PKCS#11 backend.
+//!
+//! ## But why?!
+//!
+//! Vendor tools `blhost` and `elftosb` are semi-open source, officially
+//! they are BSD-licensed, but code is only available behind a login screen.
+//!
+//! pyMBoot is instructive but in Python (and a bit buggy in parts).
+//!
+//! There is also the somehow underadvertised &lt;https://github.com/NXPmicro/spsdk&gt;.
 
-<span class="comment">// for readability</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::identity_op</span>)]</span>
+</span><span class="comment">// for readability
+</span><span class="attribute">#![allow(clippy::identity_op)]
 
-<span class="attribute">#[<span class="ident">macro_use</span>]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">log</span>;
+#[macro_use]
+</span><span class="kw">extern crate </span>log;
 
-<span class="attribute">#[<span class="ident">macro_use</span>(<span class="ident">hex_str</span>, <span class="ident">hexstr</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">delog</span>;
+<span class="attribute">#[macro_use(hex_str, hexstr)]
+</span><span class="kw">extern crate </span>delog;
 
-<span class="comment">// modules</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bootloader</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">crypto</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pki</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">protected_flash</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">secure_binary</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">signed_binary</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">util</span>;
+<span class="comment">// modules
+</span><span class="kw">pub mod </span>bootloader;
+<span class="kw">pub mod </span>crypto;
+<span class="kw">pub mod </span>pki;
+<span class="kw">pub mod </span>protected_flash;
+<span class="kw">pub mod </span>secure_binary;
+<span class="kw">pub mod </span>signed_binary;
+<span class="kw">pub mod </span>util;
 
-<span class="comment">// optional modules</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">http</span>;
+<span class="comment">// optional modules
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;http&quot;</span>)]
+</span><span class="kw">pub mod </span>http;
 
-<span class="comment">// re-exports</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader::protocol::Error</span> <span class="kw">as</span> <span class="ident">ProtocolError</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader::Error</span> <span class="kw">as</span> <span class="ident">BootloaderError</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bootloader</span>::{<span class="ident">Bootloader</span>, <span class="ident">UuidSelectable</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">uuid</span>;
+<span class="comment">// re-exports
+</span><span class="kw">pub use </span>bootloader::protocol::Error <span class="kw">as </span>ProtocolError;
+<span class="kw">pub use </span>bootloader::Error <span class="kw">as </span>BootloaderError;
+<span class="kw">pub use </span>bootloader::{Bootloader, UuidSelectable};
+<span class="kw">pub use </span>uuid;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lpc55" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>
