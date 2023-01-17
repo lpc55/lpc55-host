@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.2.1] - 2023-01-17
+
+- messed up date and version
+
 ## [0.2.0] - 2022-01-17
 
 - breaking change: bump `uuid` to v1 (exposed directly)
