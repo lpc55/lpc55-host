@@ -953,6 +953,8 @@ fn bcd(x: u16) -> [u8; 2] {
     bcd[1] |= ((x % 10) << 4) as u8;
     x /= 10;
     bcd[0] = (x % 10) as _;
+    x /= 10;
+    bcd[0] |= ((x % 10) << 4) as u8;
 
     bcd
 }
@@ -1038,7 +1040,9 @@ impl From<[u8; 4]> for Version {
 fn version_entry(input: &[u8]) -> nom::IResult<&[u8], u16, ()> {
     let literal_u16 = |x: u16| verify(le_u16, move |y| *y == x);
     map(tuple((u8, u8, literal_u16(0))), |(hi, lo, _padding)| {
-        ((hi & 0b1111) as u16) * 100 + (((lo >> 4) * 10 + (lo & 0b1111)) as u16)
+        ((hi >> 4) as u16) * 1000
+            + ((hi & 0b1111) as u16) * 100
+            + (((lo >> 4) * 10 + (lo & 0b1111)) as u16)
     })(input)
 }
 
@@ -1079,6 +1083,39 @@ pub mod bcd_tests {
 
         let also_version: Version = parse_version(&bcd_version).unwrap().1;
         assert_eq!(version, also_version);
+    }
+
+    #[test]
+    fn bcd_minor_1000() {
+        // 1000 is the first minor the old 3-digit BCD path could not represent
+        // (999 was the ceiling). Verify it encodes and round-trips exactly.
+        let version = Version {
+            major: 1,
+            minor: 1000,
+            patch: 0,
+        };
+        let bytes = version.to_bytes();
+        // 1000 -> thousands=1, rest=0 -> BCD bytes 0x10 0x00
+        assert_eq!(&bytes[4..6], &[0x10, 0x00]);
+        let roundtrip: Version = parse_version(&bytes).unwrap().1;
+        assert_eq!(roundtrip.minor, 1000);
+        assert_eq!(version, roundtrip);
+    }
+
+    #[test]
+    fn bcd_four_digit_minor() {
+        // CalVer minor = days since 2020-01-01 exceeds 999 since ~2022-09.
+        // e.g. 2026-06-20 -> 2362. The 3-digit BCD path silently truncated it.
+        let version = Version {
+            major: 1,
+            minor: 2362,
+            patch: 0,
+        };
+        let bytes = version.to_bytes();
+        // minor 2362 -> BCD bytes 0x23 0x62 (thousands+hundreds, tens+ones)
+        assert_eq!(&bytes[4..6], &[0x23, 0x62]);
+        let roundtrip: Version = parse_version(&bytes).unwrap().1;
+        assert_eq!(version, roundtrip);
     }
 }
 
