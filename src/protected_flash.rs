@@ -771,11 +771,11 @@ impl From<PrinceConfiguration> for u32 {
     fn from(cfg: PrinceConfiguration) -> u32 {
         let mut word = 0u32;
         word |= boolmulti(cfg.erase_checks[0]) << 28;
-        word |= boolmulti(cfg.erase_checks[0]) << 26;
-        word |= boolmulti(cfg.erase_checks[0]) << 24;
+        word |= boolmulti(cfg.erase_checks[1]) << 26;
+        word |= boolmulti(cfg.erase_checks[2]) << 24;
         word |= boolmulti(cfg.locked[0]) << 20;
-        word |= boolmulti(cfg.locked[0]) << 18;
-        word |= boolmulti(cfg.locked[0]) << 16;
+        word |= boolmulti(cfg.locked[1]) << 18;
+        word |= boolmulti(cfg.locked[2]) << 16;
         word |= (cfg.addresses[0] as u32) << 8;
         word |= (cfg.addresses[1] as u32) << 4;
         word |= (cfg.addresses[2] as u32) << 0;
@@ -790,6 +790,23 @@ pub struct PrinceConfiguration {
     pub erase_checks: [bool; 3],
     pub locked: [bool; 3],
     pub addresses: [u8; 3],
+}
+
+#[cfg(test)]
+mod prince_tests {
+    use super::PrinceConfiguration;
+
+    #[test]
+    fn prince_configuration_round_trips_each_region() {
+        let cfg = PrinceConfiguration {
+            erase_checks: [false, true, false],
+            locked: [false, false, true],
+            addresses: [1, 2, 3],
+        };
+        let word = u32::from(cfg);
+        assert_eq!(word, (0b11 << 26) | (0b11 << 16) | (1 << 8) | (2 << 4) | 3);
+        assert_eq!(PrinceConfiguration::from(word), cfg);
+    }
 }
 
 impl From<u32> for PrinceConfiguration {

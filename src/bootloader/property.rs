@@ -87,23 +87,28 @@ pub enum Property {
 bitflags::bitflags! {
     #[derive(Deserialize, Serialize)]
     pub struct AvailableCommands: u32 {
-        const ERASE_FLASH_ALL = 1 << CommandTag::EraseFlashAll as u8;
-        const ERASE_FLASH = 1 << CommandTag::EraseFlash as u8;
-        const READ_MEMORY = 1 << CommandTag::ReadMemory as u8;
-        const WRITE_MEMORY = 1 << CommandTag::WriteMemory as u8;
-        const FILL_MEMORY = 1 << CommandTag::FillMemory as u8;
-        const FLASH_SECURITY_DISABLE = 1 << CommandTag::FlashSecurityDisable as u8;
-        const GET_PROPERTY = 1 << CommandTag::GetProperty as u8;
-        const RECEIVE_SB_FILE = 1 << CommandTag::ReceiveSbFile as u8;
-        const EXECUTE = 1 << CommandTag::Execute as u8;
-        const CALL = 1 << CommandTag::Call as u8;
-        const RESET = 1 << CommandTag::Reset as u8;
-        const SET_PROPERTY = 1 << CommandTag::SetProperty as u8;
-        const FLASH_READ_RESOURCE = 1 << CommandTag::FlashReadResource as u8;
-        // TODO? it seems a lot of commands never actually show up here
-        //
-        // doesn't seem to turn up in the (old?) interface that lists available commands
-        // const KEY_PROVISIONING = 1 << 0x15;
+        // Bit n of the property stands for the command with tag n + 1 (NXP SPSDK,
+        // `AvailableCommandsValue`), so tag 1 is bit 0.
+        const ERASE_FLASH_ALL = 1 << (CommandTag::EraseFlashAll as u8 - 1);
+        const ERASE_FLASH = 1 << (CommandTag::EraseFlash as u8 - 1);
+        const READ_MEMORY = 1 << (CommandTag::ReadMemory as u8 - 1);
+        const WRITE_MEMORY = 1 << (CommandTag::WriteMemory as u8 - 1);
+        const FILL_MEMORY = 1 << (CommandTag::FillMemory as u8 - 1);
+        const FLASH_SECURITY_DISABLE = 1 << (CommandTag::FlashSecurityDisable as u8 - 1);
+        const GET_PROPERTY = 1 << (CommandTag::GetProperty as u8 - 1);
+        const RECEIVE_SB_FILE = 1 << (CommandTag::ReceiveSbFile as u8 - 1);
+        const EXECUTE = 1 << (CommandTag::Execute as u8 - 1);
+        const CALL = 1 << (CommandTag::Call as u8 - 1);
+        const RESET = 1 << (CommandTag::Reset as u8 - 1);
+        const SET_PROPERTY = 1 << (CommandTag::SetProperty as u8 - 1);
+        const ERASE_FLASH_ALL_UNLOCK = 1 << (CommandTag::EraseFlashAllUnlock as u8 - 1);
+        const FLASH_PROGRAM_ONCE = 1 << (CommandTag::FlashProgramOnce as u8 - 1);
+        const FLASH_READ_ONCE = 1 << (CommandTag::FlashReadOnce as u8 - 1);
+        const FLASH_READ_RESOURCE = 1 << (CommandTag::FlashReadResource as u8 - 1);
+        const CONFIGURE_MEMORY = 1 << (CommandTag::ConfigureMemory as u8 - 1);
+        const RELIABLE_UPDATE = 1 << (CommandTag::ReliableUpdate as u8 - 1);
+        const GENERATE_KEY_BLOB = 1 << (CommandTag::GenerateKeyBlob as u8 - 1);
+        const KEYSTORE = 1 << (CommandTag::Keystore as u8 - 1);
     }
 }
 
@@ -295,5 +300,28 @@ mod test {
     #[cfg(all(feature = "with-device", test))]
     fn available_commands() {
         assert_eq!(AvailableCommands::ERASE_FLASH_ALL.bits, (1 << 2));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::AvailableCommands;
+
+    #[test]
+    fn available_commands_decode_by_tag() {
+        // Recorded from an LPC55S69 ROM (K3.0.0) with secure boot enabled
+        let commands = AvailableCommands::from_bits_truncate(0x10DCE);
+        assert_eq!(
+            commands,
+            AvailableCommands::ERASE_FLASH
+                | AvailableCommands::READ_MEMORY
+                | AvailableCommands::WRITE_MEMORY
+                | AvailableCommands::GET_PROPERTY
+                | AvailableCommands::RECEIVE_SB_FILE
+                | AvailableCommands::EXECUTE
+                | AvailableCommands::RESET
+                | AvailableCommands::SET_PROPERTY
+                | AvailableCommands::CONFIGURE_MEMORY
+        );
     }
 }
